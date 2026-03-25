@@ -3,45 +3,45 @@
 import { useState } from "react";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 取扱説明書データ
+// プロファイリングデータ
 // ─────────────────────────────────────────────────────────────────────────────
 const PROFILE_ITEMS = [
   {
-    title: "強み・勝ち筋",
+    title: "エネルギーの源泉",
     catchphrase: "問題の「枠組み」を自分で再設定できる人",
     detail:
       "複雑な状況を即座に構造化し、本質的な問いを見出す力があります。不確実な環境でも臆せず行動に移せるのは、リスクを感情ではなく理性で受け入れる準備ができているからでしょう。対話の中で「問題の枠組み」を自ら再設定する場面が何度も見られました。これはあなたの大きな武器です。",
-    accent: "border-[#3AAFCA]/30 bg-[#3AAFCA]/5",
+    accent: "border-[#3AAFCA]/25 bg-[#3AAFCA]/[0.04]",
     labelColor: "text-[#3AAFCA]",
   },
   {
-    title: "思考のクセ",
+    title: "無自覚な防衛機制",
     catchphrase: "完璧でないと、動けなくなる",
     detail:
       "「完璧でなければ始められない」という感覚が、着手を遅らせることがあります。外部の要因や他者の動きを待ってしまう瞬間は、実は自分の中にまだ不確かさがある時のサインかもしれません。短期的な感情の揺れが、本来の優先順位を塗り替えてしまうパターンも繰り返し現れています。",
-    accent: "border-[#C4A35A]/30 bg-[#C4A35A]/5",
+    accent: "border-[#C4A35A]/25 bg-[#C4A35A]/[0.04]",
     labelColor: "text-[#C4A35A]",
   },
   {
-    title: "価値観",
+    title: "譲れないコアバリュー",
     catchphrase: "自分で選んだ道しか、本気になれない",
     detail:
       "「自分の意思で決めた」という感覚を、あなたはひどく大切にしています。誰かに言われてやった仕事より、自ら選んだ道を歩んでいる時に、あなたのエネルギーは最も高まります。成果そのものよりも、そこに至るプロセスで何を学んだかを問い続ける姿勢は、揺るぎないあなたの軸です。",
-    accent: "border-[#5A8A96]/30 bg-[#5A8A96]/5",
+    accent: "border-[#5A8A96]/25 bg-[#5A8A96]/[0.04]",
     labelColor: "text-[#5A8A96]",
   },
   {
-    title: "現在の主な課題",
+    title: "現在直面している壁",
     catchphrase: "「速く」と「正しく」の間で揺れている",
     detail:
       "意思決定の速度と質のトレードオフに、あなたは今も向き合っています。マネジメントという新しい役割への移行期において、これまで通用してきた「一人で解決する」という方法論が、少しずつ限界を見せ始めています。長期の自分像を言葉にすることが、今最も必要な作業かもしれません。",
-    accent: "border-[#9A9488]/30 bg-[#9A9488]/5",
+    accent: "border-[#9A9488]/25 bg-[#9A9488]/[0.04]",
     labelColor: "text-[#9A9488]",
   },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 思考の軌跡データ
+// 対話ログデータ
 // ─────────────────────────────────────────────────────────────────────────────
 const HISTORY_ENTRIES = [
   { date: "3月23日（月）", theme: "意思決定の先送りについて" },
@@ -52,9 +52,9 @@ const HISTORY_ENTRIES = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ProfileAccordion
+// ProfilingAccordion
 // ─────────────────────────────────────────────────────────────────────────────
-interface AccordionItem {
+interface ProfileItem {
   title: string;
   catchphrase: string;
   detail: string;
@@ -62,7 +62,7 @@ interface AccordionItem {
   labelColor: string;
 }
 
-function ProfileAccordion({ items }: { items: AccordionItem[] }) {
+function ProfilingAccordion({ items }: { items: ProfileItem[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
@@ -70,37 +70,32 @@ function ProfileAccordion({ items }: { items: AccordionItem[] }) {
       {items.map(({ title, catchphrase, detail, accent, labelColor }, i) => {
         const isOpen = openIndex === i;
         return (
-          <div key={title} className={`border rounded-2xl overflow-hidden transition-all ${accent}`}>
+          <div key={title} className={`border rounded-xl overflow-hidden transition-all duration-300 ${accent}`}>
             <button
               onClick={() => setOpenIndex(isOpen ? null : i)}
-              className="w-full flex items-center justify-between px-5 py-4 text-left gap-4"
+              className="w-full flex items-center justify-between px-5 py-3.5 text-left gap-4"
             >
-              <div>
-                <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${labelColor}`}>
-                  {title}
-                </p>
-                <p className="text-sm font-semibold text-[#E8E3D8]">{catchphrase}</p>
-              </div>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="#9A9488"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-              >
-                <path d="M4 6l4 4 4-4" />
-              </svg>
+              <p className={`text-xs font-bold uppercase tracking-widest ${labelColor}`}>
+                {title}
+              </p>
+              {isOpen ? (
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9A9488" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                  <path d="M4 10l4-4 4 4" />
+                </svg>
+              ) : (
+                <span className="flex-shrink-0 flex items-center gap-1 text-[9px] text-[#8A8276]/70 tracking-wider whitespace-nowrap">
+                  解析を開く
+                  <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 6l4 4 4-4" />
+                  </svg>
+                </span>
+              )}
             </button>
 
             {isOpen && (
-              <div className="px-5 pb-5">
-                <div className="border-t border-white/10 pt-4">
-                  <p className="text-sm text-[#9A9488] leading-relaxed">{detail}</p>
-                </div>
+              <div className="px-5 pb-5 border-t border-white/[0.06]">
+                <p className="text-sm font-semibold text-[#E8E3D8] mt-4 mb-2">{catchphrase}</p>
+                <p className="text-sm text-[#9A9488] leading-relaxed">{detail}</p>
               </div>
             )}
           </div>
@@ -111,72 +106,91 @@ function ProfileAccordion({ items }: { items: AccordionItem[] }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// セクション見出し
+// ─────────────────────────────────────────────────────────────────────────────
+function SectionHeading({ label, sub }: { label: string; sub?: string }) {
+  return (
+    <div className="mb-4">
+      <div className="flex items-baseline gap-2">
+        <h2 className="text-[10px] font-bold tracking-[0.25em] text-[#C4A35A]/70 uppercase">{label}</h2>
+        {sub && <span className="text-[9px] text-[#8A8276]/60 tracking-wider">{sub}</span>}
+      </div>
+      <div className="mt-1.5 h-px bg-gradient-to-r from-[#C4A35A]/20 via-[#C4A35A]/8 to-transparent" />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
-type Mode = "profile" | "history";
-
 export default function ArchivePage() {
-  const [mode, setMode] = useState<Mode>("profile");
-
   return (
-    <div className="bg-[#0B0E13] min-h-screen text-[#E8E3D8] p-4 md:p-6">
-      <div className="max-w-2xl">
+    <div className="bg-[#0B0E13] min-h-screen text-[#E8E3D8] px-4 py-6 md:px-6">
+      <div className="max-w-2xl space-y-10">
 
-        {/* モード切り替えトグル */}
-        <div className="mb-5 inline-flex bg-white/[0.05] border border-white/[0.08] rounded-xl p-1 gap-1">
-          {(["profile", "history"] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                mode === m
-                  ? "bg-white/[0.1] text-[#E8E3D8] shadow-sm"
-                  : "text-[#8A8276] hover:text-[#C4A35A]"
-              }`}
-            >
-              {m === "profile" ? "取扱説明書" : "思考の軌跡"}
-            </button>
-          ))}
+        {/* ── 週間ハイライト ─────────────────────────────────────────── */}
+        <div>
+          <div className="mb-5">
+            <h1 className="text-xl font-bold text-[#E8E3D8]">思考の地層</h1>
+            <p className="text-sm text-[#8A8276] mt-0.5">今週の観測レポート</p>
+          </div>
+          <div className="bg-[#1A222B]/30 border border-[#C4A35A]/20 rounded-xl p-5">
+            <p className="text-[10px] font-bold tracking-[0.22em] text-[#C4A35A]/70 uppercase mb-3">
+              Alter からの総評
+            </p>
+            <p className="text-sm text-[#9A9488] leading-[1.85]">
+              今週は「意思決定の速度」に関する葛藤が顕著でした。しかし、それは能力の不足ではなく、新しい役割に対する責任感の裏返しです。後半にかけて、自らの軸を言語化しようとする前向きな兆候が見られます。
+            </p>
+          </div>
         </div>
 
-        {/* 取扱説明書 */}
-        {mode === "profile" && (
-          <div>
-            <div className="mb-5">
-              <h1 className="text-xl font-bold text-[#E8E3D8]">あなたの取扱説明書</h1>
-              <p className="text-sm text-[#8A8276] mt-0.5">対話から読み解いた、あなたの内面の地図</p>
-            </div>
-            <ProfileAccordion items={PROFILE_ITEMS} />
-          </div>
-        )}
+        {/* ── 深層のプロファイリング ────────────────────────────────── */}
+        <div>
+          <SectionHeading label="深層のプロファイリング" sub="対話から析出された内面構造" />
+          <ProfilingAccordion items={PROFILE_ITEMS} />
+        </div>
 
-        {/* 思考の軌跡 */}
-        {mode === "history" && (
-          <div>
-            <div className="mb-5">
-              <h1 className="text-xl font-bold text-[#E8E3D8]">思考の軌跡</h1>
-            </div>
-            <div className="space-y-2">
-              {HISTORY_ENTRIES.map(({ date, theme }) => (
-                <div
-                  key={date}
-                  className="bg-white/[0.04] backdrop-blur-sm border border-[#C4A35A]/20 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 hover:border-[#C4A35A]/45 hover:bg-white/[0.06] transition-all"
-                >
-                  <div>
-                    <p className="text-xs text-[#9A9488] mb-0.5">{date}</p>
-                    <p className="text-sm font-semibold text-[#E8E3D8]">{theme}</p>
-                  </div>
-                  <button className="flex-shrink-0 text-xs font-medium text-[#C4A35A]/80 hover:text-[#C4A35A] flex items-center gap-1 transition-colors">
-                    ログを見る
-                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
+        {/* ── 分析の根拠：対話の記録 ───────────────────────────────── */}
+        <div>
+          <SectionHeading label="分析の根拠：対話の記録" />
+
+          {/* 検索ボックス（モック） */}
+          <div className="relative mb-4">
+            <input
+              type="text"
+              placeholder="過去の思考を検索..."
+              className="w-full bg-white/[0.02] border border-white/[0.1] rounded-xl px-4 py-2 text-sm text-[#E8E3D8] placeholder:text-[#8A8276] focus:border-[#C4A35A]/40 focus:outline-none transition-colors"
+            />
+            <svg
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8A8276]/50"
+              width="13" height="13" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
           </div>
-        )}
+
+          {/* ログリスト */}
+          <div className="space-y-2">
+            {HISTORY_ENTRIES.map(({ date, theme }) => (
+              <div
+                key={date}
+                className="bg-white/[0.04] backdrop-blur-sm border border-[#C4A35A]/20 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 hover:border-[#C4A35A]/45 hover:bg-white/[0.06] transition-all"
+              >
+                <div>
+                  <p className="text-xs text-[#9A9488] mb-0.5">{date}</p>
+                  <p className="text-sm font-semibold text-[#E8E3D8]">{theme}</p>
+                </div>
+                <button className="flex-shrink-0 text-xs font-medium text-[#C4A35A]/80 hover:text-[#C4A35A] flex items-center gap-1 transition-colors">
+                  ログを見る
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
 
       </div>
     </div>
