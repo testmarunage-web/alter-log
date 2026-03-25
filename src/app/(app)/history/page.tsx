@@ -8,22 +8,22 @@ export default function HistoryPage() {
   ];
 
   return (
-    <div className="p-4 md:p-6 min-h-full">
+    <div className="p-4 md:p-6 min-h-full bg-[#0B0E13]">
       <div className="mb-5">
-        <h1 className="text-xl font-bold text-[#171717]">思考の軌跡</h1>
+        <h1 className="text-xl font-bold text-[#E8E3D8]">思考の軌跡</h1>
       </div>
 
       <div className="max-w-xl space-y-2">
         {entries.map(({ date, theme }) => (
           <div
             key={date}
-            className="bg-white border border-[#E8E8E8] rounded-2xl px-5 py-4 shadow-sm flex items-center justify-between gap-4"
+            className="bg-white/[0.04] backdrop-blur-sm border border-[#C4A35A]/20 rounded-2xl px-5 py-4 flex items-center justify-between gap-4 hover:border-[#C4A35A]/45 hover:bg-white/[0.06] transition-all"
           >
             <div>
-              <p className="text-xs text-[#9A9A9A] mb-0.5">{date}</p>
-              <p className="text-sm font-semibold text-[#171717]">{theme}</p>
+              <p className="text-xs text-[#9A9488] mb-0.5">{date}</p>
+              <p className="text-sm font-semibold text-[#E8E3D8]">{theme}</p>
             </div>
-            <button className="flex-shrink-0 text-xs font-medium text-[#183D46] flex items-center gap-1 hover:underline">
+            <button className="flex-shrink-0 text-xs font-medium text-[#C4A35A]/80 hover:text-[#C4A35A] flex items-center gap-1 transition-colors">
               ログを見る
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
