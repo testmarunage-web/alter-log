@@ -49,7 +49,7 @@ const IcExternalLink = () => (
   </svg>
 );
 
-// コーチ光の玉（ダッシュボード用・小）
+// Alter 光の玉（ダッシュボード用・小）
 function CoachOrb() {
   return (
     <div className="w-9 h-9 rounded-full flex-shrink-0 relative overflow-hidden"
@@ -333,7 +333,7 @@ export default function DashboardPage() {
                 思考を整理する
               </p>
               <p className="text-[11px] text-[#6A9AA8] leading-snug">
-                コーチと一緒に、モヤモヤの正体を見つけていきましょう。
+                Alterと共に、モヤモヤの正体を見つけていきましょう。
               </p>
             </RippleLink>
           </div>
@@ -342,7 +342,7 @@ export default function DashboardPage() {
           <div className={`hl-enter hl-d2 ${GLASS} ${GLASS_HOVER} p-4`}>
             <p className={`${SECTION_LABEL} mb-3`}>
               <IcZap />
-              コーチからの所見
+              Alterからの所見
             </p>
             <div className="flex gap-3 items-start">
               <CoachOrb />
@@ -366,7 +366,7 @@ export default function DashboardPage() {
             <div className="px-4 py-2.5 flex items-center gap-2 border-b border-[#C4A35A]/12"
               style={{ background: "linear-gradient(90deg,rgba(196,163,90,0.10) 0%,transparent 100%)" }}>
               <span className="text-[#C4A35A]/75"><IcBook /></span>
-              <p className={SECTION_LABEL}>今のあなたへ</p>
+              <p className={SECTION_LABEL}>Alterからの処方箋</p>
             </div>
 
             {/* タブ */}
