@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [pgvector(map: "vector")]
+}
+
+// ============================================================
+// ユーザー（Clerk連携: 認証情報はClerkが管理）
+// ============================================================
+model User {
+  id      String @id @default(cuid())
+  clerkId String @unique // ClerkのユーザーID（webhook経由で同期）
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // リレーション
+  profile       UserProfile?
+  sessions      Session[]
+  subscription  Subscription?
+  weeklyReports WeeklyReport[]
+
+  @@map("users")
+}
+
+// ============================================================
+// 初期アンケート結果 → AIの人格パラメータ
+// ============================================================
+model UserProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // 初期4問アンケートの回答（例: ゴール, 業種, コーチングスタイル, 課題）
+  goal         String   // Q1: 達成したいこと
+  industry     String   // Q2: 業種・職種
+  coachStyle   String   // Q3: 好みのコーチングスタイル（厳格 / 共感的 / 論理的 など）
+  mainChallenge String  // Q4: 現在の主な課題
+
+  // AIが参照する人格プロンプト（アンケート回答から自動生成して保存）
+  aiPersonaPrompt String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+// ============================================================
+// Stripeサブスクリプション
+// ============================================================
+model Subscription {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  stripeCustomerId     String  @unique
+  stripeSubscriptionId String? @unique
+  stripePriceId        String? // アーリーバード or スタンダードの価格ID
+
+  status        SubscriptionStatus @default(INACTIVE)
+  isEarlyBird   Boolean            @default(false) // アーリーバード永続フラグ
+  currentPeriodEnd DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("subscriptions")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+// ============================================================
+// 1日ごとのチャットセッション
+// ============================================================
+model Session {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date           DateTime @db.Date          // セッションの日付（日次で1レコード）
+  dailyLimit     Int      @default(10)       // 当日の上限回数
+  usedCount      Int      @default(0)        // 使用済み回数
+  cliffhangerText String? @db.Text          // 翌日の予告テーマ（クリフハンガー）
+  openingQuestion String? @db.Text          // AIが生成した当日の冒頭質問
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date]) // 1ユーザー1日1セッション
+  @@map("sessions")
+}
+
+// ============================================================
+// 個々のメッセージ（対話ログ）
+// ============================================================
+model Message {
+  id        String @id @default(cuid())
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  role    MessageRole
+  content String      @db.Text
+
+  // RAG用ベクトル（pgvector: 1536次元 = text-embedding-3-small）
+  embedding Unsupported("vector(1536)")?
+
+  createdAt DateTime @default(now())
+
+  @@map("messages")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+// ============================================================
+// 週次レポート
+// ============================================================
+model WeeklyReport {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  weekStart DateTime @db.Date // その週の月曜日
+  weekEnd   DateTime @db.Date // その週の日曜日
+
+  // AIが生成した総評テキスト
+  summary String @db.Text
+
+  // グラフ描画用の集計データ（JSON）
+  // 例: { "sessionCount": 5, "topThemes": [...], "moodTrend": [...] }
+  chartData Json
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, weekStart])
+  @@map("weekly_reports")
+}
