@@ -45,50 +45,36 @@ function CoachOrb() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// レーダーチャート（思考の俯瞰型分析）
+// 思考のバランス（二項対立スライダー）
 // ─────────────────────────────────────────────────────────────────────────────
-const RADAR_AXES  = ["冷静さ", "行動力", "自分軸", "柔軟性", "本音度"];
-const RADAR_VALS  = [0.68, 0.75, 0.52, 0.65, 0.80];
-const N = RADAR_AXES.length;
-const CX = 50, CY = 50, RR = 32;
+const BALANCE_ITEMS = [
+  { left: "自分軸", right: "他人軸", pct: 30 },
+  { left: "直感",   right: "論理",   pct: 72 },
+  { left: "楽観",   right: "慎重",   pct: 42 },
+];
 
-function rp(i: number, ratio: number) {
-  const a = (i * 2 * Math.PI / N) - Math.PI / 2;
-  return { x: CX + RR * ratio * Math.cos(a), y: CY + RR * ratio * Math.sin(a) };
-}
-function rpStr(i: number, ratio: number) { const p = rp(i, ratio); return `${p.x},${p.y}`; }
-
-function RadarChart() {
-  const grids  = [0.33, 0.66, 1.0];
-  const data   = RADAR_VALS.map((v, i) => rpStr(i, v)).join(" ");
-  const outer  = RADAR_VALS.map((_, i) => rpStr(i, 1.0)).join(" ");
+function BalanceSliders() {
   return (
-    <svg viewBox="0 0 100 100" className="w-full" style={{ height: 90 }}>
-      {grids.map((g) => (
-        <polygon key={g}
-          points={RADAR_AXES.map((_, i) => rpStr(i, g)).join(" ")}
-          fill="none" stroke="rgba(196,163,90,0.13)" strokeWidth="0.6" />
+    <div className="space-y-3 mt-2">
+      {BALANCE_ITEMS.map(({ left, right, pct }) => (
+        <div key={left}>
+          <div className="flex justify-between mb-1">
+            <span className="text-[9px] text-[#C4A35A]/80 font-semibold">{left}</span>
+            <span className="text-[9px] text-[#8A8276]">{right}</span>
+          </div>
+          <div className="relative h-1 rounded-full" style={{ background: "rgba(196,163,90,0.12)" }}>
+            <div
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full"
+              style={{
+                left: `calc(${pct}% - 6px)`,
+                background: "radial-gradient(circle at 38% 38%, #93E4D4, #3AAFCA 55%)",
+                boxShadow: "0 0 6px rgba(58,175,202,0.70)",
+              }}
+            />
+          </div>
+        </div>
       ))}
-      {RADAR_AXES.map((_, i) => {
-        const e = rp(i, 1.0);
-        return <line key={i} x1={CX} y1={CY} x2={e.x} y2={e.y} stroke="rgba(196,163,90,0.10)" strokeWidth="0.5" />;
-      })}
-      <polygon points={outer} fill="none" stroke="rgba(196,163,90,0.08)" strokeWidth="0.5" />
-      <polygon points={data} fill="rgba(58,175,202,0.18)" stroke="#3AAFCA" strokeWidth="1.1" />
-      {RADAR_VALS.map((v, i) => {
-        const p = rp(i, v);
-        return <circle key={i} cx={p.x} cy={p.y} r="1.8" fill="#3AAFCA" />;
-      })}
-      {RADAR_AXES.map((label, i) => {
-        const p = rp(i, 1.42);
-        return (
-          <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle"
-            fontSize="6.2" fill="rgba(196,163,90,0.82)" fontFamily="sans-serif">
-            {label}
-          </text>
-        );
-      })}
-    </svg>
+    </div>
   );
 }
 
@@ -223,10 +209,7 @@ const SECTION_LABEL = "text-[9px] tracking-[0.26em] text-[#C4A35A]/75 uppercase 
 // ─────────────────────────────────────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
-const RX_TABS = ["本日の処方箋", "やらないこと", "思考のフレームワーク", "Alterの道標"] as const;
-
 export default function DashboardPage() {
-  const [rxTab, setRxTab] = useState(0);
   return (
     <>
       <style>{`
@@ -243,16 +226,15 @@ export default function DashboardPage() {
         .hl-d2 { animation-delay: 0.12s; }
         .hl-d3 { animation-delay: 0.18s; }
         .hl-d4 { animation-delay: 0.24s; }
-        .hl-d5 { animation-delay: 0.30s; }
       `}</style>
 
       <div className="min-h-full bg-[#0B0E13] px-4 py-6 md:px-6">
         <div className="max-w-2xl mx-auto space-y-4">
 
-          {/* ① データグリッド（レーダー・ドーナツ・Sparkline）─────────── */}
+          {/* ① データグリッド（バランス・ドーナツ・Sparkline）─────────── */}
           <div className="hl-enter grid grid-cols-3 gap-3">
 
-            {/* レーダー */}
+            {/* 思考のバランス */}
             <div className={`${GLASS} p-3 col-span-1`}>
               <p className={SECTION_LABEL}>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -260,15 +242,7 @@ export default function DashboardPage() {
                 </svg>
                 思考の俯瞰
               </p>
-              <RadarChart />
-              <div className="mt-1.5 space-y-0.5">
-                {[["行動力", "80"], ["決断力", "75"]].map(([k, v]) => (
-                  <div key={k} className="flex items-center justify-between">
-                    <span className="text-[9px] text-[#8A8276]">{k}</span>
-                    <span className="text-[9px] font-bold text-[#3AAFCA] tabular-nums">{v}</span>
-                  </div>
-                ))}
-              </div>
+              <BalanceSliders />
             </div>
 
             {/* ドーナツ */}
@@ -301,10 +275,12 @@ export default function DashboardPage() {
 
             <RippleLink href="/chat?mode=journal"
               className="rounded-xl p-5
+                border-b-[4px] border-black/40
                 shadow-[0_4px_24px_rgba(0,0,0,0.50),inset_0_1px_0_rgba(255,255,255,0.12)]
-                hover:-translate-y-1
+                hover:-translate-y-0.5
                 hover:shadow-[0_8px_32px_rgba(0,0,0,0.55),0_0_24px_rgba(196,163,90,0.20)]
-                active:scale-[0.97] transition-all duration-300 ease-out"
+                active:translate-y-1 active:border-b-0 active:shadow-none
+                transition-all duration-150 ease-out"
               style={{ background: "linear-gradient(145deg, #2A1F0A, #1A1408)" }}
             >
               <div className="flex items-center gap-2 mb-3" style={{ color: "#C4A35A" }}>
@@ -321,10 +297,12 @@ export default function DashboardPage() {
 
             <RippleLink href="/chat?mode=coach"
               className="rounded-xl p-5
+                border-b-[4px] border-black/40
                 shadow-[0_4px_24px_rgba(0,0,0,0.50),inset_0_1px_0_rgba(255,255,255,0.10)]
-                hover:-translate-y-1
+                hover:-translate-y-0.5
                 hover:shadow-[0_8px_32px_rgba(0,0,0,0.55),0_0_24px_rgba(58,175,202,0.22)]
-                active:scale-[0.97] transition-all duration-300 ease-out"
+                active:translate-y-1 active:border-b-0 active:shadow-none
+                transition-all duration-150 ease-out"
               style={{ background: "linear-gradient(145deg, #0D2A36, #071820)" }}
             >
               <div className="flex items-center gap-2 mb-3" style={{ color: "#3AAFCA" }}>
@@ -340,15 +318,14 @@ export default function DashboardPage() {
             </RippleLink>
           </div>
 
-          {/* ③ コーチからの所見 ──────────────────────────────────────── */}
+          {/* ③ Alterの気づき ─────────────────────────────────────────── */}
           <div className={`hl-enter hl-d2 ${GLASS} ${GLASS_HOVER} p-4`}>
             <p className={`${SECTION_LABEL} mb-3`}>
               <IcZap />
-              Alterからの所見
+              Alterの気づき
             </p>
             <div className="flex gap-3 items-start">
               <CoachOrb />
-              {/* 吹き出し */}
               <div className="flex-1 relative bg-white/[0.05] border border-[#3AAFCA]/20 rounded-xl rounded-tl-sm px-3.5 py-3">
                 <p className="text-sm font-bold text-[#E8E3D8] leading-snug mb-1.5">
                   強い義務感に縛られ、少し無理をしているかもしれません
@@ -362,62 +339,68 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* ④ 今のあなたへ（処方箋）──────────────────────────────────── */}
+          {/* ④ Alterからの提案（縦並び4項目）──────────────────────────── */}
           <div className={`hl-enter hl-d3 ${GLASS} overflow-hidden`}>
             {/* ヘッダー帯 */}
             <div className="px-4 py-2.5 flex items-center gap-2 border-b border-[#C4A35A]/12"
               style={{ background: "linear-gradient(90deg,rgba(196,163,90,0.10) 0%,transparent 100%)" }}>
               <span className="text-[#C4A35A]/75"><IcBook /></span>
-              <p className={SECTION_LABEL}>Alterからの処方箋</p>
+              <p className={SECTION_LABEL}>Alterからの提案</p>
             </div>
 
-            {/* タブ */}
-            <div className="flex border-b border-[#C4A35A]/10 px-1 pt-1">
-              {RX_TABS.map((label, i) => (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => setRxTab(i)}
-                  className={`px-3 py-1.5 text-[10px] font-semibold tracking-wide whitespace-nowrap transition-colors duration-200
-                    ${rxTab === i
-                      ? "text-[#C4A35A] border-b-2 border-[#C4A35A] -mb-px"
-                      : "text-[#4A4438] hover:text-[#8A8276]"
-                    }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <div className="divide-y divide-[#C4A35A]/8">
 
-            {/* タブ コンテンツ */}
-            <div className="p-4">
-              {rxTab === 0 && (
-                <>
-                  <p className="text-xs text-[#9A9488] leading-relaxed mb-3">
-                    ここ数ヶ月の葛藤を分析した結果、今の壁を越えるためには小手先のテクニックではなく、
-                    <span className="text-[#C4A35A]/80 font-medium">この一冊が決定的なブレイクスルーになるはず</span>
-                    です。
-                  </p>
-                  <div className="flex gap-3 items-start bg-white/[0.03] border border-[#C4A35A]/10 rounded-lg p-3">
-                    <div className="w-10 h-14 rounded flex-shrink-0 flex flex-col justify-end pb-1 px-0.5"
-                      style={{ background: "linear-gradient(160deg,#1A3A4A,#0D1E28)" }}>
-                      <span className="text-[6px] text-white/35 font-bold leading-tight text-center">HIGH<br/>OUTPUT</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-black text-[#E8E3D8] leading-snug">HIGH OUTPUT MANAGEMENT</p>
-                      <p className="text-[10px] text-[#8A8276] mt-0.5 mb-1.5">アンドリュー・S・グローブ</p>
-                      <p className="text-[11px] text-[#9A9488] leading-snug">
-                        「成果を出す」本質をマネジメントの視点で再定義。頑張っても前に進まない感覚の正体がここにある。
-                      </p>
-                    </div>
-                  </div>
-                </>
-              )}
-              {rxTab !== 0 && (
-                <p className="text-xs text-[#4A4438] text-center py-4">
-                  準備中です
+              {/* ① Alterの処方箋 */}
+              <div className="p-4">
+                <p className={`${SECTION_LABEL} mb-3`}>Alterの処方箋</p>
+                <p className="text-xs text-[#9A9488] leading-relaxed mb-3">
+                  ここ数ヶ月の葛藤を分析した結果、今の壁を越えるためには小手先のテクニックではなく、
+                  <span className="text-[#C4A35A]/80 font-medium">この一冊が決定的なブレイクスルーになるはず</span>
+                  です。
                 </p>
-              )}
+                <div className="flex gap-3 items-start bg-white/[0.03] border border-[#C4A35A]/10 rounded-lg p-3">
+                  <div className="w-10 h-14 rounded flex-shrink-0 flex flex-col justify-end pb-1 px-0.5"
+                    style={{ background: "linear-gradient(160deg,#1A3A4A,#0D1E28)" }}>
+                    <span className="text-[6px] text-white/35 font-bold leading-tight text-center">HIGH<br/>OUTPUT</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-black text-[#E8E3D8] leading-snug">HIGH OUTPUT MANAGEMENT</p>
+                    <p className="text-[10px] text-[#8A8276] mt-0.5 mb-1.5">アンドリュー・S・グローブ</p>
+                    <p className="text-[11px] text-[#9A9488] leading-snug">
+                      「成果を出す」本質をマネジメントの視点で再定義。頑張っても前に進まない感覚の正体がここにある。
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* ② Alterの引き算 */}
+              <div className="p-4">
+                <p className={`${SECTION_LABEL} mb-2`}>Alterの引き算</p>
+                <p className="text-sm text-[#9A9488] leading-relaxed">
+                  今週は新しいAIツールの検証を一旦ストップし、脳のメモリを解放しましょう。
+                </p>
+              </div>
+
+              {/* ③ Alterの補助線 */}
+              <div className="p-4">
+                <p className={`${SECTION_LABEL} mb-2`}>Alterの補助線</p>
+                <p className="text-sm text-[#9A9488] leading-relaxed">
+                  緊急度と重要度のマトリクスに当てはめると、今悩んでいることは
+                  <span className="text-[#E8E3D8] font-semibold">「緊急だが重要ではない」</span>
+                  領域にあります。
+                </p>
+              </div>
+
+              {/* ④ Alterの道標 */}
+              <div className="p-4">
+                <p className={`${SECTION_LABEL} mb-2`}>Alterの道標</p>
+                <p className="text-sm text-[#9A9488] leading-relaxed">
+                  半年前、あなたは
+                  <span className="text-[#C4A35A]/85 font-semibold">「小さくテストする」</span>
+                  ことで停滞を突破しました。今回も同じパターンが適用できます。
+                </p>
+              </div>
+
             </div>
           </div>
 
