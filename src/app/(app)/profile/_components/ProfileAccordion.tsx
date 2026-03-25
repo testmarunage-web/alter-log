@@ -27,14 +27,14 @@ export function ProfileAccordion({ items }: { items: Item[] }) {
                 <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${labelColor}`}>
                   {title}
                 </p>
-                <p className="text-sm font-semibold text-[#171717]">{catchphrase}</p>
+                <p className="text-sm font-semibold text-[#E8E3D8]">{catchphrase}</p>
               </div>
               <svg
                 width="16"
                 height="16"
                 viewBox="0 0 16 16"
                 fill="none"
-                stroke="#9A9A9A"
+                stroke="#9A9488"
                 strokeWidth="1.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -46,8 +46,8 @@ export function ProfileAccordion({ items }: { items: Item[] }) {
 
             {isOpen && (
               <div className="px-5 pb-5">
-                <div className="border-t border-black/5 pt-4">
-                  <p className="text-sm text-[#5C5C5C] leading-relaxed">{detail}</p>
+                <div className="border-t border-white/10 pt-4">
+                  <p className="text-sm text-[#9A9488] leading-relaxed">{detail}</p>
                 </div>
               </div>
             )}
