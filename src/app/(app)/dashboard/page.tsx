@@ -160,7 +160,7 @@ function SparklineChart() {
             fill={i === xs.length - 1 ? "#3AAFCA" : "rgba(58,175,202,0.40)"} />
         ))}
         {xs.map((x, i) => (
-          <text key={i} x={x} y={H - 1} textAnchor="middle" fontSize="5.5"
+          <text key={i} x={x} y={H - 1} textAnchor="middle" fontSize="5"
             fill="rgba(138,130,118,0.7)" fontFamily="sans-serif">
             {SPARK_DAYS[i]}
           </text>
@@ -277,6 +277,10 @@ export default function DashboardPage() {
         .hl-d6 { animation-delay: 0.36s; }
         .hl-d7 { animation-delay: 0.42s; }
         .hl-d8 { animation-delay: 0.48s; }
+        @keyframes hl-blink {
+          0%, 100% { opacity: 0.7; }
+          50% { opacity: 0; }
+        }
       `}</style>
 
       <div className="min-h-full bg-[#0B0E13] px-4 py-6 md:px-6">
@@ -380,7 +384,7 @@ export default function DashboardPage() {
             <p className="text-xs font-bold tracking-widest text-[#C4A35A]/60 text-center mb-6 uppercase">
               Alterからのメッセージ
             </p>
-            <div className="space-y-3">
+            <div className="space-y-3 bg-white/[0.015] border border-white/[0.03] rounded-2xl p-1.5 md:p-2 shadow-inner">
 
           {/* ③.5 今のあなたのAlter ───────────────────────────────────── */}
           <div className={`hl-enter hl-d3 ${GLASS} p-4`}>
@@ -517,6 +521,17 @@ export default function DashboardPage() {
 
             </div>{/* /space-y-3 (Block3) */}
           </div>{/* /mt-10 (Block3) */}
+
+          {/* ── 隠し導線：Alterの独り言ターミナル ──────────────────────── */}
+          <div className="mt-12 mb-8 flex justify-center opacity-40 hover:opacity-100 transition-opacity duration-500">
+            <Link href="/alter-log" className="flex items-center gap-2 group">
+              <span className="font-mono text-[10px] text-[#5A8A96] tracking-widest cursor-pointer group-hover:text-[#3AAFCA] transition-colors">
+                &gt; tail -f /var/log/alter_monologue.log
+              </span>
+              <span className="inline-block w-1.5 h-3 bg-[#5A8A96] group-hover:bg-[#3AAFCA] opacity-70 transition-colors"
+                style={{ animation: "hl-blink 1.1s step-end infinite" }} />
+            </Link>
+          </div>
 
         </div>{/* /max-w-2xl */}
       </div>{/* /min-h-full */}
