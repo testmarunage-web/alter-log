@@ -128,7 +128,7 @@ function SparklineChart() {
   const SPARK_DAYS = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(today);
     d.setDate(today.getDate() - (6 - i));
-    return String(d.getDate());
+    return `${d.getMonth() + 1}/${d.getDate()}`;
   });
   const W = 100, H = 44;
   const pad = { t: 6, b: 14, l: 2, r: 2 };
@@ -236,16 +236,16 @@ function AccordionCard({
         </p>
         {/* サマリー（常時表示） */}
         {summary}
-        {/* 開閉シェブロン（右下） */}
-        <div className="flex justify-end mt-2">
-          <svg
-            width="12" height="12" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(196,163,90,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-            className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          >
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </div>
+      </div>
+      {/* 開閉シェブロン（中央・テキストなし） */}
+      <div className="flex justify-center pb-3 border-t border-[#C4A35A]/8 pt-2 -mt-1">
+        <svg
+          width="13" height="13" viewBox="0 0 24 24" fill="none"
+          stroke="rgba(196,163,90,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
       </div>
       {/* 展開エリア */}
       {open && (
@@ -336,19 +336,21 @@ export default function DashboardPage() {
                 transition-all duration-100 ease-out"
               style={{ background: "linear-gradient(160deg, #3A2910 0%, #1A1408 60%)" }}
             >
-              <div className="flex items-center justify-between mb-4">
-                <span style={{ color: "#C4A35A" }}><IcPen /></span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(196,163,90,0.55)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-                </svg>
+              <div className="mb-3" style={{ color: "#C4A35A" }}>
+                <IcPen />
               </div>
               <p className="text-base font-black tracking-tight leading-tight mb-1"
                 style={{ color: "#E8D5A0" }}>
                 吐き出す
               </p>
-              <p className="text-[11px] leading-snug" style={{ color: "#8A7848" }}>
+              <p className="text-[11px] leading-snug mb-4" style={{ color: "#8A7848" }}>
                 今の気持ちを吐き出す
               </p>
+              <div className="flex justify-end">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(196,163,90,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                </svg>
+              </div>
             </RippleLink>
 
             <RippleLink href="/chat?mode=coach"
@@ -361,19 +363,21 @@ export default function DashboardPage() {
                 transition-all duration-100 ease-out"
               style={{ background: "linear-gradient(160deg, #0F3545 0%, #071820 60%)" }}
             >
-              <div className="flex items-center justify-between mb-4">
-                <span style={{ color: "#3AAFCA" }}><IcCompass /></span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(58,175,202,0.55)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-                </svg>
+              <div className="mb-3" style={{ color: "#3AAFCA" }}>
+                <IcCompass />
               </div>
               <p className="text-base font-black tracking-tight leading-tight mb-1"
                 style={{ color: "#C8E8EE" }}>
                 思考を整理する
               </p>
-              <p className="text-[11px] leading-snug" style={{ color: "#4A8A9A" }}>
+              <p className="text-[11px] leading-snug mb-4" style={{ color: "#4A8A9A" }}>
                 Alterと共に、モヤモヤの正体を突き止める
               </p>
+              <div className="flex justify-end">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(58,175,202,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                </svg>
+              </div>
             </RippleLink>
           </div>
 
