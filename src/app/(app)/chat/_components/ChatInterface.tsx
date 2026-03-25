@@ -28,8 +28,8 @@ interface Props {
   userName: string;
 }
 
-// ── コーチアバター（抽象的な光の玉） ────────────────────────────────────────
-function CoachOrb({ size = "md" }: { size?: "sm" | "md" }) {
+// ── Alterアバター（抽象的な光の玉） ─────────────────────────────────────────
+function AlterOrb({ size = "md" }: { size?: "sm" | "md" }) {
   const dim = size === "sm" ? "w-7 h-7" : "w-9 h-9";
   return (
     <div
@@ -57,7 +57,7 @@ function CoachOrb({ size = "md" }: { size?: "sm" | "md" }) {
 function PrescriptionCard() {
   return (
     <div className="flex gap-3">
-      <CoachOrb />
+      <AlterOrb />
       <div className="max-w-[84%] space-y-0">
         {/* 通常バブル（導入テキスト） */}
         <div className="bg-white border border-[#D8E8EB] rounded-2xl rounded-tl-sm px-4 py-3.5 text-sm leading-relaxed text-[#2A2A2A] shadow-sm mb-3">
@@ -83,7 +83,7 @@ function PrescriptionCard() {
               }}
             />
             <p className="text-[11px] font-bold tracking-widest text-white/90 uppercase">
-              コーチからの処方箋
+              Alterからの処方箋
             </p>
           </div>
 
@@ -194,7 +194,7 @@ export function ChatInterface({
       onFinish: () => setLocalUsedCount((c) => c + 1),
     });
 
-  // コーチモード：初回のみ開幕トリガーを送る
+  // Alterモード：初回のみ開幕トリガーを送る
   useEffect(() => {
     if (mode !== "coach") return;
     if (initialMessages.length > 0) return;
@@ -212,7 +212,7 @@ export function ChatInterface({
     if (mode === "coach") bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, mode]);
 
-  function handleCoachInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+  function handleAlterInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     handleInputChange(e);
     e.target.style.height = "auto";
     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
@@ -242,7 +242,7 @@ export function ChatInterface({
   const modeTitle    = isJournal ? "吐き出す" : "思考を整理する";
   const modeSubtitle = isJournal
     ? "まとまっていなくて構いません。ここに置いていってください。"
-    : "コーチと一緒に、モヤモヤの正体を見つけていきましょう。";
+    : "Alterと共に、モヤモヤの正体を見つけていきましょう。";
 
   // コーチモードで本番メッセージがない場合はモックデモを表示
   const showDemo = !isJournal && visibleMessages.length === 0 && !isLoading;
@@ -265,8 +265,8 @@ export function ChatInterface({
             </svg>
           </button>
 
-          {/* コーチアイコン（コーチモード時のみ） */}
-          {!isJournal && <CoachOrb size="sm" />}
+          {/* Alterアイコン（Alterモード時のみ） */}
+          {!isJournal && <AlterOrb size="sm" />}
 
           {/* タイトル */}
           <div className="flex-1 min-w-0">
@@ -316,7 +316,7 @@ export function ChatInterface({
               </button>
               {hintOpen && (
                 <div className="mt-1.5 mb-2 bg-[#F7F5F2] border border-[#E8E4DE] rounded-xl px-4 py-3">
-                  <p className="text-xs text-[#9A9A9A] mb-1">コーチからの問いかけ</p>
+                  <p className="text-xs text-[#9A9A9A] mb-1">Alterからの問いかけ</p>
                   <p className="text-sm text-[#3A3A3A] leading-relaxed">
                     <span className="font-semibold text-[#183D46]">「最近、一番ホッとした瞬間はいつですか？」</span>
                   </p>
@@ -343,7 +343,7 @@ export function ChatInterface({
         </>
       )}
 
-      {/* ── コーチモード ── */}
+      {/* ── Alterモード ── */}
       {!isJournal && (
         <>
           <main className="flex-1 overflow-y-auto">
@@ -359,7 +359,7 @@ export function ChatInterface({
                     className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""}`}
                   >
                     {m.role === "assistant" ? (
-                      <CoachOrb />
+                      <AlterOrb />
                     ) : (
                       <div className="w-9 h-9 rounded-full bg-[#D8E8EB] text-[#183D46] flex items-center justify-center text-sm font-bold flex-shrink-0">
                         {initial}
@@ -389,7 +389,7 @@ export function ChatInterface({
                       className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""}`}
                     >
                       {m.role === "assistant" ? (
-                        <CoachOrb />
+                        <AlterOrb />
                       ) : (
                         <div className="w-9 h-9 rounded-full bg-[#D8E8EB] text-[#183D46] flex items-center justify-center text-sm font-bold flex-shrink-0">
                           {initial}
@@ -435,7 +435,7 @@ export function ChatInterface({
                 </button>
                 {hintOpen && (
                   <div className="mt-1.5 bg-[#F2F4F5] border border-[#C8DDE2] rounded-xl px-4 py-2.5">
-                    <p className="text-xs text-[#9A9A9A] mb-1">コーチからの問いかけ</p>
+                    <p className="text-xs text-[#9A9A9A] mb-1">Alterからの問いかけ</p>
                     <p className="text-sm text-[#2A2A2A] leading-relaxed">
                       <span className="font-semibold text-[#183D46]">「最近、一番ホッとした瞬間はいつですか？」</span>
                     </p>
@@ -458,7 +458,7 @@ export function ChatInterface({
                   <textarea
                     ref={textareaRef}
                     value={input}
-                    onChange={handleCoachInputChange}
+                    onChange={handleAlterInputChange}
                     onKeyDown={handleKeyDown}
                     placeholder="何でも話しかけてください..."
                     rows={1}
@@ -486,11 +486,11 @@ export function ChatInterface({
   );
 }
 
-// ── タイピングインジケーター ────────────────────────────────────────────────
+// ── タイピングインジケーター（Alter）────────────────────────────────────────
 function TypingIndicator() {
   return (
     <div className="flex gap-3">
-      <CoachOrb />
+      <AlterOrb />
       <div className="bg-white border border-[#D8E8EB] rounded-2xl rounded-tl-sm px-4 py-3.5 flex items-center gap-1.5 shadow-sm">
         {[0, 1, 2].map((i) => (
           <span
