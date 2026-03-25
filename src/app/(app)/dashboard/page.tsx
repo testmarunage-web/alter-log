@@ -131,7 +131,7 @@ function SparklineChart() {
     return `${d.getDate()}日`;
   });
   const W = 100, H = 44;
-  const pad = { t: 6, b: 14, l: 2, r: 2 };
+  const pad = { t: 6, b: 14, l: 8, r: 8 };
   const min = Math.min(...SPARK_VALS) - 8;
   const max = Math.max(...SPARK_VALS) + 4;
   const xs = SPARK_VALS.map((_, i) => pad.l + (i / (SPARK_VALS.length - 1)) * (W - pad.l - pad.r));
@@ -160,7 +160,7 @@ function SparklineChart() {
             fill={i === xs.length - 1 ? "#3AAFCA" : "rgba(58,175,202,0.40)"} />
         ))}
         {xs.map((x, i) => (
-          <text key={i} x={x} y={H - 1} textAnchor="middle" fontSize="5"
+          <text key={i} x={x} y={H - 1} textAnchor="middle" fontSize="4.5"
             fill="rgba(138,130,118,0.7)" fontFamily="sans-serif">
             {SPARK_DAYS[i]}
           </text>
@@ -276,59 +276,13 @@ export default function DashboardPage() {
         .hl-d5 { animation-delay: 0.30s; }
         .hl-d6 { animation-delay: 0.36s; }
         .hl-d7 { animation-delay: 0.42s; }
-        .hl-d8 { animation-delay: 0.48s; }
-        @keyframes hl-blink {
-          0%, 100% { opacity: 0.7; }
-          50% { opacity: 0; }
-        }
       `}</style>
 
       <div className="min-h-full bg-[#0B0E13] px-4 py-6 md:px-6">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto space-y-3">
 
-          {/* ── ブロック1：自己データ ──────────────────────────────────── */}
-          <div className="space-y-3">
-            {/* ① 上段：2カラム（バランス・ドーナツ）───────────────────── */}
-            <div className="hl-enter grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className={`${GLASS} p-3`}>
-                <p className={SECTION_LABEL}>
-                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                  思考の俯瞰
-                </p>
-                <BalanceSliders />
-              </div>
-
-              <div className={`${GLASS} p-3`}>
-                <p className={SECTION_LABEL}>
-                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 10 10" stroke="#3AAFCA" />
-                  </svg>
-                  今の脳内シェア
-                </p>
-                <div className="mt-2">
-                  <DonutChart />
-                </div>
-              </div>
-            </div>
-
-            {/* ② 下段：フルワイド（Sparkline）─────────────────────────── */}
-            <div className={`hl-enter hl-d1 ${GLASS} p-3`}>
-              <p className={`${SECTION_LABEL} mb-2`}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                </svg>
-                コンディション推移
-              </p>
-              <SparklineChart />
-            </div>
-          </div>
-          {/* ── ブロック2：アクション ──────────────────────────────────── */}
-          <div className="mt-8 mb-6">
-          {/* ③ アクション（2カラム）────────────────────────────────────── */}
-          <div className="hl-enter hl-d2 grid grid-cols-2 gap-3">
-
+          {/* (1) アクションボタン ────────────────────────────────────────── */}
+          <div className="hl-enter grid grid-cols-2 gap-3">
             <RippleLink href="/chat?mode=journal"
               className="rounded-xl p-4
                 border border-t-[rgba(255,255,255,0.12)] border-x-[rgba(255,255,255,0.05)] border-b-transparent
@@ -377,38 +331,20 @@ export default function DashboardPage() {
               </div>
             </RippleLink>
           </div>
-          </div>
 
-          {/* ── ブロック3：Alterからのメッセージ ──────────────────────── */}
-          <div className="mt-10">
-            <p className="text-xs font-bold tracking-widest text-[#C4A35A]/60 text-center mb-6 uppercase">
-              Alterからのメッセージ
+          {/* (2) コンディション推移 ─────────────────────────────────────── */}
+          <div className={`hl-enter hl-d1 ${GLASS} p-3`}>
+            <p className={`${SECTION_LABEL} mb-2`}>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              コンディション推移
             </p>
-            <div className="space-y-3 bg-white/[0.015] border border-white/[0.03] rounded-2xl p-1.5 md:p-2 shadow-inner">
-
-          {/* ③.5 現在の観測スタンス ─────────────────────────────────── */}
-          <div className={`hl-enter hl-d3 ${GLASS} p-4`}>
-            <div className="flex items-start mb-3">
-              <p className={SECTION_LABEL}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-                </svg>
-                現在の観測スタンス
-              </p>
-            </div>
-            <div className="flex items-center gap-3.5">
-              <CoachOrb />
-              <div>
-                <p className="text-sm font-bold text-[#E8E3D8] leading-snug mb-1">【ノイズの除去】</p>
-                <p className="text-[11px] text-[#9A9488] leading-relaxed">
-                  焦りと義務感のパラメーターが閾値を超えています。本日のセッションでは新しい提案はせず、思考のデフラグ（整理）に徹します。
-                </p>
-              </div>
-            </div>
+            <SparklineChart />
           </div>
 
-          {/* ④ Alterの気づき（アコーディオン）─────────────────────────── */}
-          <div className="hl-enter hl-d4">
+          {/* (3) 客観的ファクトの確認 ────────────────────────────────────── */}
+          <div className="hl-enter hl-d2">
             <AccordionCard
               icon={<IcZap />}
               label="客観的ファクトの確認"
@@ -431,32 +367,33 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* ⑤ Alterの処方箋（アコーディオン）─────────────────────────── */}
-          <div className="hl-enter hl-d5">
-            <AccordionCard
-              icon={<IcBook />}
-              label="外部視点の獲得"
-              summary={
-                <div className="flex gap-3 items-start bg-white/[0.03] border border-[#C4A35A]/10 rounded-lg p-3">
-                  <div className="w-10 h-14 rounded flex-shrink-0 flex flex-col justify-end pb-1 px-0.5"
-                    style={{ background: "linear-gradient(160deg,#1A3A4A,#0D1E28)" }}>
-                    <span className="text-[6px] text-white/35 font-bold leading-tight text-center">HIGH<br/>OUTPUT</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-black text-[#E8E3D8] leading-snug">HIGH OUTPUT MANAGEMENT</p>
-                    <p className="text-[10px] text-[#8A8276] mt-0.5 mb-1.5">アンドリュー・S・グローブ</p>
-                    <p className="text-[11px] text-[#9A9488] leading-snug">
-                      「成果を出す」本質をマネジメントの視点で再定義。頑張っても前に進まない感覚の正体がここにある。
-                    </p>
-                  </div>
-                </div>
-              }
-              detail="あなたが今ぶつかっている『権限移譲』の壁は、過去の多くのマネージャーが経験したものです。この本はその構造的な解決策を提示しています。"
-            />
+          {/* (4) 思考の俯瞰 ＆ 今の脳内シェア ──────────────────────────── */}
+          <div className="hl-enter hl-d3 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className={`${GLASS} p-3`}>
+              <p className={SECTION_LABEL}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                思考の俯瞰
+              </p>
+              <BalanceSliders />
+            </div>
+
+            <div className={`${GLASS} p-3`}>
+              <p className={SECTION_LABEL}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 10 10" stroke="#3AAFCA" />
+                </svg>
+                今の脳内シェア
+              </p>
+              <div className="mt-2">
+                <DonutChart />
+              </div>
+            </div>
           </div>
 
-          {/* ⑥ Alterの引き算（アコーディオン）─────────────────────────── */}
-          <div className="hl-enter hl-d6">
+          {/* (5) リソースの解放 ─────────────────────────────────────────── */}
+          <div className="hl-enter hl-d4">
             <AccordionCard
               icon={
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -473,8 +410,8 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* ⑦ Alterの補助線（アコーディオン）─────────────────────────── */}
-          <div className="hl-enter hl-d7">
+          {/* (6) 思考の構造化 ───────────────────────────────────────────── */}
+          <div className="hl-enter hl-d5">
             <AccordionCard
               icon={
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -493,8 +430,26 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* ⑧ Alterの道標（アコーディオン）───────────────────────────── */}
-          <div className="hl-enter hl-d8">
+          {/* (7) 外部視点の獲得 ─────────────────────────────────────────── */}
+          <div className="hl-enter hl-d6">
+            <AccordionCard
+              icon={<IcBook />}
+              label="外部視点の獲得"
+              summary={
+                <div>
+                  <p className="text-xs font-black text-[#E8E3D8] leading-snug mb-0.5">HIGH OUTPUT MANAGEMENT</p>
+                  <p className="text-[10px] text-[#8A8276] mb-1.5">アンドリュー・S・グローブ</p>
+                  <p className="text-sm text-[#9A9488] leading-relaxed">
+                    「成果を出す」本質をマネジメントの視点で再定義。頑張っても前に進まない感覚の正体がここにある。
+                  </p>
+                </div>
+              }
+              detail="あなたが今ぶつかっている『権限移譲』の壁は、過去の多くのマネージャーが経験したものです。この本はその構造的な解決策を提示しています。"
+            />
+          </div>
+
+          {/* (8) 勝ち筋の再現 ───────────────────────────────────────────── */}
+          <div className="hl-enter hl-d7">
             <AccordionCard
               icon={
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -513,17 +468,10 @@ export default function DashboardPage() {
             />
           </div>
 
-            </div>{/* /space-y-3 (Block3) */}
-          </div>{/* /mt-10 (Block3) */}
-
-          {/* ── 隠し導線：Alterの独り言ターミナル ──────────────────────── */}
+          {/* 隠し導線 ───────────────────────────────────────────────────── */}
           <div className="mt-12 mb-8 flex justify-center opacity-40 hover:opacity-100 transition-opacity duration-500">
-            <Link href="/alter-log" className="flex items-center gap-2 group">
-              <span className="font-mono text-[10px] text-[#5A8A96] tracking-widest cursor-pointer group-hover:text-[#3AAFCA] transition-colors">
-                &gt; tail -f /var/log/alter_monologue.log
-              </span>
-              <span className="inline-block w-1.5 h-3 bg-[#5A8A96] group-hover:bg-[#3AAFCA] opacity-70 transition-colors"
-                style={{ animation: "hl-blink 1.1s step-end infinite" }} />
+            <Link href="/alter-log">
+              <span className="font-serif text-[11px] text-[#C4A35A]/40 tracking-[0.2em] hover:text-[#C4A35A]/80 transition-colors">Alterの観測記録を覗く</span>
             </Link>
           </div>
 
