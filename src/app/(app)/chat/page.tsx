@@ -1,5 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { ChatInterface } from "./_components/ChatInterface";
 
@@ -43,12 +44,14 @@ export default async function ChatPage() {
   }));
 
   return (
-    <ChatInterface
-      sessionId={session.id}
-      dailyLimit={session.dailyLimit}
-      initialUsedCount={session.usedCount}
-      initialMessages={initialMessages}
-      userName={userName}
-    />
+    <Suspense fallback={<div className="flex-1 flex items-center justify-center text-sm text-[#9A9A9A]">読み込み中...</div>}>
+      <ChatInterface
+        sessionId={session.id}
+        dailyLimit={session.dailyLimit}
+        initialUsedCount={session.usedCount}
+        initialMessages={initialMessages}
+        userName={userName}
+      />
+    </Suspense>
   );
 }

@@ -26,6 +26,24 @@ function CardLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+// ── mock data ──────────────────────────────────────────────────────────────
+
+const constellationNodes = [
+  { id: "a", label: "完璧への渇望", x: 135, y: 28, r: 5, primary: true },
+  { id: "b", label: "他者からの評価", x: 230, y: 55, r: 4, primary: true },
+  { id: "c", label: "自己批判",       x: 55,  y: 55, r: 3, primary: false },
+  { id: "d", label: "承認欲求",       x: 185, y: 100, r: 3.5, primary: false },
+  { id: "e", label: "内なる比較",     x: 90,  y: 100, r: 2.5, primary: false },
+];
+
+const constellationEdges: [string, string][] = [
+  ["a", "b"], ["a", "c"], ["a", "d"], ["b", "d"], ["c", "e"], ["d", "e"],
+];
+
+function getNode(id: string) {
+  return constellationNodes.find((n) => n.id === id)!;
+}
+
 // ── page ──────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -33,21 +51,105 @@ export default function DashboardPage() {
     <div className="p-4 md:p-6 pb-8 min-h-full">
       <div className="max-w-xl mx-auto space-y-4">
 
-        {/* ① コーチからの所見 ────────────────────────────────── */}
-        <Card className="px-5 py-5 flex items-start gap-3.5">
-          <div className="w-10 h-10 rounded-full bg-[#183D46] flex items-center justify-center text-lg flex-shrink-0">
-            💡
+        {/* ★ マインド・コンステレーション ────────────────────── */}
+        <div className="bg-[#183D46] rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-bold tracking-widest text-white/40 uppercase">
+              ✦ マインド・コンステレーション
+            </span>
+            <span className="text-[10px] bg-white/10 text-white/60 rounded-full px-2 py-0.5">
+              学習中
+            </span>
           </div>
-          <div className="pt-0.5">
-            <CardLabel>コーチからの所見</CardLabel>
-            <p className="text-sm text-[#5C5C5C] leading-relaxed">
-              最近、無意識に一人で抱え込もうとする傾向があります。
-              少し肩の力を抜いてみませんか？
-            </p>
-          </div>
-        </Card>
+          <p className="text-xs text-white/55 mb-5 leading-relaxed">
+            現在の焦点：
+            <span className="text-white/90 font-semibold">『完璧への渇望』</span>
+            と
+            <span className="text-white/90 font-semibold">『他者からの評価』</span>
+            について学習中...
+          </p>
 
-        {/* ② 今日の問い ─────────────────────────────────────── */}
+          {/* Constellation SVG */}
+          <div className="relative mb-2">
+            <svg
+              viewBox="0 0 280 130"
+              className="w-full"
+              style={{ height: "110px" }}
+              aria-hidden="true"
+            >
+              {/* Edges */}
+              {constellationEdges.map(([fromId, toId]) => {
+                const from = getNode(fromId);
+                const to   = getNode(toId);
+                return (
+                  <line
+                    key={`${fromId}-${toId}`}
+                    x1={from.x} y1={from.y}
+                    x2={to.x}   y2={to.y}
+                    stroke="rgba(255,255,255,0.12)"
+                    strokeWidth="1"
+                  />
+                );
+              })}
+
+              {/* Nodes */}
+              {constellationNodes.map((n) => (
+                <circle
+                  key={n.id}
+                  cx={n.x}
+                  cy={n.y}
+                  r={n.r}
+                  fill={n.primary ? "white" : "rgba(255,255,255,0.55)"}
+                />
+              ))}
+
+              {/* Node labels */}
+              <text x="120" y="18" fontSize="9" fill="rgba(255,255,255,0.85)" fontWeight="600" textAnchor="middle">完璧への渇望</text>
+              <text x="230" y="44" fontSize="8.5" fill="rgba(255,255,255,0.70)" textAnchor="middle">他者からの評価</text>
+              <text x="50"  y="44" fontSize="8"   fill="rgba(255,255,255,0.50)" textAnchor="middle">自己批判</text>
+              <text x="190" y="118" fontSize="8"  fill="rgba(255,255,255,0.50)" textAnchor="middle">承認欲求</text>
+              <text x="82"  y="118" fontSize="7.5" fill="rgba(255,255,255,0.40)" textAnchor="middle">内なる比較</text>
+            </svg>
+          </div>
+
+          <p className="text-[10px] text-white/25">
+            最終更新: 3時間前 · 次の更新まで 21時間
+          </p>
+        </div>
+
+        {/* ★ 今日のアクション ──────────────────────────────── */}
+        <div className="grid grid-cols-2 gap-3">
+
+          {/* ジャーナル */}
+          <Link
+            href="/chat?mode=journal"
+            className="bg-[#F7F5F2] border border-[#E0DDD9] rounded-2xl p-5 flex flex-col hover:border-[#C8C4BE] transition-colors group"
+          >
+            <div className="text-2xl mb-3">☕️</div>
+            <p className="text-sm font-bold text-[#171717]">ジャーナル</p>
+            <p className="text-xs text-[#9A9A9A] mt-1.5 leading-snug">
+              ただ吐き出す
+              <br />
+              <span className="text-[#BCBCBC]">聴くモード</span>
+            </p>
+          </Link>
+
+          {/* 壁打ち */}
+          <Link
+            href="/chat?mode=coach"
+            className="bg-[#EBF4F6] border border-[#C8DDE2] rounded-2xl p-5 flex flex-col hover:border-[#183D46]/40 transition-colors group"
+          >
+            <div className="text-2xl mb-3">🔥</div>
+            <p className="text-sm font-bold text-[#171717]">壁打ち</p>
+            <p className="text-xs text-[#9A9A9A] mt-1.5 leading-snug">
+              思考を整理する
+              <br />
+              <span className="text-[#BCBCBC]">対話モード</span>
+            </p>
+          </Link>
+        </div>
+
+        {/* ① 今日の問い ─────────────────────────────────────── */}
         <div className="bg-[#183D46] rounded-2xl p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-[10px] font-bold tracking-widest text-white/40 uppercase">
@@ -61,7 +163,7 @@ export default function DashboardPage() {
             その意思決定を先送りにしているのは、何への恐れですか？
           </p>
           <Link
-            href="/chat"
+            href="/chat?mode=coach"
             className="inline-flex items-center gap-2 bg-white text-[#183D46] font-bold text-sm px-5 py-3 rounded-xl hover:bg-[#F2F2F2] transition-colors"
           >
             この問いに答える
@@ -71,18 +173,29 @@ export default function DashboardPage() {
           </Link>
         </div>
 
+        {/* ② コーチからの所見 ────────────────────────────────── */}
+        <Card className="px-5 py-5 flex items-start gap-3.5">
+          <div className="w-10 h-10 rounded-full bg-[#183D46] flex items-center justify-center text-lg flex-shrink-0">
+            💡
+          </div>
+          <div className="pt-0.5">
+            <CardLabel>コーチからの所見</CardLabel>
+            <p className="text-sm text-[#5C5C5C] leading-relaxed">
+              最近、無意識に一人で抱え込もうとする傾向があります。
+              少し肩の力を抜いてみませんか？
+            </p>
+          </div>
+        </Card>
+
         {/* ③④ バッテリー + 脳内シェア ─────────────────────── */}
         <div className="grid grid-cols-2 gap-4">
 
-          {/* ③ 心のバッテリー残量 */}
+          {/* 心のバッテリー */}
           <Card className="p-5">
             <CardLabel>🔋 心のバッテリー</CardLabel>
-            {/* Battery body */}
             <div className="flex items-center gap-1 mb-3">
               <div className="flex-1 h-7 border-2 border-[#D8D8D8] rounded-lg relative overflow-hidden">
-                {/* Fill */}
                 <div className="absolute inset-0 w-[30%] bg-amber-400 rounded-md" />
-                {/* Segment separators */}
                 {[25, 50, 75].map((p) => (
                   <div
                     key={p}
@@ -90,12 +203,10 @@ export default function DashboardPage() {
                     style={{ left: `${p}%` }}
                   />
                 ))}
-                {/* % label */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span className="text-xs font-bold text-[#171717] z-10">30%</span>
                 </div>
               </div>
-              {/* Terminal nub */}
               <div className="w-1.5 h-4 bg-[#D8D8D8] rounded-r-sm flex-shrink-0" />
             </div>
             <p className="text-xs text-amber-600 font-semibold">要休息</p>
@@ -104,10 +215,9 @@ export default function DashboardPage() {
             </p>
           </Card>
 
-          {/* ④ 今週の脳内シェア */}
+          {/* 脳内シェア */}
           <Card className="p-5">
             <CardLabel>🧠 脳内シェア</CardLabel>
-            {/* Donut chart */}
             <div className="flex justify-center mb-3">
               <div
                 className="w-16 h-16 rounded-full relative"
@@ -121,12 +231,11 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-            {/* Legend */}
             <div className="space-y-1">
               {[
                 { color: "#183D46", label: "業務不安", pct: "40%" },
                 { color: "#4D9AA8", label: "人間関係", pct: "30%" },
-                { color: "#8BBFC9", label: "キャリア", pct: "20%" },
+                { color: "#8BBFC9", label: "キャリア",  pct: "20%" },
               ].map(({ color, label, pct }) => (
                 <div key={label} className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
@@ -138,52 +247,10 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* ⑤ 感情とエネルギーの波 ────────────────────────────── */}
-        <Card className="p-5">
-          <CardLabel>🌊 感情とエネルギーの波</CardLabel>
-          <div className="relative">
-            <svg
-              viewBox="0 0 280 70"
-              className="w-full h-14"
-              preserveAspectRatio="none"
-            >
-              {/* Area fill */}
-              <path
-                d="M0,28 C18,24 30,30 46,30 C62,30 72,58 92,60 C112,62 122,40 138,38 C154,36 165,22 184,20 C203,18 215,32 230,34 C245,36 258,30 280,28 L280,70 L0,70 Z"
-                fill="rgba(24,61,70,0.07)"
-              />
-              {/* Line */}
-              <path
-                d="M0,28 C18,24 30,30 46,30 C62,30 72,58 92,60 C112,62 122,40 138,38 C154,36 165,22 184,20 C203,18 215,32 230,34 C245,36 258,30 280,28"
-                fill="none"
-                stroke="#183D46"
-                strokeWidth="2"
-                strokeLinecap="round"
-                opacity="0.65"
-              />
-              {/* Wednesday dip dot */}
-              <circle cx="92" cy="60" r="3" fill="#183D46" opacity="0.8" />
-              {/* Wed callout */}
-              <text x="84" y="55" fontSize="7" fill="#183D46" opacity="0.7" fontWeight="bold">水</text>
-            </svg>
-            {/* Day labels */}
-            <div className="flex justify-between mt-1 px-0.5">
-              {["月", "火", "水", "木", "金", "土", "日"].map((d) => (
-                <span
-                  key={d}
-                  className={`text-[10px] ${d === "水" ? "text-[#183D46] font-bold" : "text-[#BCBCBC]"}`}
-                >
-                  {d}
-                </span>
-              ))}
-            </div>
-          </div>
-        </Card>
-
-        {/* ⑥⑦ ブロック + 勝ち筋 ──────────────────────────── */}
+        {/* ⑤⑥ ブロック + 勝ち筋 ──────────────────────────── */}
         <div className="grid grid-cols-2 gap-4">
 
-          {/* ⑥ 無意識のブロック */}
+          {/* 無意識のブロック */}
           <div className="bg-amber-50 border border-amber-200/70 rounded-2xl p-5">
             <CardLabel>🚧 無意識のブロック</CardLabel>
             <p className="text-sm text-[#5C5C5C] leading-relaxed">
@@ -198,7 +265,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* ⑦ 勝ち筋の発見 */}
+          {/* 勝ち筋の発見 */}
           <div className="bg-[rgba(24,61,70,0.04)] border border-[#183D46]/15 rounded-2xl p-5">
             <CardLabel>🎯 勝ち筋の発見</CardLabel>
             <p className="text-xs text-[#5C5C5C] leading-relaxed">
@@ -209,29 +276,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ⑧ 脳内の登場人物マップ ─────────────────────────── */}
-        <Card className="p-5">
-          <CardLabel>🤝 脳内の登場人物マップ</CardLabel>
-          <div className="grid grid-cols-2 gap-3 mt-1">
-            {/* A部長 */}
-            <div className="bg-rose-50 border border-rose-200/60 rounded-xl p-3.5 text-center">
-              <div className="text-2xl mb-1.5">😮‍💨</div>
-              <p className="text-sm font-bold text-[#171717]">A部長</p>
-              <p className="text-[10px] text-rose-500 font-semibold mt-0.5">⚡ エネルギーを奪う</p>
-            </div>
-            {/* Bさん */}
-            <div className="bg-[rgba(24,61,70,0.04)] border border-[#183D46]/15 rounded-xl p-3.5 text-center">
-              <div className="text-2xl mb-1.5">😊</div>
-              <p className="text-sm font-bold text-[#171717]">Bさん</p>
-              <p className="text-[10px] text-[#183D46] font-semibold mt-0.5">✨ ポジティブな影響</p>
-            </div>
-          </div>
-        </Card>
-
-        {/* ⑨⑩ モヤモヤ + パワーワード ─────────────────────── */}
+        {/* ⑦⑧ モヤモヤ + パワーワード ─────────────────────── */}
         <div className="grid grid-cols-2 gap-4">
 
-          {/* ⑨ 未消化のモヤモヤ */}
+          {/* 未消化のモヤモヤ */}
           <Card className="p-5">
             <CardLabel>📝 モヤモヤ</CardLabel>
             <p className="text-sm text-[#5C5C5C] leading-relaxed">
@@ -241,7 +289,7 @@ export default function DashboardPage() {
             </p>
           </Card>
 
-          {/* ⑩ 今週のパワーワード */}
+          {/* パワーワード */}
           <Card className="p-5">
             <CardLabel>🌟 パワーワード</CardLabel>
             <div className="relative">
@@ -255,7 +303,7 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* ⑪ タイムトラベル（定点観測） ──────────────────── */}
+        {/* ⑨ タイムトラベル ──────────────────────────────── */}
         <div className="bg-[#F7F5F2] border border-[#E0DDD9] rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">⏳</span>
@@ -272,7 +320,7 @@ export default function DashboardPage() {
             今のあなたから、当時の自分に何と声をかけますか？
           </p>
           <Link
-            href="/chat"
+            href="/chat?mode=coach"
             className="inline-flex items-center gap-2 text-sm font-semibold text-[#183D46] bg-white border border-[#E8E8E8] px-4 py-2.5 rounded-xl hover:border-[#183D46]/30 transition-colors shadow-sm"
           >
             セッションで答える

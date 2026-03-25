@@ -2,6 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 // React StrictMode の2重発火ガード
 const openedSessions = new Set<string>();
@@ -38,10 +39,14 @@ export function ChatInterface({
   const textareaRef  = useRef<HTMLTextAreaElement>(null);
   const hasOpenedRef = useRef(false);
 
-  const [mode, setMode]               = useState<Mode>("journal");
+  const searchParams = useSearchParams();
+  const initialMode  = (searchParams.get("mode") === "coach" ? "coach" : "journal") as Mode;
+
+  const [mode, setMode]               = useState<Mode>(initialMode);
   const [journalText, setJournalText] = useState("");
   const [journalSaved, setJournalSaved] = useState(false);
   const [localUsedCount, setLocalUsedCount] = useState(initialUsedCount);
+  const [safetyMode, setSafetyMode]   = useState(false);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, append } =
     useChat({
@@ -85,13 +90,13 @@ export function ChatInterface({
     }
   }
 
-  const remaining      = dailyLimit - localUsedCount;
+  const remaining       = dailyLimit - localUsedCount;
   const visibleMessages = messages.filter((m) => m.content !== "__OPEN__");
-  const initial        = userName.slice(0, 1).toUpperCase();
+  const initial         = userName.slice(0, 1).toUpperCase();
 
   // 背景色をモードで切り替え
-  const pageBg    = mode === "journal" ? "bg-[#F7F5F2]" : "bg-[#F4F8F9]";
-  const borderBg  = mode === "journal" ? "bg-[#F7F5F2]/95 border-[#E8E8E8]" : "bg-[#F4F8F9]/95 border-[#C8DDE2]";
+  const pageBg   = mode === "journal" ? "bg-[#F7F5F2]" : "bg-[#F4F8F9]";
+  const borderBg = mode === "journal" ? "bg-[#F7F5F2]/95 border-[#E8E8E8]" : "bg-[#F4F8F9]/95 border-[#C8DDE2]";
 
   return (
     <div className={`h-full min-h-screen ${pageBg} text-[#171717] flex flex-col transition-colors duration-300`}>
@@ -109,7 +114,7 @@ export function ChatInterface({
                   : "text-[#9A9A9A] hover:text-[#5C5C5C]"
               }`}
             >
-              ✍️ ジャーナル
+              ☕️ ジャーナル
             </button>
             <button
               onClick={() => setMode("coach")}
@@ -119,9 +124,16 @@ export function ChatInterface({
                   : "text-[#9A9A9A] hover:text-[#5C5C5C]"
               }`}
             >
-              🗣️ 壁打ち
+              🔥 壁打ち
             </button>
           </div>
+
+          {/* モードの説明 */}
+          <p className="text-center text-[11px] text-[#BCBCBC] mt-1.5">
+            {mode === "journal"
+              ? "ただ吐き出す — 聴くモード"
+              : "思考を整理する — 対話モード"}
+          </p>
         </div>
       </header>
 
@@ -226,6 +238,40 @@ export function ChatInterface({
           {/* Coach footer */}
           <div className={`border-t ${borderBg} backdrop-blur-md sticky bottom-0`}>
             <div className="max-w-2xl mx-auto px-3 py-2.5">
+
+              {/* ── セーフティモード トグル ── */}
+              <div className="flex items-center justify-between px-1 mb-2.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base leading-none">
+                    {safetyMode ? "🛡️" : "💪"}
+                  </span>
+                  <span className="text-[11px] text-[#9A9A9A]">
+                    {safetyMode
+                      ? "セーフティモード（絶対的受容）"
+                      : "通常コーチング"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSafetyMode((s) => !s)}
+                  aria-label="セーフティモード切替"
+                  className="flex items-center gap-1.5 focus:outline-none"
+                >
+                  <span className="text-[10px] text-[#BCBCBC]">切替</span>
+                  <div
+                    className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${
+                      safetyMode ? "bg-[#183D46]" : "bg-[#D8D8D8]"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ${
+                        safetyMode ? "translate-x-[18px]" : "translate-x-0.5"
+                      }`}
+                    />
+                  </div>
+                </button>
+              </div>
+
               {remaining <= 0 ? (
                 <p className="text-center text-sm text-[#9A9A9A] py-3">
                   今日はここまでにしましょう。明日また話しましょう。
@@ -257,7 +303,11 @@ export function ChatInterface({
                     value={input}
                     onChange={handleCoachInputChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="コーチに相談・意見を求める..."
+                    placeholder={
+                      safetyMode
+                        ? "何でも話して、ただ聴いてもらう..."
+                        : "コーチに相談・意見を求める..."
+                    }
                     rows={1}
                     disabled={isLoading}
                     className="flex-1 resize-none bg-white border border-[#C8DDE2] focus:border-[#183D46]/50 rounded-xl px-3.5 py-2.5 text-sm text-[#171717] placeholder:text-[#BCBCBC] focus:outline-none disabled:opacity-50 transition-colors shadow-sm"
