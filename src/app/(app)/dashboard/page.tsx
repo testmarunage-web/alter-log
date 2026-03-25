@@ -49,11 +49,25 @@ const IcExternalLink = () => (
   </svg>
 );
 
+// コーチ光の玉（ダッシュボード用・小）
+function CoachOrb() {
+  return (
+    <div className="w-9 h-9 rounded-full flex-shrink-0 relative overflow-hidden"
+      style={{
+        background: "radial-gradient(circle at 38% 38%, #93E4D4, #3AAFCA 45%, #1A6B8A)",
+        boxShadow: "0 0 12px rgba(58,175,202,0.55), 0 0 4px rgba(147,228,212,0.35)",
+      }}>
+      <div className="absolute inset-0 rounded-full"
+        style={{ background: "radial-gradient(circle at 62% 28%, rgba(255,255,255,0.40), transparent 55%)" }} />
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // レーダーチャート（思考の俯瞰型分析）
 // ─────────────────────────────────────────────────────────────────────────────
-const RADAR_AXES  = ["俯瞰力", "客観視", "決断力", "言語化", "内省力"];
-const RADAR_VALS  = [0.72, 0.55, 0.82, 0.60, 0.44];
+const RADAR_AXES  = ["自己効力感", "客観視", "行動の具体性", "感情の整理度", "思考の深さ"];
+const RADAR_VALS  = [0.68, 0.75, 0.52, 0.65, 0.80];
 const N = RADAR_AXES.length;
 const CX = 50, CY = 50, RR = 32;
 
@@ -88,7 +102,7 @@ function RadarChart() {
         const p = rp(i, 1.42);
         return (
           <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle"
-            fontSize="6.2" fill="rgba(196,163,90,0.55)" fontFamily="sans-serif">
+            fontSize="6.2" fill="rgba(196,163,90,0.82)" fontFamily="sans-serif">
             {label}
           </text>
         );
@@ -101,10 +115,10 @@ function RadarChart() {
 // 脳内シェア（ドーナツ）
 // ─────────────────────────────────────────────────────────────────────────────
 const DONUT_SEGS = [
-  { label: "業務不安", pct: 40, color: "#3AAFCA" },
-  { label: "人間関係", pct: 30, color: "#C4A35A" },
-  { label: "キャリア",  pct: 20, color: "#5A8A96" },
-  { label: "その他",   pct: 10, color: "#2A3A44" },
+  { label: "A社商談への不安",   pct: 40, color: "#3AAFCA" },
+  { label: "○○の採用について", pct: 30, color: "#C4A35A" },
+  { label: "新規事業のアイデア", pct: 20, color: "#5A8A96" },
+  { label: "その他",            pct: 10, color: "#2A3A44" },
 ];
 
 function DonutChart() {
@@ -119,15 +133,15 @@ function DonutChart() {
         <div className="w-full h-full rounded-full"
           style={{ background: `conic-gradient(from -90deg, ${gradient})` }} />
         <div className="absolute inset-[22%] rounded-full bg-[#0B0E13] flex items-center justify-center">
-          <span className="text-[7px] font-bold text-[#4A4438]">今週</span>
+          <span className="text-[7px] font-bold text-[#8A8276]">今週</span>
         </div>
       </div>
       <div className="space-y-0.5 w-full">
         {DONUT_SEGS.slice(0, 3).map((s) => (
           <div key={s.label} className="flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
-            <span className="text-[9px] text-[#5A5248] truncate flex-1">{s.label}</span>
-            <span className="text-[9px] text-[#3E3A32] tabular-nums">{s.pct}%</span>
+            <span className="text-[9px] text-[#9A9488] truncate flex-1">{s.label}</span>
+            <span className="text-[9px] text-[#8A8276] tabular-nums">{s.pct}%</span>
           </div>
         ))}
       </div>
@@ -156,7 +170,7 @@ function BatteryGauge() {
       </div>
       <div className="text-center">
         <p className="text-lg font-black tabular-nums leading-none" style={{ color }}>{pct}%</p>
-        <p className="text-[9px] text-[#4A4438] mt-0.5">回復傾向</p>
+        <p className="text-[9px] text-[#8A8276] mt-0.5">回復傾向</p>
       </div>
     </div>
   );
@@ -202,12 +216,15 @@ function RippleLink({ href, children, className = "" }: { href: string; children
 // ─────────────────────────────────────────────────────────────────────────────
 const GLASS = "bg-white/[0.04] backdrop-blur-sm border border-[#C4A35A]/20 rounded-xl";
 const GLASS_HOVER = "hover:-translate-y-px hover:border-[#C4A35A]/45 hover:shadow-[0_0_22px_rgba(196,163,90,0.10)] transition-all duration-400 ease-out";
-const SECTION_LABEL = "text-[9px] tracking-[0.26em] text-[#C4A35A]/50 uppercase font-sans flex items-center gap-1.5";
+const SECTION_LABEL = "text-[9px] tracking-[0.26em] text-[#C4A35A]/75 uppercase font-sans flex items-center gap-1.5";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
+const RX_TABS = ["本日の処方箋", "やらないこと", "思考のフレームワーク", "過去の成功パターン"] as const;
+
 export default function DashboardPage() {
+  const [rxTab, setRxTab] = useState(0);
   return (
     <>
       <style>{`
@@ -243,9 +260,9 @@ export default function DashboardPage() {
               </p>
               <RadarChart />
               <div className="mt-1.5 space-y-0.5">
-                {[["決断力", "82"], ["俯瞰力", "72"]].map(([k, v]) => (
+                {[["思考の深さ", "80"], ["客観視", "75"]].map(([k, v]) => (
                   <div key={k} className="flex items-center justify-between">
-                    <span className="text-[9px] text-[#4A4438]">{k}</span>
+                    <span className="text-[9px] text-[#8A8276]">{k}</span>
                     <span className="text-[9px] font-bold text-[#3AAFCA] tabular-nums">{v}</span>
                   </div>
                 ))}
@@ -281,7 +298,13 @@ export default function DashboardPage() {
           <div className="hl-enter hl-d1 grid grid-cols-2 gap-3">
 
             <RippleLink href="/chat?mode=journal"
-              className={`${GLASS} ${GLASS_HOVER} p-5`}
+              className="relative overflow-hidden block rounded-xl p-5
+                bg-white/[0.08] backdrop-blur-sm
+                border border-[#C4A35A]/35
+                shadow-[0_4px_24px_rgba(0,0,0,0.40),inset_0_1px_0_rgba(196,163,90,0.10)]
+                hover:-translate-y-px hover:border-[#C4A35A]/60
+                hover:shadow-[0_6px_28px_rgba(0,0,0,0.45),0_0_20px_rgba(196,163,90,0.12)]
+                active:scale-[0.98] transition-all duration-300 ease-out"
             >
               <div className="flex items-center gap-2 mb-3 text-[#C4A35A]/70">
                 <IcPen />
@@ -289,17 +312,19 @@ export default function DashboardPage() {
               <p className="text-base font-black text-[#E8E3D8] tracking-tight leading-tight mb-1.5">
                 吐き出す
               </p>
-              <p className="text-[11px] text-[#4A4438] leading-snug">
+              <p className="text-[11px] text-[#8A8276] leading-snug">
                 まとまっていなくて構いません。心のノイズをただ置いていってください。
               </p>
             </RippleLink>
 
             <RippleLink href="/chat?mode=coach"
               className="relative overflow-hidden block rounded-xl p-5
-                bg-[#1C3642]/50 backdrop-blur-sm border border-[#3AAFCA]/22
-                hover:-translate-y-px hover:border-[#3AAFCA]/50
-                hover:shadow-[0_0_22px_rgba(58,175,202,0.12)]
-                transition-all duration-400 ease-out"
+                bg-[#1C3642]/70 backdrop-blur-sm
+                border border-[#3AAFCA]/35
+                shadow-[0_4px_24px_rgba(0,0,0,0.40),inset_0_1px_0_rgba(58,175,202,0.08)]
+                hover:-translate-y-px hover:border-[#3AAFCA]/60
+                hover:shadow-[0_6px_28px_rgba(0,0,0,0.45),0_0_20px_rgba(58,175,202,0.14)]
+                active:scale-[0.98] transition-all duration-300 ease-out"
             >
               <div className="flex items-center gap-2 mb-3 text-[#3AAFCA]/70">
                 <IcCompass />
@@ -307,7 +332,7 @@ export default function DashboardPage() {
               <p className="text-base font-black text-[#C8E8EE] tracking-tight leading-tight mb-1.5">
                 思考を整理する
               </p>
-              <p className="text-[11px] text-[#3A6070] leading-snug">
+              <p className="text-[11px] text-[#6A9AA8] leading-snug">
                 コーチと一緒に、モヤモヤの正体を見つけていきましょう。
               </p>
             </RippleLink>
@@ -319,14 +344,20 @@ export default function DashboardPage() {
               <IcZap />
               コーチからの所見
             </p>
-            <p className="text-sm font-bold text-[#E8E3D8] leading-snug mb-2">
-              強い義務感に縛られ、少し無理をしているかもしれません
-            </p>
-            <p className="text-xs text-[#5A5248] leading-relaxed">
-              ここ数日の対話で「〜すべき」という言葉が
-              <span className="text-[#C4A35A] font-semibold"> 15回 </span>
-              登場しています。義務感がパフォーマンスの天井になっていないか、一度話してみませんか。
-            </p>
+            <div className="flex gap-3 items-start">
+              <CoachOrb />
+              {/* 吹き出し */}
+              <div className="flex-1 relative bg-white/[0.05] border border-[#3AAFCA]/20 rounded-xl rounded-tl-sm px-3.5 py-3">
+                <p className="text-sm font-bold text-[#E8E3D8] leading-snug mb-1.5">
+                  強い義務感に縛られ、少し無理をしているかもしれません
+                </p>
+                <p className="text-xs text-[#9A9488] leading-relaxed">
+                  ここ数日の対話で「〜すべき」という言葉が
+                  <span className="text-[#C4A35A] font-semibold"> 15回 </span>
+                  登場しています。義務感がパフォーマンスの天井になっていないか、一度話してみませんか。
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* ④ 今のあなたへ（処方箋）──────────────────────────────────── */}
@@ -334,38 +365,57 @@ export default function DashboardPage() {
             {/* ヘッダー帯 */}
             <div className="px-4 py-2.5 flex items-center gap-2 border-b border-[#C4A35A]/12"
               style={{ background: "linear-gradient(90deg,rgba(196,163,90,0.10) 0%,transparent 100%)" }}>
-              <span className="text-[#C4A35A]/70"><IcBook /></span>
-              <p className={SECTION_LABEL}>今のあなたへ — 今週の処方箋</p>
+              <span className="text-[#C4A35A]/75"><IcBook /></span>
+              <p className={SECTION_LABEL}>今のあなたへ</p>
             </div>
+
+            {/* タブ */}
+            <div className="flex border-b border-[#C4A35A]/10 px-1 pt-1">
+              {RX_TABS.map((label, i) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setRxTab(i)}
+                  className={`px-3 py-1.5 text-[10px] font-semibold tracking-wide whitespace-nowrap transition-colors duration-200
+                    ${rxTab === i
+                      ? "text-[#C4A35A] border-b-2 border-[#C4A35A] -mb-px"
+                      : "text-[#4A4438] hover:text-[#8A8276]"
+                    }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* タブ コンテンツ */}
             <div className="p-4">
-              <p className="text-xs text-[#5A5248] leading-relaxed mb-3">
-                ここ数ヶ月の葛藤を分析した結果、今の壁を越えるためには小手先のテクニックではなく、
-                <span className="text-[#C4A35A]/80 font-medium">この一冊が決定的なブレイクスルーになるはず</span>
-                です。
-              </p>
-              <div className="flex gap-3 items-start bg-white/[0.03] border border-[#C4A35A]/10 rounded-lg p-3 mb-3">
-                <div className="w-10 h-14 rounded flex-shrink-0 flex flex-col justify-end pb-1 px-0.5"
-                  style={{ background: "linear-gradient(160deg,#1A3A4A,#0D1E28)" }}>
-                  <span className="text-[6px] text-white/35 font-bold leading-tight text-center">HIGH<br/>OUTPUT</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-black text-[#E8E3D8] leading-snug">HIGH OUTPUT MANAGEMENT</p>
-                  <p className="text-[10px] text-[#4A4438] mt-0.5 mb-1.5">アンドリュー・S・グローブ</p>
-                  <p className="text-[11px] text-[#5A5248] leading-snug">
-                    「成果を出す」本質をマネジメントの視点で再定義。頑張っても前に進まない感覚の正体がここにある。
+              {rxTab === 0 && (
+                <>
+                  <p className="text-xs text-[#9A9488] leading-relaxed mb-3">
+                    ここ数ヶ月の葛藤を分析した結果、今の壁を越えるためには小手先のテクニックではなく、
+                    <span className="text-[#C4A35A]/80 font-medium">この一冊が決定的なブレイクスルーになるはず</span>
+                    です。
                   </p>
-                </div>
-              </div>
-              <a href="https://www.amazon.co.jp/s?k=HIGH+OUTPUT+MANAGEMENT"
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg
-                  text-[11px] font-semibold text-[#C4A35A]/80 hover:text-[#C4A35A]
-                  border border-[#C4A35A]/25 hover:border-[#C4A35A]/55
-                  hover:shadow-[0_0_14px_rgba(196,163,90,0.12)]
-                  transition-all duration-300">
-                <IcExternalLink />
-                Amazonで詳細を見る
-              </a>
+                  <div className="flex gap-3 items-start bg-white/[0.03] border border-[#C4A35A]/10 rounded-lg p-3">
+                    <div className="w-10 h-14 rounded flex-shrink-0 flex flex-col justify-end pb-1 px-0.5"
+                      style={{ background: "linear-gradient(160deg,#1A3A4A,#0D1E28)" }}>
+                      <span className="text-[6px] text-white/35 font-bold leading-tight text-center">HIGH<br/>OUTPUT</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black text-[#E8E3D8] leading-snug">HIGH OUTPUT MANAGEMENT</p>
+                      <p className="text-[10px] text-[#8A8276] mt-0.5 mb-1.5">アンドリュー・S・グローブ</p>
+                      <p className="text-[11px] text-[#9A9488] leading-snug">
+                        「成果を出す」本質をマネジメントの視点で再定義。頑張っても前に進まない感覚の正体がここにある。
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+              {rxTab !== 0 && (
+                <p className="text-xs text-[#4A4438] text-center py-4">
+                  準備中です
+                </p>
+              )}
             </div>
           </div>
 
@@ -376,19 +426,19 @@ export default function DashboardPage() {
               <IcClock />
               1ヶ月前のあなたからの手紙
             </p>
-            <p className="text-xs text-[#5A5248] leading-relaxed mb-3">
+            <p className="text-xs text-[#9A9488] leading-relaxed mb-3">
               1ヶ月前の今日、あなたは
-              <span className="text-[#9A9080] font-medium">「プロジェクトの進行」</span>
+              <span className="text-[#B0A898] font-medium">「プロジェクトの進行」</span>
               について悩み、吐き出していました。今のあなたなら、当時の自分にどんな声をかけてあげますか？
             </p>
-            <Link href="/chat?mode=coach"
+            <Link href="/history"
               className="inline-flex items-center gap-2 text-xs font-semibold
                 text-[#C4A35A]/70 hover:text-[#C4A35A]
                 border border-[#C4A35A]/25 hover:border-[#C4A35A]/55
                 px-4 py-2 rounded-lg
                 hover:shadow-[0_0_14px_rgba(196,163,90,0.12)]
                 transition-all duration-300">
-              過去の自分と対話する
+              過去のジャーナルを振り返る
               <IcArrow />
             </Link>
           </div>
