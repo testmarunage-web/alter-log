@@ -138,13 +138,10 @@ function SparklineChart() {
   const last = SPARK_VALS[SPARK_VALS.length - 1];
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="flex flex-col">
-        <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-black tabular-nums leading-none text-[#3AAFCA]">{last}</span>
-          <span className="text-[10px] text-[#8A8276]">/ 100</span>
-        </div>
-        <p className="text-[10px] text-[#8A8276] mt-0.5">回復傾向</p>
+    <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+      <div className="flex items-baseline gap-1">
+        <span className="text-2xl font-black tabular-nums leading-none text-[#3AAFCA]">{last}</span>
+        <span className="text-[10px] text-[#8A8276]">/ 100</span>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="flex-1" style={{ height: 44 }}>
         <defs>
@@ -245,6 +242,19 @@ function AccordionCard({
         </div>
         {/* サマリー（常時表示） */}
         {summary}
+      </div>
+      {/* アフォーダンスバー */}
+      <div className="flex items-center justify-center gap-1.5 py-2 border-t border-[#C4A35A]/8">
+        <span className="text-[9px] tracking-widest text-[#C4A35A]/40 uppercase">
+          {open ? "閉じる" : "Alterの思考プロセスを見る"}
+        </span>
+        <svg
+          width="10" height="10" viewBox="0 0 24 24" fill="none"
+          stroke="rgba(196,163,90,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
       </div>
       {/* 展開エリア */}
       {open && (
