@@ -287,7 +287,7 @@ export default function DashboardPage() {
         <div className="max-w-2xl mx-auto space-y-3">
 
           {/* ① 上段：2カラム（バランス・ドーナツ）───────────────────── */}
-          <div className="hl-enter grid grid-cols-2 gap-3">
+          <div className="hl-enter grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className={`${GLASS} p-3`}>
               <p className={SECTION_LABEL}>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -327,17 +327,21 @@ export default function DashboardPage() {
 
             <RippleLink href="/chat?mode=journal"
               className="rounded-xl p-5
-                shadow-[0_8px_0_rgba(0,0,0,0.8)]
-                hover:shadow-[0_10px_0_rgba(0,0,0,0.9),0_0_20px_rgba(196,163,90,0.18)]
+                border border-t-[rgba(255,255,255,0.12)] border-x-[rgba(255,255,255,0.05)] border-b-transparent
+                shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.10)]
+                hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(196,163,90,0.18),inset_0_1px_0_rgba(255,255,255,0.14)]
                 hover:-translate-y-0.5
-                active:translate-y-2 active:shadow-none
+                active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
                 transition-all duration-100 ease-out"
-              style={{ background: "linear-gradient(145deg, #2A1F0A, #1A1408)" }}
+              style={{ background: "linear-gradient(160deg, #3A2910 0%, #1A1408 60%)" }}
             >
-              <div className="flex items-center gap-2 mb-3" style={{ color: "#C4A35A" }}>
-                <IcPen />
+              <div className="flex items-center justify-between mb-4">
+                <span style={{ color: "#C4A35A" }}><IcPen /></span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(196,163,90,0.55)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                </svg>
               </div>
-              <p className="text-base font-black tracking-tight leading-tight mb-1.5"
+              <p className="text-base font-black tracking-tight leading-tight mb-1"
                 style={{ color: "#E8D5A0" }}>
                 吐き出す
               </p>
@@ -348,17 +352,21 @@ export default function DashboardPage() {
 
             <RippleLink href="/chat?mode=coach"
               className="rounded-xl p-5
-                shadow-[0_8px_0_rgba(0,0,0,0.8)]
-                hover:shadow-[0_10px_0_rgba(0,0,0,0.9),0_0_20px_rgba(58,175,202,0.18)]
+                border border-t-[rgba(255,255,255,0.10)] border-x-[rgba(255,255,255,0.04)] border-b-transparent
+                shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(58,175,202,0.12)]
+                hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(58,175,202,0.18),inset_0_1px_0_rgba(58,175,202,0.18)]
                 hover:-translate-y-0.5
-                active:translate-y-2 active:shadow-none
+                active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
                 transition-all duration-100 ease-out"
-              style={{ background: "linear-gradient(145deg, #0D2A36, #071820)" }}
+              style={{ background: "linear-gradient(160deg, #0F3545 0%, #071820 60%)" }}
             >
-              <div className="flex items-center gap-2 mb-3" style={{ color: "#3AAFCA" }}>
-                <IcCompass />
+              <div className="flex items-center justify-between mb-4">
+                <span style={{ color: "#3AAFCA" }}><IcCompass /></span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(58,175,202,0.55)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                </svg>
               </div>
-              <p className="text-base font-black tracking-tight leading-tight mb-1.5"
+              <p className="text-base font-black tracking-tight leading-tight mb-1"
                 style={{ color: "#C8E8EE" }}>
                 思考を整理する
               </p>
