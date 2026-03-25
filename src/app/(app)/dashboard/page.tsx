@@ -71,8 +71,8 @@ function BalanceSliders() {
               className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full"
               style={{
                 left: `calc(${pct}% - 5px)`,
-                background: "radial-gradient(circle at 38% 38%, #93E4D4, #3AAFCA 55%)",
-                boxShadow: "0 0 5px rgba(58,175,202,0.70)",
+                background: "radial-gradient(circle at 38% 38%, #E8D5A0, #C4A35A 55%)",
+                boxShadow: "0 0 5px rgba(196,163,90,0.70)",
               }}
             />
           </div>
@@ -86,10 +86,10 @@ function BalanceSliders() {
 // 脳内シェア（ドーナツ）
 // ─────────────────────────────────────────────────────────────────────────────
 const DONUT_SEGS = [
-  { label: "A社商談への不安",   pct: 40, color: "#3AAFCA" },
+  { label: "A社商談への不安",   pct: 40, color: "#7A9E8E" },
   { label: "○○の採用について", pct: 30, color: "#C4A35A" },
-  { label: "新規事業のアイデア", pct: 20, color: "#5A8A96" },
-  { label: "その他",            pct: 10, color: "#2A3A44" },
+  { label: "新規事業のアイデア", pct: 20, color: "#8A7A5A" },
+  { label: "その他",            pct: 10, color: "#2A3A34" },
 ];
 
 function DonutChart() {
@@ -164,32 +164,47 @@ function AccordionCard({
   label,
   summary,
   detail,
+  infoText,
 }: {
   icon: React.ReactNode;
   label: string;
   summary: React.ReactNode;
   detail: string;
+  infoText: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [tooltip, setTooltip] = useState(false);
   return (
     <div
       className={`${GLASS} overflow-hidden hover:border-[#C4A35A]/40 transition-all duration-300 cursor-pointer`}
-      onClick={() => setOpen((v) => !v)}
+      onClick={() => { setOpen((v) => !v); setTooltip(false); }}
     >
       <div className="p-4">
         {/* ヘッダー行 */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center mb-3">
           <p className={SECTION_LABEL}>
             {icon}
             {label}
           </p>
-          <svg
-            className="w-3 h-3 flex-shrink-0 text-[#C4A35A]/50"
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round"
+          {/* ⓘ アイコン（ラベル直右・ツールチップ付き） */}
+          <div
+            className="relative ml-1.5 flex-shrink-0"
+            onClick={(e) => e.stopPropagation()}
           >
-            <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
-          </svg>
+            <button
+              onClick={() => setTooltip((v) => !v)}
+              className="flex items-center justify-center text-[#C4A35A]/35 hover:text-[#C4A35A]/75 transition-colors"
+            >
+              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
+              </svg>
+            </button>
+            {tooltip && (
+              <div className="absolute left-0 top-5 z-20 w-52 p-2.5 bg-[#141B22] border border-[#C4A35A]/20 rounded-lg shadow-lg">
+                <p className="text-[10px] text-[#9A9488] leading-relaxed">{infoText}</p>
+              </div>
+            )}
+          </div>
         </div>
         {/* サマリー（常時表示） */}
         {summary}
@@ -240,7 +255,7 @@ export default function DashboardPage() {
         .hl-d7 { animation-delay: 0.42s; }
       `}</style>
 
-      <div className="min-h-full bg-[#0B0E13] px-4 py-6 md:px-6">
+      <div className="min-h-screen bg-[#0B0E13] px-4 py-6 pb-24 md:px-6">
         <div className="max-w-2xl mx-auto space-y-3">
 
           {/* (1) アクションボタン ────────────────────────────────────────── */}
@@ -271,23 +286,23 @@ export default function DashboardPage() {
 
             <RippleLink href="/chat?mode=coach"
               className="rounded-xl p-4
-                border border-t-[rgba(255,255,255,0.10)] border-x-[rgba(255,255,255,0.04)] border-b-transparent
-                shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(58,175,202,0.12)]
-                hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(58,175,202,0.18),inset_0_1px_0_rgba(58,175,202,0.18)]
+                border border-t-[rgba(255,255,255,0.08)] border-x-[rgba(255,255,255,0.03)] border-b-transparent
+                shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(180,210,190,0.08)]
+                hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(80,130,100,0.18),inset_0_1px_0_rgba(180,210,190,0.12)]
                 hover:-translate-y-0.5
                 active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
                 transition-all duration-100 ease-out"
-              style={{ background: "linear-gradient(160deg, #0F3545 0%, #071820 60%)" }}
+              style={{ background: "linear-gradient(160deg, #1C3028 0%, #0D1A16 60%)" }}
             >
-              <div className="mb-3" style={{ color: "#3AAFCA" }}>
+              <div className="mb-3" style={{ color: "#8BA89E" }}>
                 <IcCompass />
               </div>
               <p className="text-base font-black tracking-tight leading-tight mb-4"
-                style={{ color: "#C8E8EE" }}>
+                style={{ color: "#D0D5D2" }}>
                 思考を整理する
               </p>
               <div className="flex justify-end">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(58,175,202,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(139,168,158,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
                 </svg>
               </div>
@@ -299,10 +314,11 @@ export default function DashboardPage() {
             <AccordionCard
               icon={<IcZap />}
               label="客観的ファクトの確認"
+              infoText="対話ログから抽出された、あなたの無意識の頻出ワードや行動パターンです。"
               summary={
                 <div className="flex gap-3 items-start">
                   <CoachOrb />
-                  <div className="flex-1 bg-white/[0.05] border border-[#3AAFCA]/20 rounded-xl rounded-tl-sm px-3.5 py-3">
+                  <div className="flex-1 bg-white/[0.05] border border-[#C4A35A]/15 rounded-xl rounded-tl-sm px-3.5 py-3">
                     <p className="text-sm font-bold text-[#E8E3D8] leading-snug mb-1.5">
                       強い義務感に縛られ、少し無理をしているかもしれません
                     </p>
@@ -319,7 +335,7 @@ export default function DashboardPage() {
           </div>
 
           {/* (4) 思考の俯瞰 ＆ 今の脳内シェア ──────────────────────────── */}
-          <div className="hl-enter hl-d2 space-y-3">
+          <div className="hl-enter hl-d2 grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className={`${GLASS} p-3`}>
               <p className={`${SECTION_LABEL} mb-3`}>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -327,15 +343,13 @@ export default function DashboardPage() {
                 </svg>
                 思考の俯瞰
               </p>
-              <div className="max-w-xs">
-                <BalanceSliders />
-              </div>
+              <BalanceSliders />
             </div>
 
             <div className={`${GLASS} p-3`}>
               <p className={`${SECTION_LABEL} mb-2`}>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 10 10" stroke="#3AAFCA" />
+                  <circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 10 10" stroke="#C4A35A" />
                 </svg>
                 今の脳内シェア
               </p>
@@ -352,6 +366,7 @@ export default function DashboardPage() {
                 </svg>
               }
               label="リソースの解放"
+              infoText="今週やめるべきことを提案します。引き算の行動がコンディション回復の最短ルートです。"
               summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed">
                   今週は新しいAIツールの検証を一旦ストップし、脳のメモリを解放しましょう。
@@ -370,6 +385,7 @@ export default function DashboardPage() {
                 </svg>
               }
               label="思考の構造化"
+              infoText="複雑に絡み合っているタスクを、既知のフレームワークで整理します。"
               summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed">
                   緊急度と重要度のマトリクスに当てはめると、今悩んでいることは
@@ -386,9 +402,10 @@ export default function DashboardPage() {
             <AccordionCard
               icon={<IcBook />}
               label="外部視点の獲得"
+              infoText="あなたの現在地に最も共鳴する書籍・知見を、対話の文脈から選定しています。"
               summary={
                 <div>
-                  <p className="text-xs font-black text-[#E8E3D8] leading-snug mb-0.5">HIGH OUTPUT MANAGEMENT</p>
+                  <p className="text-xs font-black text-[#E8E3D8] leading-snug mb-0.5">『HIGH OUTPUT MANAGEMENT』</p>
                   <p className="text-[10px] text-[#8A8276] mb-1.5">アンドリュー・S・グローブ</p>
                   <p className="text-sm text-[#9A9488] leading-relaxed">
                     「成果を出す」本質をマネジメントの視点で再定義。頑張っても前に進まない感覚の正体がここにある。
@@ -408,6 +425,7 @@ export default function DashboardPage() {
                 </svg>
               }
               label="勝ち筋の再現"
+              infoText="過去の対話から、あなたが停滞を打破した成功パターンを抽出しています。"
               summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed">
                   半年前、あなたは
@@ -419,9 +437,8 @@ export default function DashboardPage() {
             />
           </div>
 
-
-</div>{/* /max-w-2xl */}
-      </div>{/* /min-h-full */}
+        </div>{/* /max-w-2xl */}
+      </div>{/* /min-h-screen */}
     </>
   );
 }
