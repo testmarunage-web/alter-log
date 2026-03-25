@@ -386,28 +386,22 @@ export default function DashboardPage() {
             </p>
             <div className="space-y-3 bg-white/[0.015] border border-white/[0.03] rounded-2xl p-1.5 md:p-2 shadow-inner">
 
-          {/* ③.5 今のあなたのAlter ───────────────────────────────────── */}
+          {/* ③.5 現在の観測スタンス ─────────────────────────────────── */}
           <div className={`hl-enter hl-d3 ${GLASS} p-4`}>
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start mb-3">
               <p className={SECTION_LABEL}>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                  <circle cx="12" cy="12" r="10" /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
                 </svg>
-                今のあなたのAlter
+                現在の観測スタンス
               </p>
-              <Link
-                href="/onboarding"
-                className="text-[10px] text-[#C4A35A]/60 hover:text-[#C4A35A] underline transition-colors"
-              >
-                Alterを再設定する
-              </Link>
             </div>
             <div className="flex items-center gap-3.5">
               <CoachOrb />
               <div>
-                <p className="text-sm font-bold text-[#E8E3D8] leading-snug mb-1">ロジカル × 伴走型</p>
+                <p className="text-sm font-bold text-[#E8E3D8] leading-snug mb-1">【ノイズの除去】</p>
                 <p className="text-[11px] text-[#9A9488] leading-relaxed">
-                  あなたの思考パターンを記憶し、論理と共感で答えではなく気づきを引き出します。
+                  焦りと義務感のパラメーターが閾値を超えています。本日のセッションでは新しい提案はせず、思考のデフラグ（整理）に徹します。
                 </p>
               </div>
             </div>
@@ -417,7 +411,7 @@ export default function DashboardPage() {
           <div className="hl-enter hl-d4">
             <AccordionCard
               icon={<IcZap />}
-              label="Alterの気づき"
+              label="客観的ファクトの確認"
               summary={
                 <div className="flex gap-3 items-start">
                   <CoachOrb />
@@ -441,7 +435,7 @@ export default function DashboardPage() {
           <div className="hl-enter hl-d5">
             <AccordionCard
               icon={<IcBook />}
-              label="Alterの処方箋"
+              label="外部視点の獲得"
               summary={
                 <div className="flex gap-3 items-start bg-white/[0.03] border border-[#C4A35A]/10 rounded-lg p-3">
                   <div className="w-10 h-14 rounded flex-shrink-0 flex flex-col justify-end pb-1 px-0.5"
@@ -469,7 +463,7 @@ export default function DashboardPage() {
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
               }
-              label="Alterの引き算"
+              label="リソースの解放"
               summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed">
                   今週は新しいAIツールの検証を一旦ストップし、脳のメモリを解放しましょう。
@@ -487,7 +481,7 @@ export default function DashboardPage() {
                   <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
                 </svg>
               }
-              label="Alterの補助線"
+              label="思考の構造化"
               summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed">
                   緊急度と重要度のマトリクスに当てはめると、今悩んでいることは
@@ -507,7 +501,7 @@ export default function DashboardPage() {
                   <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                 </svg>
               }
-              label="Alterの道標"
+              label="勝ち筋の再現"
               summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed">
                   半年前、あなたは
