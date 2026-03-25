@@ -1,235 +1,397 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef, useCallback } from "react";
+import { useRef, useCallback, useState } from "react";
 
-// ── ripple hook ────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// SVG アイコン（絵文字ゼロ）
+// ─────────────────────────────────────────────────────────────────────────────
+const IcZap = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+  </svg>
+);
+const IcPen = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+);
+const IcCompass = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+  </svg>
+);
+const IcBook = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+  </svg>
+);
+const IcClock = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+const IcArrow = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12" />
+    <polyline points="12 5 19 12 12 19" />
+  </svg>
+);
+const IcExternalLink = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    <polyline points="15 3 21 3 21 9" />
+    <line x1="10" y1="14" x2="21" y2="3" />
+  </svg>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// レーダーチャート（思考の俯瞰型分析）
+// ─────────────────────────────────────────────────────────────────────────────
+const RADAR_AXES  = ["俯瞰力", "客観視", "決断力", "言語化", "内省力"];
+const RADAR_VALS  = [0.72, 0.55, 0.82, 0.60, 0.44];
+const N = RADAR_AXES.length;
+const CX = 50, CY = 50, RR = 32;
+
+function rp(i: number, ratio: number) {
+  const a = (i * 2 * Math.PI / N) - Math.PI / 2;
+  return { x: CX + RR * ratio * Math.cos(a), y: CY + RR * ratio * Math.sin(a) };
+}
+function rpStr(i: number, ratio: number) { const p = rp(i, ratio); return `${p.x},${p.y}`; }
+
+function RadarChart() {
+  const grids  = [0.33, 0.66, 1.0];
+  const data   = RADAR_VALS.map((v, i) => rpStr(i, v)).join(" ");
+  const outer  = RADAR_VALS.map((_, i) => rpStr(i, 1.0)).join(" ");
+  return (
+    <svg viewBox="0 0 100 100" className="w-full" style={{ height: 90 }}>
+      {grids.map((g) => (
+        <polygon key={g}
+          points={RADAR_AXES.map((_, i) => rpStr(i, g)).join(" ")}
+          fill="none" stroke="rgba(196,163,90,0.13)" strokeWidth="0.6" />
+      ))}
+      {RADAR_AXES.map((_, i) => {
+        const e = rp(i, 1.0);
+        return <line key={i} x1={CX} y1={CY} x2={e.x} y2={e.y} stroke="rgba(196,163,90,0.10)" strokeWidth="0.5" />;
+      })}
+      <polygon points={outer} fill="none" stroke="rgba(196,163,90,0.08)" strokeWidth="0.5" />
+      <polygon points={data} fill="rgba(58,175,202,0.18)" stroke="#3AAFCA" strokeWidth="1.1" />
+      {RADAR_VALS.map((v, i) => {
+        const p = rp(i, v);
+        return <circle key={i} cx={p.x} cy={p.y} r="1.8" fill="#3AAFCA" />;
+      })}
+      {RADAR_AXES.map((label, i) => {
+        const p = rp(i, 1.42);
+        return (
+          <text key={i} x={p.x} y={p.y} textAnchor="middle" dominantBaseline="middle"
+            fontSize="6.2" fill="rgba(196,163,90,0.55)" fontFamily="sans-serif">
+            {label}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 脳内シェア（ドーナツ）
+// ─────────────────────────────────────────────────────────────────────────────
+const DONUT_SEGS = [
+  { label: "業務不安", pct: 40, color: "#3AAFCA" },
+  { label: "人間関係", pct: 30, color: "#C4A35A" },
+  { label: "キャリア",  pct: 20, color: "#5A8A96" },
+  { label: "その他",   pct: 10, color: "#2A3A44" },
+];
+
+function DonutChart() {
+  const stops = DONUT_SEGS.reduce<{ color: string; start: number; end: number }[]>((acc, s) => {
+    const start = acc.length ? acc[acc.length - 1].end : 0;
+    return [...acc, { color: s.color, start, end: start + s.pct * 3.6 }];
+  }, []);
+  const gradient = stops.map((s) => `${s.color} ${s.start}deg ${s.end}deg`).join(", ");
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative w-14 h-14">
+        <div className="w-full h-full rounded-full"
+          style={{ background: `conic-gradient(from -90deg, ${gradient})` }} />
+        <div className="absolute inset-[22%] rounded-full bg-[#0B0E13] flex items-center justify-center">
+          <span className="text-[7px] font-bold text-[#4A4438]">今週</span>
+        </div>
+      </div>
+      <div className="space-y-0.5 w-full">
+        {DONUT_SEGS.slice(0, 3).map((s) => (
+          <div key={s.label} className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
+            <span className="text-[9px] text-[#5A5248] truncate flex-1">{s.label}</span>
+            <span className="text-[9px] text-[#3E3A32] tabular-nums">{s.pct}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 心のバッテリー（縦ゲージ）
+// ─────────────────────────────────────────────────────────────────────────────
+function BatteryGauge() {
+  const pct = 65;
+  const color = pct > 60 ? "#3AAFCA" : pct > 30 ? "#C4A35A" : "#EF4444";
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative" style={{ width: 26, height: 54 }}>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2.5 h-1 bg-[#2A3640] rounded-sm" />
+        <div className="absolute top-1.5 left-0 right-0 bottom-0 border border-[rgba(196,163,90,0.28)] rounded overflow-hidden">
+          <div className="absolute bottom-0 left-0 right-0 rounded-sm transition-all"
+            style={{ height: `${pct}%`, background: color, opacity: 0.75 }} />
+          {[33, 66].map((p) => (
+            <div key={p} className="absolute left-0 right-0 h-px bg-[rgba(196,163,90,0.08)]"
+              style={{ bottom: `${p}%` }} />
+          ))}
+        </div>
+      </div>
+      <div className="text-center">
+        <p className="text-lg font-black tabular-nums leading-none" style={{ color }}>{pct}%</p>
+        <p className="text-[9px] text-[#4A4438] mt-0.5">回復傾向</p>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ripple ボタン
+// ─────────────────────────────────────────────────────────────────────────────
 type Ripple = { id: number; x: number; y: number };
 
 function useRipple() {
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const nextId = useRef(0);
-
-  const createRipple = useCallback((e: React.MouseEvent<HTMLElement>) => {
+  const fire = useCallback((e: React.MouseEvent<HTMLElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const id = nextId.current++;
-    setRipples((prev) => [
-      ...prev,
-      { id, x: e.clientX - rect.left, y: e.clientY - rect.top },
-    ]);
-    setTimeout(() => setRipples((prev) => prev.filter((r) => r.id !== id)), 750);
+    setRipples((p) => [...p, { id, x: e.clientX - rect.left, y: e.clientY - rect.top }]);
+    setTimeout(() => setRipples((p) => p.filter((r) => r.id !== id)), 700);
   }, []);
-
-  return { ripples, createRipple };
+  return { ripples, fire };
 }
 
-// ── RippleButton ───────────────────────────────────────────────────────────
-function RippleButton({
-  href,
-  children,
-  className = "",
-}: {
-  href: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  const { ripples, createRipple } = useRipple();
-
+function RippleLink({ href, children, className = "" }: { href: string; children: React.ReactNode; className?: string }) {
+  const { ripples, fire } = useRipple();
   return (
-    <Link
-      href={href}
-      onClick={createRipple}
-      className={`relative overflow-hidden block ${className}`}
-    >
+    <Link href={href} onClick={fire} className={`relative overflow-hidden block ${className}`}>
       {children}
       {ripples.map(({ id, x, y }) => (
-        <span
-          key={id}
-          className="absolute rounded-full pointer-events-none animate-[ripple_0.75s_cubic-bezier(0.22,1,0.36,1)_forwards]"
+        <span key={id} className="absolute rounded-full pointer-events-none"
           style={{
-            left: x,
-            top: y,
-            width: 8,
-            height: 8,
-            marginLeft: -4,
-            marginTop: -4,
-            background: "rgba(196,163,90,0.35)",
-          }}
-        />
+            left: x, top: y, width: 6, height: 6,
+            marginLeft: -3, marginTop: -3,
+            background: "rgba(196,163,90,0.4)",
+            animation: "hl-ripple 0.7s cubic-bezier(0.22,1,0.36,1) forwards",
+          }} />
       ))}
     </Link>
   );
 }
 
-// ── page ───────────────────────────────────────────────────────────────────
-export default function DashboardPage() {
-  const [hintOpen, setHintOpen] = useState(false);
+// ─────────────────────────────────────────────────────────────────────────────
+// グラスカード共通スタイル
+// ─────────────────────────────────────────────────────────────────────────────
+const GLASS = "bg-white/[0.04] backdrop-blur-sm border border-[#C4A35A]/20 rounded-xl";
+const GLASS_HOVER = "hover:-translate-y-px hover:border-[#C4A35A]/45 hover:shadow-[0_0_22px_rgba(196,163,90,0.10)] transition-all duration-400 ease-out";
+const SECTION_LABEL = "text-[9px] tracking-[0.26em] text-[#C4A35A]/50 uppercase font-sans flex items-center gap-1.5";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────────────────────────────────────
+export default function DashboardPage() {
   return (
     <>
-      {/* ── カスタムアニメーション ── */}
       <style>{`
-        @keyframes ripple {
-          0%   { transform: scale(1);   opacity: 1; }
-          100% { transform: scale(28);  opacity: 0; }
+        @keyframes hl-ripple {
+          0%   { transform: scale(1);  opacity: 1; }
+          100% { transform: scale(30); opacity: 0; }
         }
-        @keyframes fadeSlideUp {
-          from { opacity: 0; transform: translateY(14px); }
-          to   { opacity: 1; transform: translateY(0);    }
+        @keyframes hl-up {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
-        .section-enter {
-          animation: fadeSlideUp 0.65s cubic-bezier(0.22,1,0.36,1) both;
-        }
-        .section-enter-2 { animation-delay: 0.10s; }
-        .section-enter-3 { animation-delay: 0.20s; }
-        .section-enter-4 { animation-delay: 0.30s; }
-        .font-serif-jp { font-family: var(--font-noto-serif-jp), "Hiragino Mincho ProN", "Yu Mincho", serif; }
+        .hl-enter { animation: hl-up 0.55s cubic-bezier(0.22,1,0.36,1) both; }
+        .hl-d1 { animation-delay: 0.06s; }
+        .hl-d2 { animation-delay: 0.12s; }
+        .hl-d3 { animation-delay: 0.18s; }
+        .hl-d4 { animation-delay: 0.24s; }
+        .hl-d5 { animation-delay: 0.30s; }
       `}</style>
 
-      {/* ── ページ本体 ── */}
-      <div className="min-h-full bg-[#0E1117] px-5 py-12 md:px-8 md:py-16">
-        <div className="max-w-lg mx-auto space-y-7">
+      <div className="min-h-full bg-[#0B0E13] px-4 py-6 md:px-6">
+        <div className="max-w-2xl mx-auto space-y-4">
 
-          {/* ── ① コーチからの気づき ─────────────────────────── */}
-          <section
-            className="section-enter section-enter-1 rounded-2xl px-7 py-8
-              bg-white/[0.04] backdrop-blur-md
-              border border-[#C4A35A]/25
-              hover:-translate-y-px hover:border-[#C4A35A]/50
-              hover:shadow-[0_0_28px_rgba(196,163,90,0.10)]
-              transition-all duration-500 ease-out"
-          >
-            <p className="text-[10px] tracking-[0.28em] text-[#C4A35A]/65 uppercase mb-5 font-sans">
-              コーチからの気づき
-            </p>
-            <p className="font-serif-jp text-xl text-[#F0EBE1] leading-[1.75] tracking-[0.04em] mb-4">
-              💡 強い義務感に縛られ、<br className="hidden sm:block" />
-              少し無理をしているかもしれません
-            </p>
-            <p className="text-sm text-[#7A7264] leading-relaxed">
-              ここ数日の対話で、「〜すべき」という言葉が
-              <span className="text-[#C4A35A]/90 font-medium"> 15回 </span>
-              登場しています。コーチとして少し気になりました。
-            </p>
-          </section>
+          {/* ① データグリッド（レーダー・ドーナツ・バッテリー）─────────── */}
+          <div className="hl-enter grid grid-cols-3 gap-3">
 
-          {/* ── ② メインアクション ────────────────────────────── */}
-          <section className="section-enter section-enter-2 space-y-4">
-
-            {/* 吐き出す */}
-            <div className="space-y-2">
-              <RippleButton
-                href="/chat?mode=journal"
-                className="w-full rounded-2xl px-7 py-8
-                  bg-white/[0.05] backdrop-blur-md
-                  border border-[#C4A35A]/30
-                  hover:-translate-y-px hover:border-[#C4A35A]/60
-                  hover:shadow-[0_4px_32px_rgba(196,163,90,0.13)]
-                  transition-all duration-400 ease-out group"
-              >
-                <p className="font-serif-jp text-2xl text-[#F0EBE1] tracking-[0.06em] mb-2.5">
-                  吐き出す
-                </p>
-                <p className="text-sm text-[#6A6358] leading-relaxed font-sans">
-                  まとまっていなくて構いません。<br />
-                  心のノイズをただ置いていってください。
-                </p>
-              </RippleButton>
-
-              {/* お助けカード（アコーディオン） */}
-              <div className="px-1.5">
-                <button
-                  type="button"
-                  onClick={() => setHintOpen((v) => !v)}
-                  className="flex items-center gap-2 text-xs text-[#5A5348] hover:text-[#8A8070] transition-colors duration-300 py-1 tracking-wide"
-                  aria-expanded={hintOpen}
-                >
-                  <span>💬 何から話せばいいか迷ったら…</span>
-                  <span
-                    className="text-[10px] transition-transform duration-400"
-                    style={{
-                      display: "inline-block",
-                      transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)",
-                    }}
-                  >
-                    ▾
-                  </span>
-                </button>
-
-                {hintOpen && (
-                  <div
-                    className="mt-2 rounded-xl px-5 py-4
-                      bg-white/[0.03] backdrop-blur-sm
-                      border border-[#C4A35A]/15
-                      animate-[fadeSlideUp_0.45s_cubic-bezier(0.22,1,0.36,1)_both]"
-                  >
-                    <p className="text-[10px] tracking-[0.2em] text-[#5A5348] uppercase mb-2.5">
-                      コーチからの問いかけ
-                    </p>
-                    <p className="text-sm text-[#B0A898] leading-relaxed font-sans">
-                      私がペソさんについてもっと知りたいのは…<br />
-                      <span className="text-[#C4A35A]/80 font-medium">
-                        「最近、一番ホッとした瞬間はいつですか？」
-                      </span>
-                    </p>
+            {/* レーダー */}
+            <div className={`${GLASS} p-3 col-span-1`}>
+              <p className={SECTION_LABEL}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                思考の俯瞰
+              </p>
+              <RadarChart />
+              <div className="mt-1.5 space-y-0.5">
+                {[["決断力", "82"], ["俯瞰力", "72"]].map(([k, v]) => (
+                  <div key={k} className="flex items-center justify-between">
+                    <span className="text-[9px] text-[#4A4438]">{k}</span>
+                    <span className="text-[9px] font-bold text-[#3AAFCA] tabular-nums">{v}</span>
                   </div>
-                )}
+                ))}
               </div>
             </div>
 
-            {/* 思考を整理する */}
-            <RippleButton
-              href="/chat?mode=coach"
-              className="w-full rounded-2xl px-7 py-8
-                bg-[#1E3A45]/40 backdrop-blur-md
-                border border-[#3AAFCA]/20
-                hover:-translate-y-px hover:border-[#3AAFCA]/45
-                hover:shadow-[0_4px_32px_rgba(58,175,202,0.12)]
-                transition-all duration-400 ease-out group"
-            >
-              <p className="font-serif-jp text-2xl text-[#C8E8EE] tracking-[0.06em] mb-2.5">
-                思考を整理する
+            {/* ドーナツ */}
+            <div className={`${GLASS} p-3 col-span-1`}>
+              <p className={SECTION_LABEL}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 10 10" stroke="#3AAFCA" />
+                </svg>
+                脳内シェア
               </p>
-              <p className="text-sm text-[#4A6E78] leading-relaxed font-sans">
-                コーチと一緒に、モヤモヤの正体を<br />
-                見つけにいきましょう。
-              </p>
-            </RippleButton>
-          </section>
+              <div className="mt-2">
+                <DonutChart />
+              </div>
+            </div>
 
-          {/* ── ③ タイムトラベル ──────────────────────────────── */}
-          <section
-            className="section-enter section-enter-3 rounded-2xl px-7 py-8
-              bg-[#C4A35A]/[0.04] backdrop-blur-md
-              border border-[#C4A35A]/18
-              hover:-translate-y-px hover:border-[#C4A35A]/38
-              hover:shadow-[0_4px_28px_rgba(196,163,90,0.09)]
-              transition-all duration-500 ease-out"
-          >
-            <p className="text-[10px] tracking-[0.28em] text-[#C4A35A]/55 uppercase mb-5 font-sans">
-              ⏳ 1ヶ月前のあなたからの手紙
-            </p>
-            <p className="text-sm text-[#7A7264] leading-relaxed mb-6 font-sans">
-              1ヶ月前の今日、あなたは
-              <span className="text-[#B0A898] font-medium">「プロジェクトの進行」</span>
-              について悩み、吐き出していました。<br /><br />
-              今のあなたなら、当時の自分にどんな声をかけてあげますか？
-            </p>
-            <Link
-              href="/chat?mode=coach"
-              className="inline-flex items-center gap-2.5 text-sm font-medium tracking-wide
-                text-[#C4A35A]/80 hover:text-[#C4A35A]
-                border border-[#C4A35A]/30 hover:border-[#C4A35A]/65
-                px-5 py-2.5 rounded-xl
-                hover:shadow-[0_0_16px_rgba(196,163,90,0.15)]
+            {/* バッテリー */}
+            <div className={`${GLASS} p-3 col-span-1 flex flex-col items-center justify-between`}>
+              <p className={`${SECTION_LABEL} self-start`}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <rect x="2" y="7" width="18" height="11" rx="2" /><path d="M22 11v3" />
+                </svg>
+                バッテリー
+              </p>
+              <BatteryGauge />
+            </div>
+          </div>
+
+          {/* ② アクション（2カラム）────────────────────────────────────── */}
+          <div className="hl-enter hl-d1 grid grid-cols-2 gap-3">
+
+            <RippleLink href="/chat?mode=journal"
+              className={`${GLASS} ${GLASS_HOVER} p-5`}
+            >
+              <div className="flex items-center gap-2 mb-3 text-[#C4A35A]/70">
+                <IcPen />
+              </div>
+              <p className="text-base font-black text-[#E8E3D8] tracking-tight leading-tight mb-1.5">
+                吐き出す
+              </p>
+              <p className="text-[11px] text-[#4A4438] leading-snug">
+                まとまっていなくて構いません。心のノイズをただ置いていってください。
+              </p>
+            </RippleLink>
+
+            <RippleLink href="/chat?mode=coach"
+              className="relative overflow-hidden block rounded-xl p-5
+                bg-[#1C3642]/50 backdrop-blur-sm border border-[#3AAFCA]/22
+                hover:-translate-y-px hover:border-[#3AAFCA]/50
+                hover:shadow-[0_0_22px_rgba(58,175,202,0.12)]
                 transition-all duration-400 ease-out"
             >
+              <div className="flex items-center gap-2 mb-3 text-[#3AAFCA]/70">
+                <IcCompass />
+              </div>
+              <p className="text-base font-black text-[#C8E8EE] tracking-tight leading-tight mb-1.5">
+                思考を整理する
+              </p>
+              <p className="text-[11px] text-[#3A6070] leading-snug">
+                コーチと一緒に、モヤモヤの正体を見つけていきましょう。
+              </p>
+            </RippleLink>
+          </div>
+
+          {/* ③ コーチからの所見 ──────────────────────────────────────── */}
+          <div className={`hl-enter hl-d2 ${GLASS} ${GLASS_HOVER} p-4`}>
+            <p className={`${SECTION_LABEL} mb-3`}>
+              <IcZap />
+              コーチからの所見
+            </p>
+            <p className="text-sm font-bold text-[#E8E3D8] leading-snug mb-2">
+              強い義務感に縛られ、少し無理をしているかもしれません
+            </p>
+            <p className="text-xs text-[#5A5248] leading-relaxed">
+              ここ数日の対話で「〜すべき」という言葉が
+              <span className="text-[#C4A35A] font-semibold"> 15回 </span>
+              登場しています。義務感がパフォーマンスの天井になっていないか、一度話してみませんか。
+            </p>
+          </div>
+
+          {/* ④ 今のあなたへ（処方箋）──────────────────────────────────── */}
+          <div className={`hl-enter hl-d3 ${GLASS} overflow-hidden`}>
+            {/* ヘッダー帯 */}
+            <div className="px-4 py-2.5 flex items-center gap-2 border-b border-[#C4A35A]/12"
+              style={{ background: "linear-gradient(90deg,rgba(196,163,90,0.10) 0%,transparent 100%)" }}>
+              <span className="text-[#C4A35A]/70"><IcBook /></span>
+              <p className={SECTION_LABEL}>今のあなたへ — 今週の処方箋</p>
+            </div>
+            <div className="p-4">
+              <p className="text-xs text-[#5A5248] leading-relaxed mb-3">
+                ここ数ヶ月の葛藤を分析した結果、今の壁を越えるためには小手先のテクニックではなく、
+                <span className="text-[#C4A35A]/80 font-medium">この一冊が決定的なブレイクスルーになるはず</span>
+                です。
+              </p>
+              <div className="flex gap-3 items-start bg-white/[0.03] border border-[#C4A35A]/10 rounded-lg p-3 mb-3">
+                <div className="w-10 h-14 rounded flex-shrink-0 flex flex-col justify-end pb-1 px-0.5"
+                  style={{ background: "linear-gradient(160deg,#1A3A4A,#0D1E28)" }}>
+                  <span className="text-[6px] text-white/35 font-bold leading-tight text-center">HIGH<br/>OUTPUT</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-black text-[#E8E3D8] leading-snug">HIGH OUTPUT MANAGEMENT</p>
+                  <p className="text-[10px] text-[#4A4438] mt-0.5 mb-1.5">アンドリュー・S・グローブ</p>
+                  <p className="text-[11px] text-[#5A5248] leading-snug">
+                    「成果を出す」本質をマネジメントの視点で再定義。頑張っても前に進まない感覚の正体がここにある。
+                  </p>
+                </div>
+              </div>
+              <a href="https://www.amazon.co.jp/s?k=HIGH+OUTPUT+MANAGEMENT"
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg
+                  text-[11px] font-semibold text-[#C4A35A]/80 hover:text-[#C4A35A]
+                  border border-[#C4A35A]/25 hover:border-[#C4A35A]/55
+                  hover:shadow-[0_0_14px_rgba(196,163,90,0.12)]
+                  transition-all duration-300">
+                <IcExternalLink />
+                Amazonで詳細を見る
+              </a>
+            </div>
+          </div>
+
+          {/* ⑤ タイムトラベル ──────────────────────────────────────────── */}
+          <div className={`hl-enter hl-d4 ${GLASS} p-4`}
+            style={{ borderColor: "rgba(196,163,90,0.16)" }}>
+            <p className={`${SECTION_LABEL} mb-3`}>
+              <IcClock />
+              1ヶ月前のあなたからの手紙
+            </p>
+            <p className="text-xs text-[#5A5248] leading-relaxed mb-3">
+              1ヶ月前の今日、あなたは
+              <span className="text-[#9A9080] font-medium">「プロジェクトの進行」</span>
+              について悩み、吐き出していました。今のあなたなら、当時の自分にどんな声をかけてあげますか？
+            </p>
+            <Link href="/chat?mode=coach"
+              className="inline-flex items-center gap-2 text-xs font-semibold
+                text-[#C4A35A]/70 hover:text-[#C4A35A]
+                border border-[#C4A35A]/25 hover:border-[#C4A35A]/55
+                px-4 py-2 rounded-lg
+                hover:shadow-[0_0_14px_rgba(196,163,90,0.12)]
+                transition-all duration-300">
               過去の自分と対話する
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M2 6h8M6 2l4 4-4 4" />
-              </svg>
+              <IcArrow />
             </Link>
-          </section>
+          </div>
 
         </div>
       </div>

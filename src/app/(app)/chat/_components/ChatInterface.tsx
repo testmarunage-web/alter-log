@@ -184,6 +184,7 @@ export function ChatInterface({
   const [journalText, setJournalText]       = useState("");
   const [journalSaved, setJournalSaved]     = useState(false);
   const [localUsedCount, setLocalUsedCount] = useState(initialUsedCount);
+  const [hintOpen, setHintOpen]             = useState(false);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, append } =
     useChat({
@@ -302,7 +303,27 @@ export function ChatInterface({
           </main>
 
           <div className={`border-t ${footerBg} backdrop-blur-md sticky bottom-0`}>
-            <div className="max-w-2xl mx-auto px-5 py-3.5 flex items-center justify-between gap-4">
+            {/* ヒントアコーディオン */}
+            <div className="max-w-2xl mx-auto px-5 pt-2.5">
+              <button type="button" onClick={() => setHintOpen((v) => !v)}
+                className="flex items-center gap-1.5 text-xs text-[#B0B0B0] hover:text-[#787878] transition-colors"
+                aria-expanded={hintOpen}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                話すテーマに迷ったら
+                <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }} className="text-[10px]">▾</span>
+              </button>
+              {hintOpen && (
+                <div className="mt-1.5 mb-2 bg-[#F7F5F2] border border-[#E8E4DE] rounded-xl px-4 py-3">
+                  <p className="text-xs text-[#9A9A9A] mb-1">コーチからの問いかけ</p>
+                  <p className="text-sm text-[#3A3A3A] leading-relaxed">
+                    <span className="font-semibold text-[#183D46]">「最近、一番ホッとした瞬間はいつですか？」</span>
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="max-w-2xl mx-auto px-5 py-3 flex items-center justify-between gap-4">
               <span className="text-xs text-[#C8C8C8] tabular-nums">
                 {journalText.length} 文字
               </span>
@@ -400,9 +421,30 @@ export function ChatInterface({
 
           {/* フッター */}
           <div className={`border-t ${footerBg} backdrop-blur-md sticky bottom-0`}>
-            <div className="max-w-2xl mx-auto px-4 py-3.5">
+            <div className="max-w-2xl mx-auto px-4 pt-2.5 pb-3">
+              {/* ヒントアコーディオン */}
+              <div className="mb-2">
+                <button type="button" onClick={() => setHintOpen((v) => !v)}
+                  className="flex items-center gap-1.5 text-xs text-[#B0B0B0] hover:text-[#787878] transition-colors"
+                  aria-expanded={hintOpen}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                  話すテーマに迷ったら
+                  <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }} className="text-[10px]">▾</span>
+                </button>
+                {hintOpen && (
+                  <div className="mt-1.5 bg-[#F2F4F5] border border-[#C8DDE2] rounded-xl px-4 py-2.5">
+                    <p className="text-xs text-[#9A9A9A] mb-1">コーチからの問いかけ</p>
+                    <p className="text-sm text-[#2A2A2A] leading-relaxed">
+                      <span className="font-semibold text-[#183D46]">「最近、一番ホッとした瞬間はいつですか？」</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+
               {remaining <= 0 ? (
-                <p className="text-center text-sm text-[#9A9A9A] py-3">
+                <p className="text-center text-sm text-[#9A9A9A] py-2">
                   今日はここまでにしましょう。明日また話しましょう。
                 </p>
               ) : (
