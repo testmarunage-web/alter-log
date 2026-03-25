@@ -29,25 +29,6 @@ const IcBook = () => (
     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
   </svg>
 );
-const IcClock = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
-);
-const IcArrow = () => (
-  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
-  </svg>
-);
-const IcExternalLink = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-    <polyline points="15 3 21 3 21 9" />
-    <line x1="10" y1="14" x2="21" y2="3" />
-  </svg>
-);
 
 // Alter 光の玉（ダッシュボード用・小）
 function CoachOrb() {
@@ -66,7 +47,7 @@ function CoachOrb() {
 // ─────────────────────────────────────────────────────────────────────────────
 // レーダーチャート（思考の俯瞰型分析）
 // ─────────────────────────────────────────────────────────────────────────────
-const RADAR_AXES  = ["自己効力感", "客観視", "行動の具体性", "感情の整理度", "思考の深さ"];
+const RADAR_AXES  = ["言語化力", "決断力", "客観性", "集中力", "行動力"];
 const RADAR_VALS  = [0.68, 0.75, 0.52, 0.65, 0.80];
 const N = RADAR_AXES.length;
 const CX = 50, CY = 50, RR = 32;
@@ -133,7 +114,7 @@ function DonutChart() {
         <div className="w-full h-full rounded-full"
           style={{ background: `conic-gradient(from -90deg, ${gradient})` }} />
         <div className="absolute inset-[22%] rounded-full bg-[#0B0E13] flex items-center justify-center">
-          <span className="text-[7px] font-bold text-[#8A8276]">今週</span>
+          <span className="text-[7px] font-bold text-[#8A8276]">今の</span>
         </div>
       </div>
       <div className="space-y-0.5 w-full">
@@ -150,28 +131,49 @@ function DonutChart() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 心のバッテリー（縦ゲージ）
+// コンディション推移（Sparkline 折れ線グラフ）
 // ─────────────────────────────────────────────────────────────────────────────
-function BatteryGauge() {
-  const pct = 65;
-  const color = pct > 60 ? "#3AAFCA" : pct > 30 ? "#C4A35A" : "#EF4444";
+const SPARK_VALS = [42, 48, 45, 55, 60, 63, 65];
+const SPARK_DAYS = ["月", "火", "水", "木", "金", "土", "日"];
+
+function SparklineChart() {
+  const W = 100, H = 52;
+  const pad = { t: 6, b: 14, l: 4, r: 4 };
+  const min = Math.min(...SPARK_VALS) - 8;
+  const max = Math.max(...SPARK_VALS) + 4;
+  const xs = SPARK_VALS.map((_, i) => pad.l + (i / (SPARK_VALS.length - 1)) * (W - pad.l - pad.r));
+  const ys = SPARK_VALS.map((v) => pad.t + (1 - (v - min) / (max - min)) * (H - pad.t - pad.b));
+  const polyline = xs.map((x, i) => `${x},${ys[i]}`).join(" ");
+  const area = `${xs[0]},${H - pad.b} ` + xs.map((x, i) => `${x},${ys[i]}`).join(" ") + ` ${xs[xs.length - 1]},${H - pad.b}`;
+  const last = SPARK_VALS[SPARK_VALS.length - 1];
+
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative" style={{ width: 26, height: 54 }}>
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2.5 h-1 bg-[#2A3640] rounded-sm" />
-        <div className="absolute top-1.5 left-0 right-0 bottom-0 border border-[rgba(196,163,90,0.28)] rounded overflow-hidden">
-          <div className="absolute bottom-0 left-0 right-0 rounded-sm transition-all"
-            style={{ height: `${pct}%`, background: color, opacity: 0.75 }} />
-          {[33, 66].map((p) => (
-            <div key={p} className="absolute left-0 right-0 h-px bg-[rgba(196,163,90,0.08)]"
-              style={{ bottom: `${p}%` }} />
-          ))}
-        </div>
+    <div className="flex flex-col gap-1 w-full">
+      <div className="flex items-baseline gap-1">
+        <span className="text-lg font-black tabular-nums leading-none text-[#3AAFCA]">{last}</span>
+        <span className="text-[9px] text-[#8A8276]">/ 100</span>
       </div>
-      <div className="text-center">
-        <p className="text-lg font-black tabular-nums leading-none" style={{ color }}>{pct}%</p>
-        <p className="text-[9px] text-[#8A8276] mt-0.5">回復傾向</p>
-      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 52 }}>
+        <defs>
+          <linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3AAFCA" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#3AAFCA" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points={area} fill="url(#spark-fill)" />
+        <polyline points={polyline} fill="none" stroke="#3AAFCA" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        {xs.map((x, i) => (
+          <circle key={i} cx={x} cy={ys[i]} r={i === xs.length - 1 ? 2.2 : 1.2}
+            fill={i === xs.length - 1 ? "#3AAFCA" : "rgba(58,175,202,0.45)"} />
+        ))}
+        {xs.map((x, i) => (
+          <text key={i} x={x} y={H - 2} textAnchor="middle" fontSize="5.5"
+            fill="rgba(138,130,118,0.7)" fontFamily="sans-serif">
+            {SPARK_DAYS[i]}
+          </text>
+        ))}
+      </svg>
+      <p className="text-[9px] text-[#8A8276] text-center -mt-0.5">回復傾向</p>
     </div>
   );
 }
@@ -193,17 +195,17 @@ function useRipple() {
   return { ripples, fire };
 }
 
-function RippleLink({ href, children, className = "" }: { href: string; children: React.ReactNode; className?: string }) {
+function RippleLink({ href, children, className = "", style }: { href: string; children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   const { ripples, fire } = useRipple();
   return (
-    <Link href={href} onClick={fire} className={`relative overflow-hidden block ${className}`}>
+    <Link href={href} onClick={fire} className={`relative overflow-hidden block ${className}`} style={style}>
       {children}
       {ripples.map(({ id, x, y }) => (
         <span key={id} className="absolute rounded-full pointer-events-none"
           style={{
             left: x, top: y, width: 6, height: 6,
             marginLeft: -3, marginTop: -3,
-            background: "rgba(196,163,90,0.4)",
+            background: "rgba(255,255,255,0.35)",
             animation: "hl-ripple 0.7s cubic-bezier(0.22,1,0.36,1) forwards",
           }} />
       ))}
@@ -247,7 +249,7 @@ export default function DashboardPage() {
       <div className="min-h-full bg-[#0B0E13] px-4 py-6 md:px-6">
         <div className="max-w-2xl mx-auto space-y-4">
 
-          {/* ① データグリッド（レーダー・ドーナツ・バッテリー）─────────── */}
+          {/* ① データグリッド（レーダー・ドーナツ・Sparkline）─────────── */}
           <div className="hl-enter grid grid-cols-3 gap-3">
 
             {/* レーダー */}
@@ -260,7 +262,7 @@ export default function DashboardPage() {
               </p>
               <RadarChart />
               <div className="mt-1.5 space-y-0.5">
-                {[["思考の深さ", "80"], ["客観視", "75"]].map(([k, v]) => (
+                {[["行動力", "80"], ["決断力", "75"]].map(([k, v]) => (
                   <div key={k} className="flex items-center justify-between">
                     <span className="text-[9px] text-[#8A8276]">{k}</span>
                     <span className="text-[9px] font-bold text-[#3AAFCA] tabular-nums">{v}</span>
@@ -282,15 +284,15 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* バッテリー */}
-            <div className={`${GLASS} p-3 col-span-1 flex flex-col items-center justify-between`}>
-              <p className={`${SECTION_LABEL} self-start`}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <rect x="2" y="7" width="18" height="11" rx="2" /><path d="M22 11v3" />
+            {/* Sparkline */}
+            <div className={`${GLASS} p-3 col-span-1 flex flex-col`}>
+              <p className={`${SECTION_LABEL} mb-2`}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                 </svg>
-                バッテリー
+                コンディション
               </p>
-              <BatteryGauge />
+              <SparklineChart />
             </div>
           </div>
 
@@ -298,42 +300,42 @@ export default function DashboardPage() {
           <div className="hl-enter hl-d1 grid grid-cols-2 gap-3">
 
             <RippleLink href="/chat?mode=journal"
-              className="relative overflow-hidden block rounded-xl p-5
-                bg-white/[0.08] backdrop-blur-sm
-                border border-[#C4A35A]/35
-                shadow-[0_4px_24px_rgba(0,0,0,0.40),inset_0_1px_0_rgba(196,163,90,0.10)]
-                hover:-translate-y-px hover:border-[#C4A35A]/60
-                hover:shadow-[0_6px_28px_rgba(0,0,0,0.45),0_0_20px_rgba(196,163,90,0.12)]
-                active:scale-[0.98] transition-all duration-300 ease-out"
+              className="rounded-xl p-5
+                shadow-[0_4px_24px_rgba(0,0,0,0.50),inset_0_1px_0_rgba(255,255,255,0.12)]
+                hover:-translate-y-1
+                hover:shadow-[0_8px_32px_rgba(0,0,0,0.55),0_0_24px_rgba(196,163,90,0.20)]
+                active:scale-[0.97] transition-all duration-300 ease-out"
+              style={{ background: "linear-gradient(145deg, #2A1F0A, #1A1408)" }}
             >
-              <div className="flex items-center gap-2 mb-3 text-[#C4A35A]/70">
+              <div className="flex items-center gap-2 mb-3" style={{ color: "#C4A35A" }}>
                 <IcPen />
               </div>
-              <p className="text-base font-black text-[#E8E3D8] tracking-tight leading-tight mb-1.5">
+              <p className="text-base font-black tracking-tight leading-tight mb-1.5"
+                style={{ color: "#E8D5A0" }}>
                 吐き出す
               </p>
-              <p className="text-[11px] text-[#8A8276] leading-snug">
-                まとまっていなくて構いません。心のノイズをただ置いていってください。
+              <p className="text-[11px] leading-snug" style={{ color: "#8A7848" }}>
+                今の気持ちを吐き出す
               </p>
             </RippleLink>
 
             <RippleLink href="/chat?mode=coach"
-              className="relative overflow-hidden block rounded-xl p-5
-                bg-[#1C3642]/70 backdrop-blur-sm
-                border border-[#3AAFCA]/35
-                shadow-[0_4px_24px_rgba(0,0,0,0.40),inset_0_1px_0_rgba(58,175,202,0.08)]
-                hover:-translate-y-px hover:border-[#3AAFCA]/60
-                hover:shadow-[0_6px_28px_rgba(0,0,0,0.45),0_0_20px_rgba(58,175,202,0.14)]
-                active:scale-[0.98] transition-all duration-300 ease-out"
+              className="rounded-xl p-5
+                shadow-[0_4px_24px_rgba(0,0,0,0.50),inset_0_1px_0_rgba(255,255,255,0.10)]
+                hover:-translate-y-1
+                hover:shadow-[0_8px_32px_rgba(0,0,0,0.55),0_0_24px_rgba(58,175,202,0.22)]
+                active:scale-[0.97] transition-all duration-300 ease-out"
+              style={{ background: "linear-gradient(145deg, #0D2A36, #071820)" }}
             >
-              <div className="flex items-center gap-2 mb-3 text-[#3AAFCA]/70">
+              <div className="flex items-center gap-2 mb-3" style={{ color: "#3AAFCA" }}>
                 <IcCompass />
               </div>
-              <p className="text-base font-black text-[#C8E8EE] tracking-tight leading-tight mb-1.5">
+              <p className="text-base font-black tracking-tight leading-tight mb-1.5"
+                style={{ color: "#C8E8EE" }}>
                 思考を整理する
               </p>
-              <p className="text-[11px] text-[#6A9AA8] leading-snug">
-                Alterと共に、モヤモヤの正体を見つけていきましょう。
+              <p className="text-[11px] leading-snug" style={{ color: "#4A8A9A" }}>
+                Alterと共に、モヤモヤの正体を突き止める
               </p>
             </RippleLink>
           </div>
@@ -417,30 +419,6 @@ export default function DashboardPage() {
                 </p>
               )}
             </div>
-          </div>
-
-          {/* ⑤ タイムトラベル ──────────────────────────────────────────── */}
-          <div className={`hl-enter hl-d4 ${GLASS} p-4`}
-            style={{ borderColor: "rgba(196,163,90,0.16)" }}>
-            <p className={`${SECTION_LABEL} mb-3`}>
-              <IcClock />
-              1ヶ月前のあなたからの手紙
-            </p>
-            <p className="text-xs text-[#9A9488] leading-relaxed mb-3">
-              1ヶ月前の今日、あなたは
-              <span className="text-[#B0A898] font-medium">「プロジェクトの進行」</span>
-              について悩み、吐き出していました。今のあなたなら、当時の自分にどんな声をかけてあげますか？
-            </p>
-            <Link href="/history"
-              className="inline-flex items-center gap-2 text-xs font-semibold
-                text-[#C4A35A]/70 hover:text-[#C4A35A]
-                border border-[#C4A35A]/25 hover:border-[#C4A35A]/55
-                px-4 py-2 rounded-lg
-                hover:shadow-[0_0_14px_rgba(196,163,90,0.12)]
-                transition-all duration-300">
-              過去のジャーナルを振り返る
-              <IcArrow />
-            </Link>
           </div>
 
         </div>
