@@ -20,7 +20,11 @@
       "Bash(do echo:*)",
       "Bash(done)",
       "Bash(ls -la /c/Users/shiba/Desktop/hack-log/*.config.*)",
-      "Bash(ls -la /c/Users/shiba/Desktop/hack-log/tailwind*)"
+      "Bash(ls -la /c/Users/shiba/Desktop/hack-log/tailwind*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(ls src/app/\\\\\\(app\\\\\\)/)"
     ]
   }
 }

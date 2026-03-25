@@ -9,7 +9,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#E8E8E8]">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0B0E13]/95 backdrop-blur-md border-t border-[#C4A35A]/10">
       <div className="flex items-stretch">
         {navItems.map(({ href, shortLabel, icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
@@ -17,8 +17,8 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`flex-1 flex flex-col items-center gap-1 py-2.5 pb-safe transition-colors ${
-                active ? "text-[#183D46]" : "text-[#B0B0B0]"
+              className={`flex-1 flex flex-col items-center gap-1 py-2.5 pb-safe transition-colors relative ${
+                active ? "text-[#C4A35A]" : "text-[#8A8276]"
               }`}
             >
               <NavIconSvg icon={icon} size={22} />
@@ -30,7 +30,10 @@ export function BottomNav() {
                 {shortLabel}
               </span>
               {active && (
-                <span className="absolute top-0 inset-x-0 mx-auto w-8 h-0.5 bg-[#183D46] rounded-full" />
+                <span
+                  className="absolute top-0 inset-x-0 mx-auto w-8 h-0.5 bg-[#C4A35A] rounded-full"
+                  style={{ boxShadow: "0 0 8px rgba(196,163,90,0.5)" }}
+                />
               )}
             </Link>
           );

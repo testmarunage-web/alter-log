@@ -28,17 +28,20 @@ export function NavIconSvg({ icon, size = 20 }: { icon: NavIcon; size?: number }
           <path d="M17 12a2 2 0 0 1-2 2H6l-3 3V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7Z" />
         </svg>
       );
-    case "reports":
+    case "archive":
       return (
         <svg {...props}>
-          <path d="M4 14v-4M8 14V8M12 14v-6M16 14V4" />
+          <path d="M4 4h12a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" />
+          <path d="M5 8v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V8" />
+          <path d="M8 12h4" />
         </svg>
       );
-    case "profile":
+    case "log":
       return (
         <svg {...props}>
-          <circle cx="10" cy="7" r="3.5" />
-          <path d="M3 18c0-3.866 3.134-6 7-6s7 2.134 7 6" />
+          <circle cx="10" cy="10" r="8" />
+          <circle cx="10" cy="10" r="2.5" />
+          <path d="M10 2v2M10 16v2M2 10h2M16 10h2" />
         </svg>
       );
   }
