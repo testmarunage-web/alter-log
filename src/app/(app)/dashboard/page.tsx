@@ -30,7 +30,9 @@ const IcBook = () => (
   </svg>
 );
 
-// Alter 光の玉（ダッシュボード用・小）
+// ─────────────────────────────────────────────────────────────────────────────
+// Alter 光の玉
+// ─────────────────────────────────────────────────────────────────────────────
 function CoachOrb() {
   return (
     <div className="w-9 h-9 rounded-full flex-shrink-0 relative overflow-hidden"
@@ -45,30 +47,32 @@ function CoachOrb() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 思考のバランス（二項対立スライダー）
+// 思考のバランス（二項対立スライダー・5軸）
 // ─────────────────────────────────────────────────────────────────────────────
 const BALANCE_ITEMS = [
   { left: "自分軸", right: "他人軸", pct: 30 },
   { left: "直感",   right: "論理",   pct: 72 },
   { left: "楽観",   right: "慎重",   pct: 42 },
+  { left: "現在",   right: "未来",   pct: 85 },
+  { left: "自責",   right: "他責",   pct: 20 },
 ];
 
 function BalanceSliders() {
   return (
-    <div className="space-y-3 mt-2">
+    <div className="space-y-2.5 mt-2">
       {BALANCE_ITEMS.map(({ left, right, pct }) => (
         <div key={left}>
           <div className="flex justify-between mb-1">
             <span className="text-[9px] text-[#C4A35A]/80 font-semibold">{left}</span>
             <span className="text-[9px] text-[#8A8276]">{right}</span>
           </div>
-          <div className="relative h-1 rounded-full" style={{ background: "rgba(196,163,90,0.12)" }}>
+          <div className="relative h-px rounded-full" style={{ background: "rgba(196,163,90,0.15)" }}>
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full"
+              className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full"
               style={{
-                left: `calc(${pct}% - 6px)`,
+                left: `calc(${pct}% - 5px)`,
                 background: "radial-gradient(circle at 38% 38%, #93E4D4, #3AAFCA 55%)",
-                boxShadow: "0 0 6px rgba(58,175,202,0.70)",
+                boxShadow: "0 0 5px rgba(58,175,202,0.70)",
               }}
             />
           </div>
@@ -96,7 +100,7 @@ function DonutChart() {
   const gradient = stops.map((s) => `${s.color} ${s.start}deg ${s.end}deg`).join(", ");
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative w-14 h-14">
+      <div className="relative w-16 h-16">
         <div className="w-full h-full rounded-full"
           style={{ background: `conic-gradient(from -90deg, ${gradient})` }} />
         <div className="absolute inset-[22%] rounded-full bg-[#0B0E13] flex items-center justify-center">
@@ -117,14 +121,14 @@ function DonutChart() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// コンディション推移（Sparkline 折れ線グラフ）
+// コンディション推移（Sparkline 折れ線グラフ・フルワイド）
 // ─────────────────────────────────────────────────────────────────────────────
 const SPARK_VALS = [42, 48, 45, 55, 60, 63, 65];
 const SPARK_DAYS = ["月", "火", "水", "木", "金", "土", "日"];
 
 function SparklineChart() {
-  const W = 100, H = 52;
-  const pad = { t: 6, b: 14, l: 4, r: 4 };
+  const W = 100, H = 44;
+  const pad = { t: 6, b: 14, l: 2, r: 2 };
   const min = Math.min(...SPARK_VALS) - 8;
   const max = Math.max(...SPARK_VALS) + 4;
   const xs = SPARK_VALS.map((_, i) => pad.l + (i / (SPARK_VALS.length - 1)) * (W - pad.l - pad.r));
@@ -134,12 +138,15 @@ function SparklineChart() {
   const last = SPARK_VALS[SPARK_VALS.length - 1];
 
   return (
-    <div className="flex flex-col gap-1 w-full">
-      <div className="flex items-baseline gap-1">
-        <span className="text-lg font-black tabular-nums leading-none text-[#3AAFCA]">{last}</span>
-        <span className="text-[9px] text-[#8A8276]">/ 100</span>
+    <div className="flex items-center gap-4">
+      <div className="flex flex-col">
+        <div className="flex items-baseline gap-1">
+          <span className="text-2xl font-black tabular-nums leading-none text-[#3AAFCA]">{last}</span>
+          <span className="text-[10px] text-[#8A8276]">/ 100</span>
+        </div>
+        <p className="text-[10px] text-[#8A8276] mt-0.5">回復傾向</p>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 52 }}>
+      <svg viewBox={`0 0 ${W} ${H}`} className="flex-1" style={{ height: 44 }}>
         <defs>
           <linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#3AAFCA" stopOpacity="0.22" />
@@ -149,17 +156,16 @@ function SparklineChart() {
         <polygon points={area} fill="url(#spark-fill)" />
         <polyline points={polyline} fill="none" stroke="#3AAFCA" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
         {xs.map((x, i) => (
-          <circle key={i} cx={x} cy={ys[i]} r={i === xs.length - 1 ? 2.2 : 1.2}
-            fill={i === xs.length - 1 ? "#3AAFCA" : "rgba(58,175,202,0.45)"} />
+          <circle key={i} cx={x} cy={ys[i]} r={i === xs.length - 1 ? 2.2 : 1.1}
+            fill={i === xs.length - 1 ? "#3AAFCA" : "rgba(58,175,202,0.40)"} />
         ))}
         {xs.map((x, i) => (
-          <text key={i} x={x} y={H - 2} textAnchor="middle" fontSize="5.5"
+          <text key={i} x={x} y={H - 1} textAnchor="middle" fontSize="5.5"
             fill="rgba(138,130,118,0.7)" fontFamily="sans-serif">
             {SPARK_DAYS[i]}
           </text>
         ))}
       </svg>
-      <p className="text-[9px] text-[#8A8276] text-center -mt-0.5">回復傾向</p>
     </div>
   );
 }
@@ -200,11 +206,57 @@ function RippleLink({ href, children, className = "", style }: { href: string; c
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// グラスカード共通スタイル
+// アコーディオンカード
 // ─────────────────────────────────────────────────────────────────────────────
 const GLASS = "bg-white/[0.04] backdrop-blur-sm border border-[#C4A35A]/20 rounded-xl";
-const GLASS_HOVER = "hover:-translate-y-px hover:border-[#C4A35A]/45 hover:shadow-[0_0_22px_rgba(196,163,90,0.10)] transition-all duration-400 ease-out";
 const SECTION_LABEL = "text-[9px] tracking-[0.26em] text-[#C4A35A]/75 uppercase font-sans flex items-center gap-1.5";
+
+function AccordionCard({
+  icon,
+  label,
+  summary,
+  detail,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  summary: React.ReactNode;
+  detail: string;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      className={`${GLASS} overflow-hidden hover:border-[#C4A35A]/40 transition-all duration-300 cursor-pointer`}
+      onClick={() => setOpen((v) => !v)}
+    >
+      <div className="p-4">
+        {/* ヘッダー行 */}
+        <div className="flex items-center justify-between mb-3">
+          <p className={SECTION_LABEL}>
+            {icon}
+            {label}
+          </p>
+          <svg
+            width="13" height="13" viewBox="0 0 24 24" fill="none"
+            stroke="rgba(196,163,90,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            className={`flex-shrink-0 transition-transform duration-250 ${open ? "rotate-180" : ""}`}
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </div>
+        {/* サマリー（常時表示） */}
+        {summary}
+      </div>
+      {/* 展開エリア */}
+      {open && (
+        <div className="px-4 pb-4 border-t border-[#C4A35A]/10">
+          <p className="text-[11px] text-[#9A9488]/80 leading-relaxed pt-3 italic">
+            {detail}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Page
@@ -226,16 +278,17 @@ export default function DashboardPage() {
         .hl-d2 { animation-delay: 0.12s; }
         .hl-d3 { animation-delay: 0.18s; }
         .hl-d4 { animation-delay: 0.24s; }
+        .hl-d5 { animation-delay: 0.30s; }
+        .hl-d6 { animation-delay: 0.36s; }
+        .hl-d7 { animation-delay: 0.42s; }
       `}</style>
 
       <div className="min-h-full bg-[#0B0E13] px-4 py-6 md:px-6">
-        <div className="max-w-2xl mx-auto space-y-4">
+        <div className="max-w-2xl mx-auto space-y-3">
 
-          {/* ① データグリッド（バランス・ドーナツ・Sparkline）─────────── */}
-          <div className="hl-enter grid grid-cols-3 gap-3">
-
-            {/* 思考のバランス */}
-            <div className={`${GLASS} p-3 col-span-1`}>
+          {/* ① 上段：2カラム（バランス・ドーナツ）───────────────────── */}
+          <div className="hl-enter grid grid-cols-2 gap-3">
+            <div className={`${GLASS} p-3`}>
               <p className={SECTION_LABEL}>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -245,8 +298,7 @@ export default function DashboardPage() {
               <BalanceSliders />
             </div>
 
-            {/* ドーナツ */}
-            <div className={`${GLASS} p-3 col-span-1`}>
+            <div className={`${GLASS} p-3`}>
               <p className={SECTION_LABEL}>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 10 10" stroke="#3AAFCA" />
@@ -257,30 +309,29 @@ export default function DashboardPage() {
                 <DonutChart />
               </div>
             </div>
-
-            {/* Sparkline */}
-            <div className={`${GLASS} p-3 col-span-1 flex flex-col`}>
-              <p className={`${SECTION_LABEL} mb-2`}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                </svg>
-                コンディション
-              </p>
-              <SparklineChart />
-            </div>
           </div>
 
-          {/* ② アクション（2カラム）────────────────────────────────────── */}
-          <div className="hl-enter hl-d1 grid grid-cols-2 gap-3">
+          {/* ② 下段：フルワイド（Sparkline）─────────────────────────── */}
+          <div className={`hl-enter hl-d1 ${GLASS} p-3`}>
+            <p className={`${SECTION_LABEL} mb-2`}>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              コンディション推移
+            </p>
+            <SparklineChart />
+          </div>
+
+          {/* ③ アクション（2カラム）────────────────────────────────────── */}
+          <div className="hl-enter hl-d2 grid grid-cols-2 gap-3">
 
             <RippleLink href="/chat?mode=journal"
               className="rounded-xl p-5
-                border-b-[4px] border-black/40
-                shadow-[0_4px_24px_rgba(0,0,0,0.50),inset_0_1px_0_rgba(255,255,255,0.12)]
+                shadow-[0_8px_0_rgba(0,0,0,0.8)]
+                hover:shadow-[0_10px_0_rgba(0,0,0,0.9),0_0_20px_rgba(196,163,90,0.18)]
                 hover:-translate-y-0.5
-                hover:shadow-[0_8px_32px_rgba(0,0,0,0.55),0_0_24px_rgba(196,163,90,0.20)]
-                active:translate-y-1 active:border-b-0 active:shadow-none
-                transition-all duration-150 ease-out"
+                active:translate-y-2 active:shadow-none
+                transition-all duration-100 ease-out"
               style={{ background: "linear-gradient(145deg, #2A1F0A, #1A1408)" }}
             >
               <div className="flex items-center gap-2 mb-3" style={{ color: "#C4A35A" }}>
@@ -297,12 +348,11 @@ export default function DashboardPage() {
 
             <RippleLink href="/chat?mode=coach"
               className="rounded-xl p-5
-                border-b-[4px] border-black/40
-                shadow-[0_4px_24px_rgba(0,0,0,0.50),inset_0_1px_0_rgba(255,255,255,0.10)]
+                shadow-[0_8px_0_rgba(0,0,0,0.8)]
+                hover:shadow-[0_10px_0_rgba(0,0,0,0.9),0_0_20px_rgba(58,175,202,0.18)]
                 hover:-translate-y-0.5
-                hover:shadow-[0_8px_32px_rgba(0,0,0,0.55),0_0_24px_rgba(58,175,202,0.22)]
-                active:translate-y-1 active:border-b-0 active:shadow-none
-                transition-all duration-150 ease-out"
+                active:translate-y-2 active:shadow-none
+                transition-all duration-100 ease-out"
               style={{ background: "linear-gradient(145deg, #0D2A36, #071820)" }}
             >
               <div className="flex items-center gap-2 mb-3" style={{ color: "#3AAFCA" }}>
@@ -318,46 +368,36 @@ export default function DashboardPage() {
             </RippleLink>
           </div>
 
-          {/* ③ Alterの気づき ─────────────────────────────────────────── */}
-          <div className={`hl-enter hl-d2 ${GLASS} ${GLASS_HOVER} p-4`}>
-            <p className={`${SECTION_LABEL} mb-3`}>
-              <IcZap />
-              Alterの気づき
-            </p>
-            <div className="flex gap-3 items-start">
-              <CoachOrb />
-              <div className="flex-1 relative bg-white/[0.05] border border-[#3AAFCA]/20 rounded-xl rounded-tl-sm px-3.5 py-3">
-                <p className="text-sm font-bold text-[#E8E3D8] leading-snug mb-1.5">
-                  強い義務感に縛られ、少し無理をしているかもしれません
-                </p>
-                <p className="text-xs text-[#9A9488] leading-relaxed">
-                  ここ数日の対話で「〜すべき」という言葉が
-                  <span className="text-[#C4A35A] font-semibold"> 15回 </span>
-                  登場しています。義務感がパフォーマンスの天井になっていないか、一度話してみませんか。
-                </p>
-              </div>
-            </div>
+          {/* ④ Alterの気づき（アコーディオン）─────────────────────────── */}
+          <div className="hl-enter hl-d3">
+            <AccordionCard
+              icon={<IcZap />}
+              label="Alterの気づき"
+              summary={
+                <div className="flex gap-3 items-start">
+                  <CoachOrb />
+                  <div className="flex-1 bg-white/[0.05] border border-[#3AAFCA]/20 rounded-xl rounded-tl-sm px-3.5 py-3">
+                    <p className="text-sm font-bold text-[#E8E3D8] leading-snug mb-1.5">
+                      強い義務感に縛られ、少し無理をしているかもしれません
+                    </p>
+                    <p className="text-xs text-[#9A9488] leading-relaxed">
+                      ここ数日の対話で「〜すべき」という言葉が
+                      <span className="text-[#C4A35A] font-semibold"> 15回 </span>
+                      登場しています。
+                    </p>
+                  </div>
+                </div>
+              }
+              detail="過去3日間のジャーナルで『やらなきゃ』という焦りの言葉が頻出しています。一方で『やりたい』という主語が欠落しているため、この指摘をしました。"
+            />
           </div>
 
-          {/* ④ Alterからの提案（縦並び4項目）──────────────────────────── */}
-          <div className={`hl-enter hl-d3 ${GLASS} overflow-hidden`}>
-            {/* ヘッダー帯 */}
-            <div className="px-4 py-2.5 flex items-center gap-2 border-b border-[#C4A35A]/12"
-              style={{ background: "linear-gradient(90deg,rgba(196,163,90,0.10) 0%,transparent 100%)" }}>
-              <span className="text-[#C4A35A]/75"><IcBook /></span>
-              <p className={SECTION_LABEL}>Alterからの提案</p>
-            </div>
-
-            <div className="divide-y divide-[#C4A35A]/8">
-
-              {/* ① Alterの処方箋 */}
-              <div className="p-4">
-                <p className={`${SECTION_LABEL} mb-3`}>Alterの処方箋</p>
-                <p className="text-xs text-[#9A9488] leading-relaxed mb-3">
-                  ここ数ヶ月の葛藤を分析した結果、今の壁を越えるためには小手先のテクニックではなく、
-                  <span className="text-[#C4A35A]/80 font-medium">この一冊が決定的なブレイクスルーになるはず</span>
-                  です。
-                </p>
+          {/* ⑤ Alterの処方箋（アコーディオン）─────────────────────────── */}
+          <div className="hl-enter hl-d4">
+            <AccordionCard
+              icon={<IcBook />}
+              label="Alterの処方箋"
+              summary={
                 <div className="flex gap-3 items-start bg-white/[0.03] border border-[#C4A35A]/10 rounded-lg p-3">
                   <div className="w-10 h-14 rounded flex-shrink-0 flex flex-col justify-end pb-1 px-0.5"
                     style={{ background: "linear-gradient(160deg,#1A3A4A,#0D1E28)" }}>
@@ -371,37 +411,67 @@ export default function DashboardPage() {
                     </p>
                   </div>
                 </div>
-              </div>
+              }
+              detail="あなたが今ぶつかっている『権限移譲』の壁は、過去の多くのマネージャーが経験したものです。この本はその構造的な解決策を提示しています。"
+            />
+          </div>
 
-              {/* ② Alterの引き算 */}
-              <div className="p-4">
-                <p className={`${SECTION_LABEL} mb-2`}>Alterの引き算</p>
+          {/* ⑥ Alterの引き算（アコーディオン）─────────────────────────── */}
+          <div className="hl-enter hl-d5">
+            <AccordionCard
+              icon={
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              }
+              label="Alterの引き算"
+              summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed">
                   今週は新しいAIツールの検証を一旦ストップし、脳のメモリを解放しましょう。
                 </p>
-              </div>
+              }
+              detail="あなたの『コンディション』グラフが下降傾向にあります。今はインプットを増やすよりも、脳のメモリを空けることが最優先だと判断しました。"
+            />
+          </div>
 
-              {/* ③ Alterの補助線 */}
-              <div className="p-4">
-                <p className={`${SECTION_LABEL} mb-2`}>Alterの補助線</p>
+          {/* ⑦ Alterの補助線（アコーディオン）─────────────────────────── */}
+          <div className="hl-enter hl-d6">
+            <AccordionCard
+              icon={
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              }
+              label="Alterの補助線"
+              summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed">
                   緊急度と重要度のマトリクスに当てはめると、今悩んでいることは
                   <span className="text-[#E8E3D8] font-semibold">「緊急だが重要ではない」</span>
                   領域にあります。
                 </p>
-              </div>
+              }
+              detail="複数のプロジェクトが絡み合い、思考の整理が追いついていないようです。まずはこの枠組みでタスクを仕分けし、ノイズを減らしましょう。"
+            />
+          </div>
 
-              {/* ④ Alterの道標 */}
-              <div className="p-4">
-                <p className={`${SECTION_LABEL} mb-2`}>Alterの道標</p>
+          {/* ⑧ Alterの道標（アコーディオン）───────────────────────────── */}
+          <div className="hl-enter hl-d7">
+            <AccordionCard
+              icon={
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                </svg>
+              }
+              label="Alterの道標"
+              summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed">
                   半年前、あなたは
                   <span className="text-[#C4A35A]/85 font-semibold">「小さくテストする」</span>
                   ことで停滞を突破しました。今回も同じパターンが適用できます。
                 </p>
-              </div>
-
-            </div>
+              }
+              detail="あなたは以前も似たような『リソース不足』の壁に直面しましたが、その際は完璧主義を捨ててプロトタイプを出すことで突破しました。その成功体験を思い出してください。"
+            />
           </div>
 
         </div>
