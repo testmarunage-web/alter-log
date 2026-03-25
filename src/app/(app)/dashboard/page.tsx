@@ -119,58 +119,6 @@ function DonutChart() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// コンディション推移（Sparkline 折れ線グラフ・フルワイド）
-// ─────────────────────────────────────────────────────────────────────────────
-const SPARK_VALS = [42, 48, 45, 55, 60, 63, 65];
-
-function SparklineChart() {
-  const today = new Date();
-  const SPARK_DAYS = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() - (6 - i));
-    return `${d.getDate()}日`;
-  });
-  const W = 100, H = 44;
-  const pad = { t: 6, b: 14, l: 8, r: 8 };
-  const min = Math.min(...SPARK_VALS) - 8;
-  const max = Math.max(...SPARK_VALS) + 4;
-  const xs = SPARK_VALS.map((_, i) => pad.l + (i / (SPARK_VALS.length - 1)) * (W - pad.l - pad.r));
-  const ys = SPARK_VALS.map((v) => pad.t + (1 - (v - min) / (max - min)) * (H - pad.t - pad.b));
-  const polyline = xs.map((x, i) => `${x},${ys[i]}`).join(" ");
-  const area = `${xs[0]},${H - pad.b} ` + xs.map((x, i) => `${x},${ys[i]}`).join(" ") + ` ${xs[xs.length - 1]},${H - pad.b}`;
-  const last = SPARK_VALS[SPARK_VALS.length - 1];
-
-  return (
-    <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-      <div className="flex items-baseline gap-1">
-        <span className="text-2xl font-black tabular-nums leading-none text-[#3AAFCA]">{last}</span>
-        <span className="text-[10px] text-[#8A8276]">/ 100</span>
-      </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="flex-1" style={{ height: 44 }}>
-        <defs>
-          <linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3AAFCA" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="#3AAFCA" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <polygon points={area} fill="url(#spark-fill)" />
-        <polyline points={polyline} fill="none" stroke="#3AAFCA" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-        {xs.map((x, i) => (
-          <circle key={i} cx={x} cy={ys[i]} r={i === xs.length - 1 ? 2.2 : 1.1}
-            fill={i === xs.length - 1 ? "#3AAFCA" : "rgba(58,175,202,0.40)"} />
-        ))}
-        {xs.map((x, i) => (
-          <text key={i} x={x} y={H - 1} textAnchor="middle" fontSize="4.5"
-            fill="rgba(138,130,118,0.7)" fontFamily="sans-serif">
-            {SPARK_DAYS[i]}
-          </text>
-        ))}
-      </svg>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Ripple ボタン
 // ─────────────────────────────────────────────────────────────────────────────
 type Ripple = { id: number; x: number; y: number };
@@ -225,21 +173,35 @@ function AccordionCard({
   const [open, setOpen] = useState(false);
   return (
     <div
-      className={`${GLASS} overflow-hidden hover:border-[#C4A35A]/40 ${!open ? "border-b-[#C4A35A]/35" : ""} transition-all duration-300 cursor-pointer`}
+      className={`${GLASS} overflow-hidden hover:border-[#C4A35A]/40 transition-all duration-300 cursor-pointer`}
       onClick={() => setOpen((v) => !v)}
     >
       <div className="p-4">
         {/* ヘッダー行 */}
-        <p className={`${SECTION_LABEL} mb-3`}>
-          {icon}
-          {label}
-        </p>
+        <div className="flex items-center justify-between mb-3">
+          <p className={SECTION_LABEL}>
+            {icon}
+            {label}
+          </p>
+          <svg
+            className="w-3 h-3 flex-shrink-0 text-[#C4A35A]/50"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
+          </svg>
+        </div>
         {/* サマリー（常時表示） */}
         {summary}
       </div>
-      {/* 物理的アフォーダンス：閉じている時だけ底部グラデーション */}
+      {/* 閉じている時：展開誘導 + グラデーション */}
       {!open && (
-        <div className="h-4 bg-gradient-to-t from-[#C4A35A]/[0.06] to-transparent" />
+        <>
+          <div className="px-4 pb-2.5 flex justify-end">
+            <span className="text-[9px] text-[#8A8276]/50 tracking-wide">タップして詳細を展開 ▾</span>
+          </div>
+          <div className="h-3 bg-gradient-to-t from-[#C4A35A]/[0.05] to-transparent" />
+        </>
       )}
       {/* 展開エリア */}
       {open && (
@@ -332,19 +294,8 @@ export default function DashboardPage() {
             </RippleLink>
           </div>
 
-          {/* (2) コンディション推移 ─────────────────────────────────────── */}
-          <div className={`hl-enter hl-d1 ${GLASS} p-3`}>
-            <p className={`${SECTION_LABEL} mb-2`}>
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-              コンディション推移
-            </p>
-            <SparklineChart />
-          </div>
-
           {/* (3) 客観的ファクトの確認 ────────────────────────────────────── */}
-          <div className="hl-enter hl-d2">
+          <div className="hl-enter hl-d1">
             <AccordionCard
               icon={<IcZap />}
               label="客観的ファクトの確認"
@@ -363,37 +314,37 @@ export default function DashboardPage() {
                   </div>
                 </div>
               }
-              detail="過去3日間のジャーナルで『やらなきゃ』という焦りの言葉が頻出しています。一方で『やりたい』という主語が欠落しているため、この指摘をしました。"
+              detail="過去3日間のジャーナルで『やらなきゃ』という焦りの言葉が頻出しています。一方で『やりたい』という主語が欠落しているため、この指摘をしました。3/19のセッションでは「本当はやりたいことがある、でも先にこれを片付けないと」という発言が3回繰り返されました。まず義務タスクを一つ意識的に手放す判断をしてみてください。"
             />
           </div>
 
           {/* (4) 思考の俯瞰 ＆ 今の脳内シェア ──────────────────────────── */}
-          <div className="hl-enter hl-d3 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="hl-enter hl-d2 space-y-3">
             <div className={`${GLASS} p-3`}>
-              <p className={SECTION_LABEL}>
+              <p className={`${SECTION_LABEL} mb-3`}>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
                 思考の俯瞰
               </p>
-              <BalanceSliders />
+              <div className="max-w-xs">
+                <BalanceSliders />
+              </div>
             </div>
 
             <div className={`${GLASS} p-3`}>
-              <p className={SECTION_LABEL}>
+              <p className={`${SECTION_LABEL} mb-2`}>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 10 10" stroke="#3AAFCA" />
                 </svg>
                 今の脳内シェア
               </p>
-              <div className="mt-2">
-                <DonutChart />
-              </div>
+              <DonutChart />
             </div>
           </div>
 
           {/* (5) リソースの解放 ─────────────────────────────────────────── */}
-          <div className="hl-enter hl-d4">
+          <div className="hl-enter hl-d3">
             <AccordionCard
               icon={
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -406,12 +357,12 @@ export default function DashboardPage() {
                   今週は新しいAIツールの検証を一旦ストップし、脳のメモリを解放しましょう。
                 </p>
               }
-              detail="あなたの『コンディション』グラフが下降傾向にあります。今はインプットを増やすよりも、脳のメモリを空けることが最優先だと判断しました。"
+              detail="あなたの直近の対話を分析すると、コンディションが下降傾向にあります。今はインプットを増やすよりも、脳のメモリを空けることが最優先だと判断しました。直近72時間で新規にブックマークしたツールは推定7件。この習慣自体が「行動の代替」になっているサインです。今週は新規インプットをゼロにする実験を試してください。"
             />
           </div>
 
           {/* (6) 思考の構造化 ───────────────────────────────────────────── */}
-          <div className="hl-enter hl-d5">
+          <div className="hl-enter hl-d4">
             <AccordionCard
               icon={
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -426,12 +377,12 @@ export default function DashboardPage() {
                   領域にあります。
                 </p>
               }
-              detail="複数のプロジェクトが絡み合い、思考の整理が追いついていないようです。まずはこの枠組みでタスクを仕分けし、ノイズを減らしましょう。"
+              detail="複数のプロジェクトが絡み合い、思考の整理が追いついていないようです。まずはこの枠組みでタスクを仕分けし、ノイズを減らしましょう。あなたが悩んでいる「A社対応」は、締切は今週だが戦略的重要性は低い案件です。これを後回しにする決断をするだけで、頭の中の占有率が推定30%解放されます。"
             />
           </div>
 
           {/* (7) 外部視点の獲得 ─────────────────────────────────────────── */}
-          <div className="hl-enter hl-d6">
+          <div className="hl-enter hl-d5">
             <AccordionCard
               icon={<IcBook />}
               label="外部視点の獲得"
@@ -444,12 +395,12 @@ export default function DashboardPage() {
                   </p>
                 </div>
               }
-              detail="あなたが今ぶつかっている『権限移譲』の壁は、過去の多くのマネージャーが経験したものです。この本はその構造的な解決策を提示しています。"
+              detail="あなたが今ぶつかっている『権限移譲』の壁は、過去の多くのマネージャーが経験したものです。この本はその構造的な解決策を提示しています。グローブはこう言っています：「マネージャーのアウトプットは、自分の組織と影響を及ぼした隣接組織のアウトプットの合計である」。あなたが一人でやりきろうとするほど、このアウトプットは縮小します。"
             />
           </div>
 
           {/* (8) 勝ち筋の再現 ───────────────────────────────────────────── */}
-          <div className="hl-enter hl-d7">
+          <div className="hl-enter hl-d6">
             <AccordionCard
               icon={
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -464,18 +415,12 @@ export default function DashboardPage() {
                   ことで停滞を突破しました。今回も同じパターンが適用できます。
                 </p>
               }
-              detail="あなたは以前も似たような『リソース不足』の壁に直面しましたが、その際は完璧主義を捨ててプロトタイプを出すことで突破しました。その成功体験を思い出してください。"
+              detail="あなたは以前も似たような『リソース不足』の壁に直面しましたが、その際は完璧主義を捨ててプロトタイプを出すことで突破しました。その成功体験を思い出してください。具体的には、昨年11月に「完成度60%でいいから出す」と決めた瞬間、あなたのコンディションスコアは3日間で+22ポイント上昇しています。その判断軸をもう一度。"
             />
           </div>
 
-          {/* 隠し導線 ───────────────────────────────────────────────────── */}
-          <div className="mt-12 mb-8 flex justify-center opacity-40 hover:opacity-100 transition-opacity duration-500">
-            <Link href="/alter-log">
-              <span className="font-serif text-[11px] text-[#C4A35A]/40 tracking-[0.2em] hover:text-[#C4A35A]/80 transition-colors">Alterの観測記録を覗く</span>
-            </Link>
-          </div>
 
-        </div>{/* /max-w-2xl */}
+</div>{/* /max-w-2xl */}
       </div>{/* /min-h-full */}
     </>
   );
