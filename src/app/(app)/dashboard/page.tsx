@@ -237,11 +237,15 @@ function AccordionCard({
         {/* サマリー（常時表示） */}
         {summary}
       </div>
-      {/* 開閉シェブロン（中央・テキストなし） */}
-      <div className="flex justify-center pb-3 border-t border-[#C4A35A]/8 pt-2 -mt-1">
+      {/* ドロワーハンドル */}
+      <div
+        className={`flex justify-center items-center py-1.5 transition-colors ${
+          open ? "bg-[#C4A35A]/[0.08]" : "bg-[#C4A35A]/[0.03] hover:bg-[#C4A35A]/[0.08]"
+        }`}
+      >
         <svg
-          width="13" height="13" viewBox="0 0 24 24" fill="none"
-          stroke="rgba(196,163,90,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          width="18" height="18" viewBox="0 0 24 24" fill="none"
+          stroke="rgba(196,163,90,0.50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
           className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         >
           <path d="M6 9l6 6 6-6" />
@@ -282,6 +286,7 @@ export default function DashboardPage() {
         .hl-d5 { animation-delay: 0.30s; }
         .hl-d6 { animation-delay: 0.36s; }
         .hl-d7 { animation-delay: 0.42s; }
+        .hl-d8 { animation-delay: 0.48s; }
       `}</style>
 
       <div className="min-h-full bg-[#0B0E13] px-4 py-6 md:px-6">
@@ -341,10 +346,11 @@ export default function DashboardPage() {
               </div>
               <p className="text-base font-black tracking-tight leading-tight mb-1"
                 style={{ color: "#E8D5A0" }}>
-                吐き出す
+                今の気持ちを吐き出す
               </p>
               <p className="text-[11px] leading-snug mb-4" style={{ color: "#8A7848" }}>
-                今の気持ちを吐き出す
+                まとまっていなくて構いません。<br />
+                心の中のノイズをただ置いてください。
               </p>
               <div className="flex justify-end">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(196,163,90,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -371,7 +377,8 @@ export default function DashboardPage() {
                 思考を整理する
               </p>
               <p className="text-[11px] leading-snug mb-4" style={{ color: "#4A8A9A" }}>
-                Alterと共に、モヤモヤの正体を突き止める
+                Alterとの対話を通して、<br />
+                モヤモヤの正体を突き止めます。
               </p>
               <div className="flex justify-end">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(58,175,202,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -381,8 +388,35 @@ export default function DashboardPage() {
             </RippleLink>
           </div>
 
+          {/* ③.5 今のあなたのAlter ───────────────────────────────────── */}
+          <div className={`hl-enter hl-d3 ${GLASS} p-4`}>
+            <div className="flex items-start justify-between mb-3">
+              <p className={SECTION_LABEL}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                </svg>
+                今のあなたのAlter
+              </p>
+              <Link
+                href="/onboarding"
+                className="text-[10px] text-[#C4A35A]/60 hover:text-[#C4A35A] underline transition-colors"
+              >
+                Alterを再設定する
+              </Link>
+            </div>
+            <div className="flex items-center gap-3.5">
+              <CoachOrb />
+              <div>
+                <p className="text-sm font-bold text-[#E8E3D8] leading-snug mb-1">ロジカル × 伴走型</p>
+                <p className="text-[11px] text-[#9A9488] leading-relaxed">
+                  あなたの思考パターンを記憶し、論理と共感で答えではなく気づきを引き出します。
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* ④ Alterの気づき（アコーディオン）─────────────────────────── */}
-          <div className="hl-enter hl-d3">
+          <div className="hl-enter hl-d4">
             <AccordionCard
               icon={<IcZap />}
               label="Alterの気づき"
@@ -406,7 +440,7 @@ export default function DashboardPage() {
           </div>
 
           {/* ⑤ Alterの処方箋（アコーディオン）─────────────────────────── */}
-          <div className="hl-enter hl-d4">
+          <div className="hl-enter hl-d5">
             <AccordionCard
               icon={<IcBook />}
               label="Alterの処方箋"
@@ -430,7 +464,7 @@ export default function DashboardPage() {
           </div>
 
           {/* ⑥ Alterの引き算（アコーディオン）─────────────────────────── */}
-          <div className="hl-enter hl-d5">
+          <div className="hl-enter hl-d6">
             <AccordionCard
               icon={
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -448,7 +482,7 @@ export default function DashboardPage() {
           </div>
 
           {/* ⑦ Alterの補助線（アコーディオン）─────────────────────────── */}
-          <div className="hl-enter hl-d6">
+          <div className="hl-enter hl-d7">
             <AccordionCard
               icon={
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -468,7 +502,7 @@ export default function DashboardPage() {
           </div>
 
           {/* ⑧ Alterの道標（アコーディオン）───────────────────────────── */}
-          <div className="hl-enter hl-d7">
+          <div className="hl-enter hl-d8">
             <AccordionCard
               icon={
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
