@@ -128,7 +128,7 @@ function SparklineChart() {
   const SPARK_DAYS = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(today);
     d.setDate(today.getDate() - (6 - i));
-    return `${d.getMonth() + 1}/${d.getDate()}`;
+    return `${d.getDate()}日`;
   });
   const W = 100, H = 44;
   const pad = { t: 6, b: 14, l: 2, r: 2 };
@@ -225,7 +225,7 @@ function AccordionCard({
   const [open, setOpen] = useState(false);
   return (
     <div
-      className={`${GLASS} overflow-hidden hover:border-[#C4A35A]/40 transition-all duration-300 cursor-pointer`}
+      className={`${GLASS} overflow-hidden hover:border-[#C4A35A]/40 ${!open ? "border-b-[#C4A35A]/35" : ""} transition-all duration-300 cursor-pointer`}
       onClick={() => setOpen((v) => !v)}
     >
       <div className="p-4">
@@ -237,20 +237,10 @@ function AccordionCard({
         {/* サマリー（常時表示） */}
         {summary}
       </div>
-      {/* ドロワーハンドル */}
-      <div
-        className={`flex justify-center items-center py-1.5 transition-colors ${
-          open ? "bg-[#C4A35A]/[0.08]" : "bg-[#C4A35A]/[0.03] hover:bg-[#C4A35A]/[0.08]"
-        }`}
-      >
-        <svg
-          width="18" height="18" viewBox="0 0 24 24" fill="none"
-          stroke="rgba(196,163,90,0.50)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-        >
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </div>
+      {/* 物理的アフォーダンス：閉じている時だけ底部グラデーション */}
+      {!open && (
+        <div className="h-4 bg-gradient-to-t from-[#C4A35A]/[0.06] to-transparent" />
+      )}
       {/* 展開エリア */}
       {open && (
         <div className="px-4 pb-4 border-t border-[#C4A35A]/10">
@@ -290,49 +280,53 @@ export default function DashboardPage() {
       `}</style>
 
       <div className="min-h-full bg-[#0B0E13] px-4 py-6 md:px-6">
-        <div className="max-w-2xl mx-auto space-y-3">
+        <div className="max-w-2xl mx-auto">
 
-          {/* ① 上段：2カラム（バランス・ドーナツ）───────────────────── */}
-          <div className="hl-enter grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className={`${GLASS} p-3`}>
-              <p className={SECTION_LABEL}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg>
-                思考の俯瞰
-              </p>
-              <BalanceSliders />
-            </div>
+          {/* ── ブロック1：自己データ ──────────────────────────────────── */}
+          <div className="space-y-3">
+            {/* ① 上段：2カラム（バランス・ドーナツ）───────────────────── */}
+            <div className="hl-enter grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className={`${GLASS} p-3`}>
+                <p className={SECTION_LABEL}>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                  思考の俯瞰
+                </p>
+                <BalanceSliders />
+              </div>
 
-            <div className={`${GLASS} p-3`}>
-              <p className={SECTION_LABEL}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 10 10" stroke="#3AAFCA" />
-                </svg>
-                今の脳内シェア
-              </p>
-              <div className="mt-2">
-                <DonutChart />
+              <div className={`${GLASS} p-3`}>
+                <p className={SECTION_LABEL}>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 10 10" stroke="#3AAFCA" />
+                  </svg>
+                  今の脳内シェア
+                </p>
+                <div className="mt-2">
+                  <DonutChart />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* ② 下段：フルワイド（Sparkline）─────────────────────────── */}
-          <div className={`hl-enter hl-d1 ${GLASS} p-3`}>
-            <p className={`${SECTION_LABEL} mb-2`}>
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-              コンディション推移
-            </p>
-            <SparklineChart />
+            {/* ② 下段：フルワイド（Sparkline）─────────────────────────── */}
+            <div className={`hl-enter hl-d1 ${GLASS} p-3`}>
+              <p className={`${SECTION_LABEL} mb-2`}>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+                コンディション推移
+              </p>
+              <SparklineChart />
+            </div>
           </div>
-
+          {/* ── ブロック2：アクション ──────────────────────────────────── */}
+          <div className="mt-8 mb-6">
           {/* ③ アクション（2カラム）────────────────────────────────────── */}
           <div className="hl-enter hl-d2 grid grid-cols-2 gap-3">
 
             <RippleLink href="/chat?mode=journal"
-              className="rounded-xl p-5
+              className="rounded-xl p-4
                 border border-t-[rgba(255,255,255,0.12)] border-x-[rgba(255,255,255,0.05)] border-b-transparent
                 shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.10)]
                 hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(196,163,90,0.18),inset_0_1px_0_rgba(255,255,255,0.14)]
@@ -344,13 +338,9 @@ export default function DashboardPage() {
               <div className="mb-3" style={{ color: "#C4A35A" }}>
                 <IcPen />
               </div>
-              <p className="text-base font-black tracking-tight leading-tight mb-1"
+              <p className="text-base font-black tracking-tight leading-tight mb-4"
                 style={{ color: "#E8D5A0" }}>
-                今の気持ちを吐き出す
-              </p>
-              <p className="text-[11px] leading-snug mb-4" style={{ color: "#8A7848" }}>
-                まとまっていなくて構いません。<br />
-                心の中のノイズをただ置いてください。
+                気持ちを吐き出す
               </p>
               <div className="flex justify-end">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(196,163,90,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -360,7 +350,7 @@ export default function DashboardPage() {
             </RippleLink>
 
             <RippleLink href="/chat?mode=coach"
-              className="rounded-xl p-5
+              className="rounded-xl p-4
                 border border-t-[rgba(255,255,255,0.10)] border-x-[rgba(255,255,255,0.04)] border-b-transparent
                 shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(58,175,202,0.12)]
                 hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(58,175,202,0.18),inset_0_1px_0_rgba(58,175,202,0.18)]
@@ -372,13 +362,9 @@ export default function DashboardPage() {
               <div className="mb-3" style={{ color: "#3AAFCA" }}>
                 <IcCompass />
               </div>
-              <p className="text-base font-black tracking-tight leading-tight mb-1"
+              <p className="text-base font-black tracking-tight leading-tight mb-4"
                 style={{ color: "#C8E8EE" }}>
                 思考を整理する
-              </p>
-              <p className="text-[11px] leading-snug mb-4" style={{ color: "#4A8A9A" }}>
-                Alterとの対話を通して、<br />
-                モヤモヤの正体を突き止めます。
               </p>
               <div className="flex justify-end">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(58,175,202,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -387,6 +373,14 @@ export default function DashboardPage() {
               </div>
             </RippleLink>
           </div>
+          </div>
+
+          {/* ── ブロック3：Alterからのメッセージ ──────────────────────── */}
+          <div className="mt-10">
+            <p className="text-xs font-bold tracking-widest text-[#C4A35A]/60 text-center mb-6 uppercase">
+              Alterからのメッセージ
+            </p>
+            <div className="space-y-3">
 
           {/* ③.5 今のあなたのAlter ───────────────────────────────────── */}
           <div className={`hl-enter hl-d3 ${GLASS} p-4`}>
@@ -521,8 +515,11 @@ export default function DashboardPage() {
             />
           </div>
 
-        </div>
-      </div>
+            </div>{/* /space-y-3 (Block3) */}
+          </div>{/* /mt-10 (Block3) */}
+
+        </div>{/* /max-w-2xl */}
+      </div>{/* /min-h-full */}
     </>
   );
 }
