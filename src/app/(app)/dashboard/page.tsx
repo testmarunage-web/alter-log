@@ -103,9 +103,7 @@ function DonutChart() {
       <div className="relative w-16 h-16">
         <div className="w-full h-full rounded-full"
           style={{ background: `conic-gradient(from -90deg, ${gradient})` }} />
-        <div className="absolute inset-[22%] rounded-full bg-[#0B0E13] flex items-center justify-center">
-          <span className="text-[7px] font-bold text-[#8A8276]">今の</span>
-        </div>
+        <div className="absolute inset-[22%] rounded-full bg-[#0B0E13]" />
       </div>
       <div className="space-y-0.5 w-full">
         {DONUT_SEGS.slice(0, 3).map((s) => (
@@ -124,9 +122,14 @@ function DonutChart() {
 // コンディション推移（Sparkline 折れ線グラフ・フルワイド）
 // ─────────────────────────────────────────────────────────────────────────────
 const SPARK_VALS = [42, 48, 45, 55, 60, 63, 65];
-const SPARK_DAYS = ["月", "火", "水", "木", "金", "土", "日"];
 
 function SparklineChart() {
+  const today = new Date();
+  const SPARK_DAYS = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (6 - i));
+    return String(d.getDate());
+  });
   const W = 100, H = 44;
   const pad = { t: 6, b: 14, l: 2, r: 2 };
   const min = Math.min(...SPARK_VALS) - 8;
@@ -227,34 +230,22 @@ function AccordionCard({
     >
       <div className="p-4">
         {/* ヘッダー行 */}
-        <div className="flex items-center justify-between mb-3">
-          <p className={SECTION_LABEL}>
-            {icon}
-            {label}
-          </p>
+        <p className={`${SECTION_LABEL} mb-3`}>
+          {icon}
+          {label}
+        </p>
+        {/* サマリー（常時表示） */}
+        {summary}
+        {/* 開閉シェブロン（右下） */}
+        <div className="flex justify-end mt-2">
           <svg
-            width="13" height="13" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(196,163,90,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-            className={`flex-shrink-0 transition-transform duration-250 ${open ? "rotate-180" : ""}`}
+            width="12" height="12" viewBox="0 0 24 24" fill="none"
+            stroke="rgba(196,163,90,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
           >
             <path d="M6 9l6 6 6-6" />
           </svg>
         </div>
-        {/* サマリー（常時表示） */}
-        {summary}
-      </div>
-      {/* アフォーダンスバー */}
-      <div className="flex items-center justify-center gap-1.5 py-2 border-t border-[#C4A35A]/8">
-        <span className="text-[9px] tracking-widest text-[#C4A35A]/40 uppercase">
-          {open ? "閉じる" : "Alterの思考プロセスを見る"}
-        </span>
-        <svg
-          width="10" height="10" viewBox="0 0 24 24" fill="none"
-          stroke="rgba(196,163,90,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-        >
-          <path d="M6 9l6 6 6-6" />
-        </svg>
       </div>
       {/* 展開エリア */}
       {open && (
@@ -313,7 +304,7 @@ export default function DashboardPage() {
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 10 10" stroke="#3AAFCA" />
                 </svg>
-                脳内シェア
+                今の脳内シェア
               </p>
               <div className="mt-2">
                 <DonutChart />
