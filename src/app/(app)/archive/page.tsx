@@ -139,9 +139,11 @@ export default function ArchivePage() {
             <p className="text-[10px] font-bold tracking-[0.22em] text-[#C4A35A]/70 uppercase mb-3">
               今週の気づき
             </p>
-            <p className="text-sm text-[#9A9488] leading-[1.85]">
-              今週は「意思決定の速度」に関する葛藤が顕著でした。しかし、それは能力の不足ではなく、新しい役割に対する責任感の裏返しです。後半にかけて、自らの軸を言語化しようとする前向きな兆候が見られます。
-            </p>
+            <ul className="text-sm text-[#9A9488] leading-[1.85] space-y-2.5 list-disc pl-4 marker:text-[#C4A35A]/50">
+              <li>「意思決定の速度」と「質」のトレードオフに関する葛藤が顕著（新しい役割への責任感の裏返し）。</li>
+              <li>「一人で解決する」という既存の方法論が限界を迎えつつある状態。</li>
+              <li>後半にかけて、自らの軸を言語化しようとする前向きな兆候を観測。</li>
+            </ul>
           </div>
         </div>
 
