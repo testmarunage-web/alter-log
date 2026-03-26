@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // プロファイリングデータ
@@ -19,24 +20,24 @@ const PROFILE_ITEMS = [
     catchphrase: "完璧でないと、動けなくなる",
     detail:
       "「完璧でなければ始められない」という感覚が、着手を遅らせることがあります。外部の要因や他者の動きを待ってしまう瞬間は、実は自分の中にまだ不確かさがある時のサインかもしれません。短期的な感情の揺れが、本来の優先順位を塗り替えてしまうパターンも繰り返し現れています。",
-    accent: "border-[#8A8276]/25 bg-[#8A8276]/[0.04]",
-    labelColor: "text-[#8A8276]",
+    accent: "border-[#C4A35A]/25 bg-[#C4A35A]/[0.04]",
+    labelColor: "text-[#C4A35A]",
   },
   {
     title: "譲れないコアバリュー",
     catchphrase: "自分で選んだ道しか、本気になれない",
     detail:
       "「自分の意思で決めた」という感覚を、あなたはひどく大切にしています。誰かに言われてやった仕事より、自ら選んだ道を歩んでいる時に、あなたのエネルギーは最も高まります。成果そのものよりも、そこに至るプロセスで何を学んだかを問い続ける姿勢は、揺るぎないあなたの軸です。",
-    accent: "border-[#2E4A4E]/50 bg-[#2E4A4E]/[0.08]",
-    labelColor: "text-[#5A8A7E]",
+    accent: "border-[#C4A35A]/25 bg-[#C4A35A]/[0.04]",
+    labelColor: "text-[#C4A35A]",
   },
   {
     title: "現在直面している壁",
     catchphrase: "「速く」と「正しく」の間で揺れている",
     detail:
       "意思決定の速度と質のトレードオフに、あなたは今も向き合っています。マネジメントという新しい役割への移行期において、これまで通用してきた「一人で解決する」という方法論が、少しずつ限界を見せ始めています。長期の自分像を言葉にすることが、今最も必要な作業かもしれません。",
-    accent: "border-[#9A9488]/20 bg-[#9A9488]/[0.03]",
-    labelColor: "text-[#9A9488]",
+    accent: "border-[#C4A35A]/25 bg-[#C4A35A]/[0.04]",
+    labelColor: "text-[#C4A35A]",
   },
 ];
 
@@ -131,12 +132,12 @@ export default function ArchivePage() {
         {/* ── 週間ハイライト ─────────────────────────────────────────── */}
         <div>
           <div className="mb-5">
-            <h1 className="text-xl font-bold text-[#E8E3D8]">Weekly Insight</h1>
-            <p className="text-sm text-[#8A8276] mt-0.5">2026年3月 第4週</p>
+            <h1 className="text-xl font-bold text-[#E8E3D8]">ウィークリーレポート</h1>
+            <p className="text-sm text-[#8A8276] mt-0.5">2026年3月 第4週（3/22〜3/28）</p>
           </div>
           <div className="bg-[#1A222B]/30 border border-[#C4A35A]/20 rounded-xl p-5">
             <p className="text-[10px] font-bold tracking-[0.22em] text-[#C4A35A]/70 uppercase mb-3">
-              今週のキーファインディング
+              今週の気づき
             </p>
             <p className="text-sm text-[#9A9488] leading-[1.85]">
               今週は「意思決定の速度」に関する葛藤が顕著でした。しかし、それは能力の不足ではなく、新しい役割に対する責任感の裏返しです。後半にかけて、自らの軸を言語化しようとする前向きな兆候が見られます。
@@ -181,12 +182,12 @@ export default function ArchivePage() {
                   <p className="text-xs text-[#9A9488] mb-0.5">{date}</p>
                   <p className="text-sm font-semibold text-[#E8E3D8]">{theme}</p>
                 </div>
-                <button className="flex-shrink-0 text-xs font-medium text-[#C4A35A]/80 hover:text-[#C4A35A] flex items-center gap-1 transition-colors">
+                <Link href="/archive/chat/mock-id" className="flex-shrink-0 text-xs font-medium text-[#C4A35A]/80 hover:text-[#C4A35A] flex items-center gap-1 transition-colors">
                   対話を開く
                   <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
                   </svg>
-                </button>
+                </Link>
               </div>
             ))}
           </div>
