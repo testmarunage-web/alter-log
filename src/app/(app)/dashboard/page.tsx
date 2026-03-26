@@ -335,7 +335,7 @@ export default function DashboardPage() {
           </div>
 
           {/* (4) 思考の俯瞰 ＆ 今の脳内シェア ──────────────────────────── */}
-          <div className="hl-enter hl-d2 grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="hl-enter hl-d2 grid grid-cols-2 gap-3">
             <div className={`${GLASS} p-3`}>
               <p className={`${SECTION_LABEL} mb-3`}>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
