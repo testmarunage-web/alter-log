@@ -74,6 +74,9 @@ export default function AlterLogPage() {
             <h1 className="text-xl font-bold text-[#C4A35A] leading-snug tracking-tight">
               Alter Log
             </h1>
+            <p className="text-[11px] text-[#8A8276] mt-2 font-normal tracking-wide">
+              Alterが裏側で記録している、あなたに関する密かな観測日記
+            </p>
             <div className="mt-3 h-px bg-gradient-to-r from-[#C4A35A]/30 via-[#C4A35A]/10 to-transparent" />
           </div>
 
