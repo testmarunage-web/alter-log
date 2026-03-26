@@ -119,6 +119,33 @@ function DonutChart() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// インフォメーションツールチップ
+// ─────────────────────────────────────────────────────────────────────────────
+function InfoTooltip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative inline-flex flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        onClick={() => setShow((v) => !v)}
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        className="flex items-center justify-center text-[#C4A35A]/35 hover:text-[#C4A35A]/75 transition-colors"
+      >
+        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
+        </svg>
+      </button>
+      {show && (
+        <div className="absolute left-0 top-5 z-20 w-52 p-2.5 bg-[#141B22] border border-[#C4A35A]/20 rounded-lg shadow-lg">
+          <p className="text-[10px] text-[#9A9488] leading-relaxed">{text}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Ripple ボタン
 // ─────────────────────────────────────────────────────────────────────────────
 type Ripple = { id: number; x: number; y: number };
@@ -337,22 +364,28 @@ export default function DashboardPage() {
           {/* (4) 思考の俯瞰 ＆ 今の脳内シェア ──────────────────────────── */}
           <div className="hl-enter hl-d2 grid grid-cols-2 gap-3">
             <div className={`${GLASS} p-3`}>
-              <p className={`${SECTION_LABEL} mb-3`}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg>
-                思考の俯瞰
-              </p>
+              <div className="flex items-center gap-1 mb-3">
+                <p className={SECTION_LABEL}>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                  思考の俯瞰
+                </p>
+                <InfoTooltip text="対話から推測される、あなたの現在の思考のバランスです。" />
+              </div>
               <BalanceSliders />
             </div>
 
             <div className={`${GLASS} p-3`}>
-              <p className={`${SECTION_LABEL} mb-2`}>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 10 10" stroke="#C4A35A" />
-                </svg>
-                今の脳内シェア
-              </p>
+              <div className="flex items-center gap-1 mb-2">
+                <p className={SECTION_LABEL}>
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10" /><path d="M12 2a10 10 0 0 1 10 10" stroke="#C4A35A" />
+                  </svg>
+                  今の脳内シェア
+                </p>
+                <InfoTooltip text="あなたの頭の中の占有率が高いトピックを可視化しています。" />
+              </div>
               <DonutChart />
             </div>
           </div>
@@ -406,7 +439,10 @@ export default function DashboardPage() {
               summary={
                 <div>
                   <p className="text-xs font-black text-[#E8E3D8] leading-snug mb-0.5">『HIGH OUTPUT MANAGEMENT』</p>
-                  <p className="text-[10px] text-[#8A8276] mb-1.5">アンドリュー・S・グローブ</p>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-[10px] text-[#8A8276]">アンドリュー・S・グローブ 著</p>
+                    <p className="text-[10px] font-mono text-[#C4A35A]/60">¥2,420</p>
+                  </div>
                   <p className="text-sm text-[#9A9488] leading-relaxed">
                     「成果を出す」本質をマネジメントの視点で再定義。頑張っても前に進まない感覚の正体がここにある。
                   </p>
