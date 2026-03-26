@@ -3,7 +3,7 @@ import { BottomNav } from "./_components/BottomNav";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-screen bg-[#FAFAFA] overflow-hidden">
+    <div className="flex h-screen bg-[#0B0E13] overflow-hidden">
       {/* PC: 左サイドバー */}
       <Sidebar />
 

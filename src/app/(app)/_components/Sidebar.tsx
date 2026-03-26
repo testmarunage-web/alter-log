@@ -10,11 +10,11 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex flex-col w-56 h-screen bg-[#F2F2F2] border-r border-[#E8E8E8] flex-shrink-0">
+    <aside className="hidden md:flex flex-col w-56 h-screen bg-[#0B0E13] border-r border-[#C4A35A]/10 flex-shrink-0">
       {/* Logo */}
-      <div className="h-14 flex items-center px-5 border-b border-[#E8E8E8]">
-        <span className="text-sm font-bold tracking-[0.12em] text-[#183D46] uppercase">
-          Hack Log
+      <div className="h-14 flex items-center px-5 border-b border-[#C4A35A]/10">
+        <span className="text-sm font-bold tracking-[0.12em] text-[#C4A35A] uppercase">
+          Alter Log
         </span>
       </div>
 
@@ -28,11 +28,11 @@ export function Sidebar() {
               href={href}
               className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors ${
                 active
-                  ? "bg-[rgba(24,61,70,0.08)] text-[#183D46] font-semibold"
-                  : "text-[#5C5C5C] hover:bg-[rgba(24,61,70,0.05)] hover:text-[#183D46]"
+                  ? "bg-[#C4A35A]/10 text-[#E8E3D8] font-semibold"
+                  : "text-[#8A8276] hover:bg-white/[0.04] hover:text-[#E8E3D8]"
               }`}
             >
-              <span className={active ? "text-[#183D46]" : "text-[#5C5C5C]"}>
+              <span className={active ? "text-[#C4A35A]" : "text-[#8A8276]"}>
                 <NavIconSvg icon={icon} size={16} />
               </span>
               {label}
@@ -42,10 +42,10 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="px-2.5 py-3 border-t border-[#E8E8E8] space-y-0.5">
+      <div className="px-2.5 py-3 border-t border-[#C4A35A]/10 space-y-0.5">
         <Link
           href="/settings"
-          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-[#5C5C5C] hover:bg-[rgba(24,61,70,0.05)] hover:text-[#183D46] transition-colors"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-[#8A8276] hover:bg-white/[0.04] hover:text-[#E8E3D8] transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="8" cy="8" r="2" />
@@ -54,7 +54,7 @@ export function Sidebar() {
           設定
         </Link>
         <SignOutButton>
-          <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-[#5C5C5C] hover:bg-[rgba(24,61,70,0.05)] hover:text-[#183D46] transition-colors">
+          <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-[#8A8276] hover:bg-white/[0.04] hover:text-[#E8E3D8] transition-colors">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3M11 11l3-3-3-3M14 8H6" />
             </svg>
