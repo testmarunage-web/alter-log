@@ -49,95 +49,6 @@ function AlterOrb({ size = "md" }: { size?: "sm" | "md" }) {
   );
 }
 
-// ── 処方箋カード（ダークテーマ） ─────────────────────────────────────────────
-function PrescriptionCard() {
-  return (
-    <div className="flex gap-3">
-      <AlterOrb />
-      <div className="max-w-[84%] space-y-0">
-        <div className="bg-[#3AAFCA]/10 border border-[#3AAFCA]/20 rounded-2xl rounded-tl-sm px-4 py-3.5 text-sm leading-relaxed text-[#E8E3D8] mb-3">
-          ペソさんと話してきて、少し気づいたことがあります。今日は、いつもと違う形でお伝えさせてください。
-        </div>
-        <div className="bg-[#3AAFCA]/[0.06] border border-[#3AAFCA]/20 rounded-2xl overflow-hidden">
-          <div
-            className="px-5 py-3.5 flex items-center gap-2.5"
-            style={{ background: "linear-gradient(135deg, #1A6B8A 0%, #2A9D8F 100%)" }}
-          >
-            <div
-              className="w-5 h-5 rounded-full flex-shrink-0"
-              style={{
-                background: "radial-gradient(circle at 38% 38%, #93E4D4, #3AAFCA 50%, #1A6B8A)",
-                boxShadow: "0 0 8px rgba(147,228,212,0.6)",
-              }}
-            />
-            <p className="text-[11px] font-bold tracking-widest text-white/90 uppercase">
-              Alterからの処方箋
-            </p>
-          </div>
-          <div className="px-5 py-4 space-y-4">
-            <p className="text-sm text-[#9A9488] leading-relaxed">
-              ペソさんのここ数ヶ月の葛藤を分析した結果、今の壁を越えるためには小手先のテクニックではなく、
-              <span className="font-semibold text-[#E8E3D8]">この本が決定的なブレイクスルーになるはず</span>
-              です。
-            </p>
-            <div className="flex gap-3.5 items-start bg-black/20 rounded-xl px-4 py-3.5">
-              <div
-                className="w-12 h-16 rounded-lg flex-shrink-0 flex items-end justify-center pb-1"
-                style={{ background: "linear-gradient(160deg, #1A3A4A 0%, #0F2530 100%)" }}
-              >
-                <span className="text-[7px] text-white/40 font-bold tracking-tight text-center leading-tight px-0.5">
-                  HIGH OUTPUT
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-[#E8E3D8] leading-snug mb-1">
-                  HIGH OUTPUT MANAGEMENT
-                </p>
-                <p className="text-[11px] text-[#8A8276] mb-1">アンドリュー・S・グローブ</p>
-                <p className="text-xs text-[#9A9488] leading-relaxed">
-                  「成果を出す」ことの本質を、マネジメントの視点から再定義した一冊。
-                </p>
-              </div>
-            </div>
-            <a
-              href="https://www.amazon.co.jp/s?k=HIGH+OUTPUT+MANAGEMENT"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
-              style={{ background: "linear-gradient(135deg, #1A6B8A 0%, #2A9D8F 100%)" }}
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M7 1h6v6M13 1L6 8M5 3H2a1 1 0 00-1 1v8a1 1 0 001 1h8a1 1 0 001-1v-3" />
-              </svg>
-              Amazonで詳細を見る
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── モックメッセージ（初回デモ表示用） ───────────────────────────────────────
-const MOCK_DEMO: Array<{ role: "user" | "assistant" | "prescription"; content: string; id: string }> = [
-  {
-    id: "mock-1",
-    role: "assistant",
-    content: "こんにちは。今日はどんなことが頭の中にありますか？どんな小さなことでも構いません、話しかけてください。",
-  },
-  {
-    id: "mock-2",
-    role: "user",
-    content: "最近、仕事で頑張っているつもりなのに、なかなか結果が出なくて。自分のやり方が間違っているのかなと思ってしまって…",
-  },
-  {
-    id: "mock-3",
-    role: "assistant",
-    content: "「頑張っているのに結果が出ない」という感覚、もう少し聞かせてもらえますか？具体的にどんな場面でそれを感じますか？",
-  },
-  { id: "mock-4", role: "prescription", content: "" },
-];
-
 // ── 共通チャット入力欄 ────────────────────────────────────────────────────────
 function ChatInput({
   value,
@@ -153,7 +64,7 @@ function ChatInput({
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
   disabled: boolean;
-  textareaRef: React.RefObject<HTMLTextAreaElement>;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   showHint?: React.ReactNode;
 }) {
   return (
@@ -284,8 +195,6 @@ export function ChatInterface({
 
   const headerFooterCls = "bg-[#0B0E13]/95 border-[#C4A35A]/10 backdrop-blur-md";
 
-  const showDemo = !isJournal && visibleMessages.length === 0 && !isLoading;
-
   // ── ヒントアコーディオン（記録モードのみ） ─────────────────────────────────
   const HintAccordion = isJournal ? (
     <div className="mb-2">
@@ -342,7 +251,7 @@ export function ChatInterface({
                     : "text-[#8A8276] hover:text-[#E8E3D8]"
                 }`}
               >
-                記録
+                ジャーナル
               </button>
               <button
                 type="button"
@@ -359,10 +268,17 @@ export function ChatInterface({
           </div>
 
           {/* 残りセッション数 */}
-          <div className="w-16 flex justify-end">
+          <div className="w-16 flex justify-end items-center gap-1.5 group relative cursor-help">
             <span className="text-xs font-mono text-[#C4A35A]/70 tabular-nums">
               {remaining}<span className="text-[#8A8276]"> / {dailyLimit}</span>
             </span>
+            <svg className="w-3.5 h-3.5 text-[#8A8276] group-hover:text-[#C4A35A] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            {/* ツールチップ */}
+            <div className="absolute top-full right-0 mt-2 w-max px-3 py-1.5 bg-[#1A222B] border border-[#C4A35A]/20 rounded-md text-[10px] text-[#E8E3D8] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+              1日あたり10回まで
+            </div>
           </div>
         </div>
       </header>
@@ -416,63 +332,34 @@ export function ChatInterface({
           <main className="flex-1 overflow-y-auto">
             <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
 
-              {showDemo && MOCK_DEMO.map((m) =>
-                m.role === "prescription" ? (
-                  <PrescriptionCard key={m.id} />
-                ) : (
-                  <div key={m.id} className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
-                    {m.role === "assistant" ? (
-                      <AlterOrb />
-                    ) : (
-                      <div className="w-9 h-9 rounded-full bg-[#C4A35A]/20 text-[#C4A35A] flex items-center justify-center text-sm font-bold flex-shrink-0">
-                        {initial}
-                      </div>
-                    )}
-                    <div
-                      className={`max-w-[78%] px-4 py-3.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                        m.role === "assistant"
-                          ? "bg-[#3AAFCA]/10 border border-[#3AAFCA]/20 text-[#E8E3D8] rounded-tl-sm"
-                          : "bg-[#C4A35A]/10 border border-[#C4A35A]/20 text-[#E8E3D8] rounded-tr-sm"
-                      }`}
-                    >
-                      {m.content}
+              {visibleMessages.length === 0 && isLoading && <TypingIndicator />}
+
+              {visibleMessages.map((m) => (
+                <div key={m.id} className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
+                  {m.role === "assistant" ? (
+                    <AlterOrb />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-[#C4A35A]/20 text-[#C4A35A] flex items-center justify-center text-sm font-bold flex-shrink-0">
+                      {initial}
                     </div>
+                  )}
+                  <div
+                    className={`max-w-[78%] px-4 py-3.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                      m.role === "assistant"
+                        ? "bg-[#3AAFCA]/10 border border-[#3AAFCA]/20 text-[#E8E3D8] rounded-tl-sm"
+                        : "bg-[#C4A35A]/10 border border-[#C4A35A]/20 text-[#E8E3D8] rounded-tr-sm"
+                    }`}
+                  >
+                    {m.role === "assistant" ? stripMarkdown(m.content) : m.content}
                   </div>
-                )
-              )}
+                </div>
+              ))}
 
-              {!showDemo && (
-                <>
-                  {visibleMessages.length === 0 && isLoading && <TypingIndicator />}
-
-                  {visibleMessages.map((m) => (
-                    <div key={m.id} className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
-                      {m.role === "assistant" ? (
-                        <AlterOrb />
-                      ) : (
-                        <div className="w-9 h-9 rounded-full bg-[#C4A35A]/20 text-[#C4A35A] flex items-center justify-center text-sm font-bold flex-shrink-0">
-                          {initial}
-                        </div>
-                      )}
-                      <div
-                        className={`max-w-[78%] px-4 py-3.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                          m.role === "assistant"
-                            ? "bg-[#3AAFCA]/10 border border-[#3AAFCA]/20 text-[#E8E3D8] rounded-tl-sm"
-                            : "bg-[#C4A35A]/10 border border-[#C4A35A]/20 text-[#E8E3D8] rounded-tr-sm"
-                        }`}
-                      >
-                        {m.role === "assistant" ? stripMarkdown(m.content) : m.content}
-                      </div>
-                    </div>
-                  ))}
-
-                  {isLoading &&
-                    visibleMessages.length > 0 &&
-                    visibleMessages[visibleMessages.length - 1]?.role === "user" && (
-                      <TypingIndicator />
-                    )}
-                </>
-              )}
+              {isLoading &&
+                visibleMessages.length > 0 &&
+                visibleMessages[visibleMessages.length - 1]?.role === "user" && (
+                  <TypingIndicator />
+                )}
 
               <div ref={bottomRef} />
             </div>
