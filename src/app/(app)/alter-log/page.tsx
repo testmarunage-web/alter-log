@@ -71,7 +71,7 @@ export default function AlterLogPage() {
 
           {/* ヘッダー */}
           <div className="mb-10">
-            <h1 className="font-mono text-xl text-[#C4A35A] leading-snug tracking-tight">
+            <h1 className="text-xl font-bold text-[#C4A35A] leading-snug tracking-tight">
               Alter Log
             </h1>
             <div className="mt-3 h-px bg-gradient-to-r from-[#C4A35A]/30 via-[#C4A35A]/10 to-transparent" />
