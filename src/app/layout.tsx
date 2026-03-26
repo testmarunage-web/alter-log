@@ -21,8 +21,8 @@ const notoSerifJP = Noto_Serif_JP({
 });
 
 export const metadata: Metadata = {
-  title: "Hack Log — 専属AIコーチング",
-  description: "思考を強制的に引き出す、ビジネスパーソン向け専属AIコーチングPWA",
+  title: "Alter Log",
+  description: "Alter Log — 思考を深める、ビジネスパーソン向けAIジャーナリングアプリ",
 };
 
 export default function RootLayout({
