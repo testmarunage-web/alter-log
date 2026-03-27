@@ -4,9 +4,14 @@ import { DashboardClient } from "./_components/DashboardClient";
 import { getLatestAlterLog } from "@/app/actions/generateAlterLog";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
+
+  // UXリズム統一：ローディングアニメーションを確実に表示するための意図的なディレイ
+  await new Promise<void>((r) => setTimeout(r, 400));
 
   const initialAlterLog = await getLatestAlterLog();
 

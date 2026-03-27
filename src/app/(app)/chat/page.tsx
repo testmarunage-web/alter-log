@@ -15,6 +15,9 @@ export default async function ChatPage({
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
+  // UXリズム統一：ローディングアニメーションを確実に表示するための意図的なディレイ
+  await new Promise<void>((r) => setTimeout(r, 400));
+
   const params = await searchParams;
   const defaultMode = params.mode === "coach" ? "coach" : "journal";
 
