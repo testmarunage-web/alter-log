@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 import { navItems } from "./NavItems";
 import { NavIconSvg } from "./NavIcon";
+import { AlterIcon } from "./AlterIcon";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -24,7 +25,8 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-56 h-screen bg-[#0B0E13] border-r border-[#C4A35A]/10 flex-shrink-0">
       {/* Logo */}
-      <div className="h-14 flex items-center px-5 border-b border-[#C4A35A]/10">
+      <div className="h-14 flex items-center px-5 border-b border-[#C4A35A]/10 gap-2">
+        <AlterIcon size={18} />
         <span className="text-sm font-bold tracking-[0.12em] text-[#C4A35A] uppercase">
           Alter Log
         </span>

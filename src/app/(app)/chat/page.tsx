@@ -3,6 +3,10 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ChatInterface } from "./_components/ChatInterface";
 
+// キャッシュを無効化し、毎回サーバーでレンダリングさせることで
+// loading.tsx（Suspense境界）が確実にトリガーされるようにする
+export const dynamic = "force-dynamic";
+
 export default async function ChatPage({
   searchParams,
 }: {

@@ -174,42 +174,15 @@ export function ChatInterface({
       {isJournal && (
         <main className="flex-1 flex flex-col overflow-hidden min-h-0">
 
-          {/* 1. ヒントアコーディオン（flex-none） */}
+          {/* 1. 入力エリア＋送信ボタン（flex-none・常に画面内） */}
           <div className="flex-none max-w-2xl mx-auto w-full px-4 pt-3 pb-2">
-            <button
-              type="button"
-              onClick={() => setHintOpen((v) => !v)}
-              className="flex items-center gap-1.5 text-xs text-[#8A8276]/70 hover:text-[#8A8276] transition-colors"
-              aria-expanded={hintOpen}
-            >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              話すことがない場合は
-              <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }} className="text-[10px]">▾</span>
-            </button>
-            {hintOpen && (
-              <div className="mt-2 bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl px-4 py-3">
-                <p className="text-[10px] text-[#8A8276]/60 mb-1 tracking-wide uppercase">Alterからの問いかけ</p>
-                <p className="text-sm text-[#E8E3D8] leading-relaxed">
-                  <span className="font-semibold text-[#C4A35A]">「最近、一番ホッとした瞬間はいつですか？」</span>
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* 2. 入力エリア＋送信ボタン（flex-none・常に画面内） */}
-          <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
             <form onSubmit={submitJournal}>
               <div className="relative">
-                <p className="text-[10px] text-[#8A8276]/45 mb-2 leading-relaxed">
-                  日記のような形でも、愚痴や感情の吐き出しでも構いません
-                </p>
                 <textarea
                   ref={textareaRef}
                   value={journalInput}
                   onChange={handleJournalInputChange}
-                  placeholder="ここをタップして、キーボードのマイクで思考を話すか、テキストで入力してください..."
+                  placeholder="ここをタップして、マイクで思考を話すかテキストで入力してください。日記や愚痴、感情の吐き出しなど何でも構いません。"
                   className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
                   style={{ height: "140px" }}
                 />
@@ -235,6 +208,30 @@ export function ChatInterface({
                 ジャーナルを記録する
               </button>
             </form>
+          </div>
+
+          {/* 2. ヒントアコーディオン（flex-none・送信ボタン下） */}
+          <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
+            <button
+              type="button"
+              onClick={() => setHintOpen((v) => !v)}
+              className="flex items-center gap-1.5 text-xs text-[#8A8276]/70 hover:text-[#8A8276] transition-colors"
+              aria-expanded={hintOpen}
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              話すことがない場合は
+              <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }} className="text-[10px]">▾</span>
+            </button>
+            {hintOpen && (
+              <div className="mt-2 bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl px-4 py-3">
+                <p className="text-[10px] text-[#8A8276]/60 mb-1 tracking-wide uppercase">Alterからの問いかけ</p>
+                <p className="text-sm text-[#E8E3D8] leading-relaxed">
+                  <span className="font-semibold text-[#C4A35A]">「最近、一番ホッとした瞬間はいつですか？」</span>
+                </p>
+              </div>
+            )}
           </div>
 
           {/* 3. 過去のジャーナルログ（flex-1 スクロール可能） */}
@@ -271,7 +268,7 @@ export function ChatInterface({
               <div className="h-full flex flex-col items-center justify-center gap-4 px-6">
                 <AlterAvatar size="md" />
                 <p className="text-sm text-[#8A8276] text-center leading-relaxed max-w-[240px]">
-                  Alterに聞いてみましょう。何でも話しかけてください。
+                  Alterに聞いてみましょう。<br />何でも話しかけてください。
                 </p>
               </div>
             ) : (
@@ -335,7 +332,7 @@ export function ChatInterface({
                         if (textareaRef.current) textareaRef.current.style.height = "auto";
                       }
                     })}
-                    placeholder="何でも話しかけてください..."
+                    placeholder="Alterに聞いてみましょう..."
                     rows={1}
                     disabled={isLoading}
                     className="flex-1 resize-none bg-white/[0.03] border border-white/[0.1] focus:border-[#C4A35A]/50 rounded-2xl px-4 py-3 text-sm text-[#E8E3D8] placeholder:text-[#8A8276] focus:outline-none disabled:opacity-50 transition-colors"
