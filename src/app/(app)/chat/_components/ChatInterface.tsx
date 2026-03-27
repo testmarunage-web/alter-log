@@ -4,6 +4,7 @@ import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveChatMessage } from "@/app/actions/chat";
+import { AlterIcon } from "../../_components/AlterIcon";
 
 // メッセージ時刻フォーマット（壁打ちモード用）
 function formatTime(date?: Date): string {
@@ -51,25 +52,10 @@ interface Props {
   userName: string;
 }
 
-// ── Alterアバター（抽象的な光の玉） ─────────────────────────────────────────
-function AlterOrb({ size = "md" }: { size?: "sm" | "md" }) {
-  const dim = size === "sm" ? "w-7 h-7" : "w-9 h-9";
-  return (
-    <div
-      className={`${dim} rounded-full flex-shrink-0 relative overflow-hidden`}
-      style={{
-        background: "radial-gradient(circle at 38% 38%, #E8E3D8, #C4A35A 45%, #8A8276)",
-        boxShadow: "0 0 14px rgba(196, 163, 90, 0.55), 0 0 4px rgba(232, 213, 160, 0.4)",
-      }}
-    >
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background: "radial-gradient(circle at 62% 28%, rgba(255,255,255,0.42), transparent 58%)",
-        }}
-      />
-    </div>
-  );
+// ── Alterアバター（フラットな欠けた円） ────────────────────────────────────
+function AlterAvatar({ size = "md" }: { size?: "sm" | "md" }) {
+  const px = size === "sm" ? 28 : 36;
+  return <AlterIcon size={px} />;
 }
 
 // ── メインコンポーネント ─────────────────────────────────────────────────────
@@ -283,7 +269,7 @@ export function ChatInterface({
             {visibleMessages.length === 0 && !isLoading ? (
               /* Empty State：ど真ん中に中央配置 */
               <div className="h-full flex flex-col items-center justify-center gap-4 px-6">
-                <AlterOrb size="md" />
+                <AlterAvatar size="md" />
                 <p className="text-sm text-[#8A8276] text-center leading-relaxed max-w-[240px]">
                   Alterに聞いてみましょう。何でも話しかけてください。
                 </p>
@@ -295,7 +281,7 @@ export function ChatInterface({
                 {visibleMessages.map((m) => (
                   <div key={m.id} className={`flex gap-2 items-end ${m.role === "user" ? "flex-row-reverse" : ""}`}>
                     {m.role === "assistant" ? (
-                      <AlterOrb />
+                      <AlterAvatar />
                     ) : (
                       <div className="w-9 h-9 rounded-full bg-[#C4A35A]/20 text-[#C4A35A] flex items-center justify-center text-sm font-bold flex-shrink-0">
                         {initial}
@@ -379,7 +365,7 @@ export function ChatInterface({
 function TypingIndicator() {
   return (
     <div className="flex gap-3">
-      <AlterOrb />
+      <AlterAvatar />
       <div className="bg-white/[0.04] border border-[#C4A35A]/15 rounded-2xl rounded-tl-sm px-4 py-3.5 flex items-center gap-1.5">
         {[0, 1, 2].map((i) => (
           <span

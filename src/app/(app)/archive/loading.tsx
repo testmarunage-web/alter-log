@@ -1,6 +1,6 @@
-import { AlterIcon } from "./_components/AlterIcon";
+import { AlterIcon } from "../_components/AlterIcon";
 
-export default function AppLoading() {
+export default function ArchiveLoading() {
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0B0E13]">
       <div

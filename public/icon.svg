@@ -1,16 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="112" fill="#0B0E13"/>
-  <defs>
-    <radialGradient id="orb" cx="38%" cy="38%" r="62%" fx="38%" fy="38%">
-      <stop offset="0%" stop-color="#E8E3D8"/>
-      <stop offset="45%" stop-color="#C4A35A"/>
-      <stop offset="100%" stop-color="#8A8276"/>
-    </radialGradient>
-    <radialGradient id="gloss" cx="62%" cy="28%" r="58%" fx="62%" fy="28%">
-      <stop offset="0%" stop-color="rgba(255,255,255,0.42)"/>
-      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-    </radialGradient>
-  </defs>
-  <circle cx="256" cy="256" r="140" fill="url(#orb)"/>
-  <circle cx="256" cy="256" r="140" fill="url(#gloss)"/>
+  <!-- M356,83 = ~1 o'clock on circle (center 256,256 r=200)
+       A200,200 0 1,0 456,256 = large counterclockwise arc to 3 o'clock
+       L356,83 Z = diagonal straight cut -->
+  <path d="M356,83 A200,200 0 1,0 456,256 L356,83 Z" fill="#C4A35A"/>
 </svg>

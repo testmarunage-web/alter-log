@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AlterIcon } from "./AlterIcon";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -154,17 +155,8 @@ export function AddToHomePrompt() {
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2.5">
-            <div
-              className="w-10 h-10 rounded-xl flex-shrink-0 overflow-hidden relative"
-              style={{
-                background: "radial-gradient(circle at 38% 38%, #E8E3D8, #C4A35A 45%, #8A8276)",
-                boxShadow: "0 0 10px rgba(196,163,90,0.4)",
-              }}
-            >
-              <div
-                className="absolute inset-0 rounded-xl"
-                style={{ background: "radial-gradient(circle at 62% 28%, rgba(255,255,255,0.35), transparent 55%)" }}
-              />
+            <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
+              <AlterIcon size={40} />
             </div>
             <div>
               <p className="text-sm font-bold text-[#E8E3D8]">Alter Log</p>

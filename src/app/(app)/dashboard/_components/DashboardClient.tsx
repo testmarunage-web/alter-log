@@ -5,6 +5,7 @@ import { useRef, useCallback, useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { generateAlterLog } from "@/app/actions/generateAlterLog";
 import type { AlterLogInsights } from "@/app/actions/alterLogSchema";
+import { AlterIcon } from "../../_components/AlterIcon";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SVG アイコン
@@ -28,21 +29,6 @@ const IcBook = () => (
   </svg>
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Alter 光の玉
-// ─────────────────────────────────────────────────────────────────────────────
-function CoachOrb() {
-  return (
-    <div className="w-9 h-9 rounded-full flex-shrink-0 relative overflow-hidden"
-      style={{
-        background: "radial-gradient(circle at 38% 38%, #E8E3D8, #C4A35A 45%, #8A8276)",
-        boxShadow: "0 0 12px rgba(196,163,90,0.55), 0 0 4px rgba(232,213,160,0.35)",
-      }}>
-      <div className="absolute inset-0 rounded-full"
-        style={{ background: "radial-gradient(circle at 62% 28%, rgba(255,255,255,0.40), transparent 55%)" }} />
-    </div>
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 思考のバランス（二項対立スライダー・5軸）
@@ -381,7 +367,7 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
 
           {/* (2) Alterの気づき */}
           <div className="hl-enter hl-d2 flex gap-3 items-center mb-2">
-            <CoachOrb />
+            <AlterIcon size={36} />
             <div className="relative flex-1 bg-white/[0.06] border border-[#C4A35A]/20 rounded-2xl px-4 py-3.5 shadow-sm">
               <span className="absolute -left-[7px] top-1/2 -translate-y-1/2 w-0 h-0"
                 style={{ borderTop: "6px solid transparent", borderBottom: "6px solid transparent", borderRight: "7px solid rgba(196,163,90,0.2)" }} />
