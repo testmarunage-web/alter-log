@@ -56,9 +56,10 @@ export async function generateAlterLog(): Promise<AlterLogInsights> {
 
   // generateObjectでJSON生成
   const { object } = await generateObject({
-    model: anthropic("claude-sonnet-4-5"),
+    model: anthropic("claude-3-5-sonnet-latest"),
     schema: alterLogSchema,
-    prompt: `あなたは行動変容コーチングAI「Alter」です。
+    prompt: `あなたはユーザーの思考を客観的かつ鋭く分析する優秀なエグゼクティブコーチ（Alter）です。与えられたログからインサイトを抽出し、指定されたJSONフォーマットで出力してください。
+
 以下のユーザーの直近3日間の対話ログを深く分析し、ダッシュボード表示用の分析データをJSONで生成してください。
 
 【分析対象ログ】
