@@ -120,12 +120,11 @@ export async function POST(req: Request) {
             : subDetails?.subscription?.id ?? null;
         if (!subscriptionId) break;
 
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-          expand: ["latest_invoice"],
-        });
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0]?.price.id ?? null;
-        const latestInvoice = subscription.latest_invoice as Stripe.Invoice | null;
-        const periodEnd = toPeriodEnd(latestInvoice?.period_end ?? invoice.period_end);
+        // dahlia API: invoice.period_end はインボイス作成時刻を返すバグがある。
+        // lines.data[0].period.end がサブスクリプション期間の正しい終了日時（UNIX秒）。
+        const periodEnd = toPeriodEnd(invoice.lines.data[0]?.period?.end);
 
         await prisma.subscription.updateMany({
           where: { stripeSubscriptionId: subscriptionId },
@@ -141,12 +140,13 @@ export async function POST(req: Request) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const priceId = subscription.items.data[0]?.price.id ?? null;
-        // dahlia API: current_period_end は Subscription 型から削除。latest_invoice を取得して period_end を使用
+        // dahlia API: current_period_end は Subscription 型から削除。latest_invoice の line items から取得。
         const retrievedSub = await stripe.subscriptions.retrieve(subscription.id, {
           expand: ["latest_invoice"],
         });
         const updatedInvoice = retrievedSub.latest_invoice as Stripe.Invoice | null;
-        const periodEnd = toPeriodEnd(updatedInvoice?.period_end);
+        // lines.data[0].period.end がサブスクリプション期間の正しい終了日時（UNIX秒）
+        const periodEnd = toPeriodEnd(updatedInvoice?.lines?.data[0]?.period?.end);
 
         const statusMap: Record<string, "ACTIVE" | "INACTIVE" | "PAST_DUE" | "CANCELED"> = {
           active: "ACTIVE",

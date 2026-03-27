@@ -9,16 +9,14 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-/** DB上でisActiveかどうかを判定する共通ロジック */
+/** DB上でisActiveかどうかを判定する共通ロジック（layoutと同一ロジック） */
 function checkIsActive(sub: {
   stripeSubscriptionId: string | null;
   status: string;
-  currentPeriodEnd: Date | null;
 } | null): boolean {
   return (
     !!sub?.stripeSubscriptionId &&
-    (sub.status === "ACTIVE" || sub.status === "PAST_DUE") &&
-    (sub.currentPeriodEnd === null || sub.currentPeriodEnd > new Date())
+    (sub.status === "ACTIVE" || sub.status === "PAST_DUE")
   );
 }
 
