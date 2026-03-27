@@ -285,7 +285,7 @@ export function ChatInterface({
               <div className="h-full flex flex-col items-center justify-center gap-4 px-6">
                 <AlterOrb size="md" />
                 <p className="text-sm text-[#8A8276] text-center leading-relaxed max-w-[240px]">
-                  ALTERと話したいことや、深掘りしたい思考を教えてください
+                  Alterに聞いてみましょう。何でも話しかけてください。
                 </p>
               </div>
             ) : (

@@ -262,7 +262,7 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
 
   // DBデータがあればそれを使い、なければ観測中プレースホルダーを表示
   const balance  = log?.balance   ?? DEFAULT_BALANCE;
-  const notice   = log?.alter_notice   ?? "対話データが蓄積されると、ここにAlterからの気づきが届きます。まずはジャーナルや壁打ちで思考を吐き出してみましょう。";
+  const notice   = log?.alter_notice   ?? "対話データが蓄積されると、ここにAlterからの気づきが届きます。";
   const thinkingType = log?.thinking_type ?? "観測中";
 
   const subtitleTitle  = log?.subtraction_title  ?? "観測中";
@@ -324,6 +324,12 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
               )}
             </button>
 
+
+            {!hasNewLogs && !isGenerating && !isPending && (
+              <p className="mt-1.5 text-[10px] text-[#8A8276]/50 text-center tracking-wide">
+                ※ジャーナルデータが蓄積されると実行できます
+              </p>
+            )}
 
             {error && (
               <p className="mt-2 text-[10px] text-red-400/70 text-center">{error}</p>

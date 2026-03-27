@@ -97,7 +97,8 @@ export default async function ArchivePage() {
             <div className="bg-[#1A222B]/20 border border-white/[0.06] rounded-xl p-6 text-center">
               <p className="text-sm text-[#8A8276]">まだデータがありません。</p>
               <p className="text-xs text-[#8A8276]/60 mt-2 leading-relaxed">
-                日々のジャーナルを蓄積したり、壁打ちを行うことで、ここに週末の分析レポートが生成されます。
+                日々のジャーナルを蓄積したり、壁打ちを行うことで、<br />
+                ここに週末の分析レポートが生成されます。
               </p>
               <Link
                 href="/chat?mode=journal"

@@ -32,7 +32,9 @@
       "Bash(cat \"c:/Users/shiba/Desktop/hack-log/src/app/\\(app\\)/loading.tsx\")",
       "Bash(sed -n '158,165p' \"c:/Users/shiba/Desktop/hack-log/src/app/\\(app\\)/chat/_components/ChatInterface.tsx\")",
       "Bash(sed -n '185,202p' \"c:/Users/shiba/Desktop/hack-log/src/app/\\(app\\)/chat/_components/ChatInterface.tsx\")",
-      "Bash(sed -n '258,270p' \"c:/Users/shiba/Desktop/hack-log/src/app/\\(app\\)/chat/_components/ChatInterface.tsx\")"
+      "Bash(sed -n '258,270p' \"c:/Users/shiba/Desktop/hack-log/src/app/\\(app\\)/chat/_components/ChatInterface.tsx\")",
+      "Bash(ls \"c:\\\\Users\\\\shiba\\\\Desktop\\\\hack-log\\\\src\\\\app\\\\\\(app\\)\\\\chat\"\")",
+      "Bash(ls 'c:\\\\Users\\\\shiba\\\\Desktop\\\\hack-log\\\\src\\\\app\\\\\\(app\\)\\\\chat')"
     ]
   }
 }
