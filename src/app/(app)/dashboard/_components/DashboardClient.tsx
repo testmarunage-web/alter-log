@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useCallback, useState, useTransition } from "react";
+import { useRef, useCallback, useState, useTransition, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { generateAlterLog } from "@/app/actions/generateAlterLog";
 import type { AlterLogInsights } from "@/app/actions/alterLogSchema";
 
@@ -232,21 +233,49 @@ function AccordionCard({
 // ─────────────────────────────────────────────────────────────────────────────
 interface Props {
   initialAlterLog: AlterLogInsights | null;
+  hasNewLogs: boolean;
 }
 
-export function DashboardClient({ initialAlterLog }: Props) {
+const LOADING_MESSAGES = [
+  "最近のあなたの言葉を読み返しています...",
+  "言葉の裏側にあるテーマや、思考のクセを探しています...",
+  "客観的な視点から、あなたへのフィードバックをまとめています...",
+  "レポートを書き上げています。もう少しだけお待ちください...",
+];
+
+export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
   const [log, setLog] = useState<AlterLogInsights | null>(initialAlterLog);
   const [isPending, startTransition] = useTransition();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  // ローディング中のメッセージ切り替え（4秒ごと）
+  useEffect(() => {
+    if (!isGenerating) {
+      setLoadingMsgIdx(0);
+      return;
+    }
+    const id = setInterval(() => {
+      setLoadingMsgIdx((i) => (i + 1) % LOADING_MESSAGES.length);
+    }, 4000);
+    return () => clearInterval(id);
+  }, [isGenerating]);
 
   function handleGenerate() {
+    if (!hasNewLogs || isGenerating) return;
     setError(null);
+    setIsGenerating(true);
     startTransition(async () => {
       try {
         const result = await generateAlterLog();
         setLog(result);
+        router.refresh();
       } catch (e) {
         setError(String(e));
+      } finally {
+        setIsGenerating(false);
       }
     });
   }
@@ -436,30 +465,39 @@ export function DashboardClient({ initialAlterLog }: Props) {
             />
           </div>
 
-          {/* ── デバッグボタン ─────────────────────────────────────────────────── */}
-          <div className="hl-enter hl-d7 pt-4 border-t border-white/[0.04]">
+          {/* ── Alter 思考整理ボタン ───────────────────────────────────────────── */}
+          <div className="hl-enter hl-d7 pt-6 border-t border-white/[0.04]">
+            {/* マイクロコピー */}
+            <p className={`text-xs text-center mb-3 leading-relaxed transition-colors ${
+              hasNewLogs ? "text-[#8A8276]" : "text-[#8A8276]/40"
+            }`}>
+              {hasNewLogs
+                ? "ここ数日の対話を振り返り、Alterが今のあなたの思考を客観的に紐解きます。"
+                : "まだAlterに共有する言葉がありません。まずはジャーナルで、今の頭の中を聞かせてください。"}
+            </p>
+
             <button
               type="button"
               onClick={handleGenerate}
-              disabled={isPending}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-mono text-[#8A8276] border border-dashed border-[#8A8276]/20 hover:border-[#C4A35A]/30 hover:text-[#C4A35A]/70 transition-colors disabled:opacity-40"
+              disabled={!hasNewLogs || isGenerating || isPending}
+              className={`w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-2xl text-sm font-semibold transition-all duration-200 ${
+                hasNewLogs && !isGenerating && !isPending
+                  ? "bg-[#C4A35A]/10 border border-[#C4A35A]/30 text-[#E8D5A0] hover:bg-[#C4A35A]/18 hover:border-[#C4A35A]/50"
+                  : "bg-white/[0.02] border border-white/[0.06] text-[#8A8276]/40 cursor-not-allowed"
+              }`}
             >
-              {isPending ? (
+              {isGenerating || isPending ? (
                 <>
-                  <span className="w-3 h-3 border border-[#C4A35A]/50 border-t-transparent rounded-full animate-spin" />
-                  Alter Logを生成中...
+                  <span className="w-3.5 h-3.5 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                  <span className="transition-all duration-500">{LOADING_MESSAGES[loadingMsgIdx]}</span>
                 </>
               ) : (
-                <>🛠 デバッグ: Alter Logを生成</>
+                <>✨ Alterに思考を整理してもらう</>
               )}
             </button>
+
             {error && (
-              <p className="mt-2 text-[10px] text-red-400/70 text-center font-mono">{error}</p>
-            )}
-            {log && !isPending && (
-              <p className="mt-1.5 text-[10px] text-[#C4A35A]/40 text-center font-mono">
-                ✓ 最新のAlter Logを表示中
-              </p>
+              <p className="mt-2 text-[10px] text-red-400/70 text-center">{error}</p>
             )}
           </div>
 
