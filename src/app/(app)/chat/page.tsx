@@ -35,6 +35,7 @@ export default async function ChatPage({
   const initialJournalMessages = journalEntries.map((e) => ({
     id: e.id,
     content: e.content,
+    createdAt: e.createdAt,
   }));
 
   // ─── 壁打ちセッション（日次）を取得または作成 ────────────────────────────
