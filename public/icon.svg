@@ -2,9 +2,9 @@
   <rect width="512" height="512" rx="112" fill="#0B0E13"/>
   <defs>
     <radialGradient id="orb" cx="38%" cy="38%" r="62%" fx="38%" fy="38%">
-      <stop offset="0%" stop-color="#93E4D4"/>
-      <stop offset="45%" stop-color="#3AAFCA"/>
-      <stop offset="100%" stop-color="#1A6B8A"/>
+      <stop offset="0%" stop-color="#E8E3D8"/>
+      <stop offset="45%" stop-color="#C4A35A"/>
+      <stop offset="100%" stop-color="#8A8276"/>
     </radialGradient>
     <radialGradient id="gloss" cx="62%" cy="28%" r="58%" fx="62%" fy="28%">
       <stop offset="0%" stop-color="rgba(255,255,255,0.42)"/>

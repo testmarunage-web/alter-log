@@ -58,8 +58,8 @@ function AlterOrb({ size = "md" }: { size?: "sm" | "md" }) {
     <div
       className={`${dim} rounded-full flex-shrink-0 relative overflow-hidden`}
       style={{
-        background: "radial-gradient(circle at 38% 38%, #93E4D4, #3AAFCA 45%, #1A6B8A)",
-        boxShadow: "0 0 14px rgba(58, 175, 202, 0.55), 0 0 4px rgba(147, 228, 212, 0.4)",
+        background: "radial-gradient(circle at 38% 38%, #E8E3D8, #C4A35A 45%, #8A8276)",
+        boxShadow: "0 0 14px rgba(196, 163, 90, 0.55), 0 0 4px rgba(232, 213, 160, 0.4)",
       }}
     >
       <div
@@ -304,7 +304,7 @@ export function ChatInterface({
                     <div
                       className={`max-w-[78%] px-4 py-3.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                         m.role === "assistant"
-                          ? "bg-[#3AAFCA]/10 border border-[#3AAFCA]/20 text-[#E8E3D8] rounded-tl-sm"
+                          ? "bg-white/[0.04] border border-[#C4A35A]/15 text-[#E8E3D8] rounded-tl-sm"
                           : "bg-[#C4A35A]/10 border border-[#C4A35A]/20 text-[#E8E3D8] rounded-tr-sm"
                       }`}
                     >
@@ -358,7 +358,7 @@ export function ChatInterface({
                   <button
                     type="submit"
                     disabled={!input.trim() || isLoading}
-                    className="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-2xl bg-[#3AAFCA] text-[#0B0E13] hover:bg-[#4ABFDA] transition-colors disabled:opacity-30"
+                    className="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-2xl bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] transition-colors disabled:opacity-30"
                     aria-label="送信"
                   >
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -380,11 +380,11 @@ function TypingIndicator() {
   return (
     <div className="flex gap-3">
       <AlterOrb />
-      <div className="bg-[#3AAFCA]/10 border border-[#3AAFCA]/20 rounded-2xl rounded-tl-sm px-4 py-3.5 flex items-center gap-1.5">
+      <div className="bg-white/[0.04] border border-[#C4A35A]/15 rounded-2xl rounded-tl-sm px-4 py-3.5 flex items-center gap-1.5">
         {[0, 1, 2].map((i) => (
           <span
             key={i}
-            className="w-1.5 h-1.5 bg-[#3AAFCA]/60 rounded-full animate-bounce"
+            className="w-1.5 h-1.5 bg-[#C4A35A]/60 rounded-full animate-bounce"
             style={{ animationDelay: `${i * 0.15}s` }}
           />
         ))}

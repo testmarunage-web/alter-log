@@ -7,9 +7,9 @@ function AlterOrbIcon({ size }: { size: number }) {
     <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
       <defs>
         <radialGradient id="nav-orb-g" cx="38%" cy="38%" r="62%" fx="38%" fy="38%">
-          <stop offset="0%" stopColor="#93E4D4" />
-          <stop offset="45%" stopColor="#3AAFCA" />
-          <stop offset="100%" stopColor="#1A6B8A" />
+          <stop offset="0%" stopColor="#E8E3D8" />
+          <stop offset="45%" stopColor="#C4A35A" />
+          <stop offset="100%" stopColor="#8A8276" />
         </radialGradient>
         <radialGradient id="nav-orb-gloss" cx="62%" cy="28%" r="58%" fx="62%" fy="28%">
           <stop offset="0%" stopColor="rgba(255,255,255,0.42)" />

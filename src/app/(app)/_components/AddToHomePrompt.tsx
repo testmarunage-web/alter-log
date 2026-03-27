@@ -11,13 +11,14 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 type Scenario =
-  | { kind: "ios-safari" }          // iOS Safari: シェアボタン案内
-  | { kind: "ios-other" }           // iOS Chrome/LINE等: Safari誘導
-  | { kind: "android-native"; prompt: BeforeInstallPromptEvent } // ネイティブプロンプト
-  | { kind: "android-manual" };     // Androidフォールバック: メニュー案内
+  | { kind: "in-app" }              // LINE / Twitter(X) / Instagram 等
+  | { kind: "ios-safari" }          // iOS Safari
+  | { kind: "ios-chrome" }          // iOS Chrome
+  | { kind: "android-native"; prompt: BeforeInstallPromptEvent }
+  | { kind: "android-manual" };     // Android フォールバック
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ユーティリティ
+// 24時間スヌーズ（localStorage）
 // ─────────────────────────────────────────────────────────────────────────────
 const SNOOZE_KEY = "alter-log-pwa-snoozed-at";
 const SNOOZE_MS  = 86_400_000; // 24時間
@@ -35,11 +36,12 @@ function isAlreadySnoozed(): boolean {
 function saveSnooze() {
   try {
     localStorage.setItem(SNOOZE_KEY, String(Date.now()));
-  } catch {
-    // localStorage unavailable
-  }
+  } catch { /* unavailable */ }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 環境判定
+// ─────────────────────────────────────────────────────────────────────────────
 function isStandalone(): boolean {
   if (typeof window === "undefined") return false;
   return (
@@ -48,21 +50,26 @@ function isStandalone(): boolean {
   );
 }
 
-/** 環境判定 */
-function detectEnv(): "ios-safari" | "ios-other" | "android" | "other" {
+type EnvKind = "in-app" | "ios-safari" | "ios-chrome" | "android" | "other";
+
+function detectEnv(): EnvKind {
   if (typeof navigator === "undefined") return "other";
   const ua = navigator.userAgent;
+
+  // アプリ内ブラウザ（LINE / Twitter(X) / Instagram / Facebook）
+  if (/line\/|twitterandroid|twitteriphone|instagram|fban|fbav/i.test(ua)) {
+    return "in-app";
+  }
 
   const isIos =
     /ipad|iphone|ipod/i.test(ua) &&
     !(window as unknown as { MSStream?: unknown }).MSStream;
 
   if (isIos) {
-    // iOS Safari: "Safari"を含み、サードパーティブラウザ識別子を含まない
-    const isIosSafari =
-      /safari/i.test(ua) &&
-      !/crios|fxios|opios|mercury|line|fban|fbav/i.test(ua);
-    return isIosSafari ? "ios-safari" : "ios-other";
+    if (/crios/i.test(ua)) return "ios-chrome";   // iOS Chrome
+    if (/safari/i.test(ua) && !/fxios|opios|mercury/i.test(ua)) return "ios-safari";
+    // その他のiOSブラウザはアプリ内ブラウザと同様に案内
+    return "in-app";
   }
 
   if (/android/i.test(ua)) return "android";
@@ -81,18 +88,22 @@ export function AddToHomePrompt() {
 
     const env = detectEnv();
 
+    if (env === "in-app") {
+      const t = setTimeout(() => setScenario({ kind: "in-app" }), 4000);
+      return () => clearTimeout(t);
+    }
+
     if (env === "ios-safari") {
       const t = setTimeout(() => setScenario({ kind: "ios-safari" }), 4000);
       return () => clearTimeout(t);
     }
 
-    if (env === "ios-other") {
-      const t = setTimeout(() => setScenario({ kind: "ios-other" }), 4000);
+    if (env === "ios-chrome") {
+      const t = setTimeout(() => setScenario({ kind: "ios-chrome" }), 4000);
       return () => clearTimeout(t);
     }
 
     if (env === "android") {
-      // ネイティブプロンプト待受
       const handler = (e: Event) => {
         e.preventDefault();
         const t = setTimeout(
@@ -103,7 +114,7 @@ export function AddToHomePrompt() {
       };
       window.addEventListener("beforeinstallprompt", handler);
 
-      // beforeinstallprompt が一定時間来なければメニュー案内にフォールバック
+      // 8秒でネイティブプロンプトが来なければメニュー案内
       const fallback = setTimeout(() => {
         setScenario((prev) => (prev === null ? { kind: "android-manual" } : prev));
       }, 8000);
@@ -146,8 +157,8 @@ export function AddToHomePrompt() {
             <div
               className="w-10 h-10 rounded-xl flex-shrink-0 overflow-hidden relative"
               style={{
-                background: "radial-gradient(circle at 38% 38%, #93E4D4, #3AAFCA 45%, #1A6B8A)",
-                boxShadow: "0 0 10px rgba(58,175,202,0.4)",
+                background: "radial-gradient(circle at 38% 38%, #E8E3D8, #C4A35A 45%, #8A8276)",
+                boxShadow: "0 0 10px rgba(196,163,90,0.4)",
               }}
             >
               <div
@@ -175,7 +186,17 @@ export function AddToHomePrompt() {
           このアプリをホーム画面に追加して、いつでもすぐに思考を記録できるようにしましょう。
         </p>
 
-        {/* iOS Safari: シェアボタン案内 */}
+        {/* LINE / SNS アプリ内ブラウザ */}
+        {scenario.kind === "in-app" && (
+          <div
+            className="rounded-xl p-3 text-xs text-[#9A9488] leading-relaxed"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+          >
+            <span className="text-[#C4A35A] font-semibold">Safari</span> や <span className="text-[#C4A35A] font-semibold">Chrome</span> で開き直すと、ホーム画面に追加してアプリとして使えます。
+          </div>
+        )}
+
+        {/* iOS Safari */}
         {scenario.kind === "ios-safari" && (
           <div
             className="rounded-xl p-3 text-xs text-[#9A9488] leading-relaxed"
@@ -194,13 +215,22 @@ export function AddToHomePrompt() {
           </div>
         )}
 
-        {/* iOS Chrome / LINE等: Safari誘導 */}
-        {scenario.kind === "ios-other" && (
+        {/* iOS Chrome */}
+        {scenario.kind === "ios-chrome" && (
           <div
             className="rounded-xl p-3 text-xs text-[#9A9488] leading-relaxed"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
           >
-            <span className="text-[#C4A35A] font-semibold">Safari</span> で開き直すと、ホーム画面に追加してアプリとして使えます。
+            右上の
+            <span className="mx-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[#E8E3D8] font-medium" style={{ background: "rgba(255,255,255,0.08)" }}>
+              シェアボタン
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                <polyline points="16 6 12 2 8 6" />
+                <line x1="12" y1="2" x2="12" y2="15" />
+              </svg>
+            </span>
+            から <span className="text-[#E8E3D8] font-medium">「ホーム画面に追加」</span> を選択してください。
           </div>
         )}
 
@@ -218,7 +248,7 @@ export function AddToHomePrompt() {
           </button>
         )}
 
-        {/* Androidフォールバック: メニュー案内 */}
+        {/* Android フォールバック */}
         {scenario.kind === "android-manual" && (
           <div
             className="rounded-xl p-3 text-xs text-[#9A9488] leading-relaxed"

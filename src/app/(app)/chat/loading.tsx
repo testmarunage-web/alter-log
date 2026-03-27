@@ -4,8 +4,8 @@ export default function ChatLoading() {
       <div
         className="w-10 h-10 rounded-full relative overflow-hidden animate-pulse"
         style={{
-          background: "radial-gradient(circle at 38% 38%, #93E4D4, #3AAFCA 45%, #1A6B8A)",
-          boxShadow: "0 0 20px rgba(58, 175, 202, 0.5)",
+          background: "radial-gradient(circle at 38% 38%, #E8E3D8, #C4A35A 45%, #8A8276)",
+          boxShadow: "0 0 20px rgba(196, 163, 90, 0.5)",
         }}
       >
         <div

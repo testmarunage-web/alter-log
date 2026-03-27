@@ -35,8 +35,8 @@ function CoachOrb() {
   return (
     <div className="w-9 h-9 rounded-full flex-shrink-0 relative overflow-hidden"
       style={{
-        background: "radial-gradient(circle at 38% 38%, #93E4D4, #3AAFCA 45%, #1A6B8A)",
-        boxShadow: "0 0 12px rgba(58,175,202,0.55), 0 0 4px rgba(147,228,212,0.35)",
+        background: "radial-gradient(circle at 38% 38%, #E8E3D8, #C4A35A 45%, #8A8276)",
+        boxShadow: "0 0 12px rgba(196,163,90,0.55), 0 0 4px rgba(232,213,160,0.35)",
       }}>
       <div className="absolute inset-0 rounded-full"
         style={{ background: "radial-gradient(circle at 62% 28%, rgba(255,255,255,0.40), transparent 55%)" }} />
