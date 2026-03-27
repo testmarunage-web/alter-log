@@ -191,15 +191,17 @@ function AccordionCard({
   summary,
   detail,
   infoText,
+  observing,
 }: {
   icon: React.ReactNode;
   label: string;
   summary: React.ReactNode;
   detail: string;
   infoText: string;
+  observing?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const isObserving = detail.includes("観測中");
+  const isObserving = observing ?? detail.includes("観測中");
 
   const cardClass = isObserving
     ? "bg-white/[0.02] backdrop-blur-sm border border-dashed border-[#8A8276]/25 rounded-xl opacity-50 cursor-pointer overflow-hidden transition-all duration-300"
@@ -335,15 +337,6 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
 
           {/* ── Alter 思考整理ボタン（最重要機能・ファーストビュー） ─────── */}
           <div className="hl-enter">
-            {/* マイクロコピー */}
-            <p className={`text-xs text-center mb-3 leading-relaxed transition-colors ${
-              hasNewLogs ? "text-[#8A8276]" : "text-[#8A8276]/40"
-            }`}>
-              {hasNewLogs
-                ? "ここ数日の対話を振り返り、Alterが今のあなたの思考を客観的に紐解きます。"
-                : "まだAlterに共有する言葉がありません。まずはジャーナルで、今の頭の中を聞かせてください。"}
-            </p>
-
             <button
               type="button"
               onClick={handleGenerate}
@@ -364,6 +357,11 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
               )}
             </button>
 
+            {!hasNewLogs && !isGenerating && !isPending && (
+              <p className="mt-2 text-sm text-[#8A8276]/50 text-center leading-relaxed">
+                新しい記録がありません。まずはジャーナルに今の思考を吐き出してみましょう。
+              </p>
+            )}
             {error && (
               <p className="mt-2 text-[10px] text-red-400/70 text-center">{error}</p>
             )}
@@ -502,6 +500,7 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
               icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>}
               label="あなたの勝ちパターン"
               infoText="過去の対話から、あなたが停滞を打破した成功パターンを抽出しています。"
+              observing={winTitle.includes("観測中") || winDetail.includes("観測中")}
               summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
                   あなたの勝ちパターンは
