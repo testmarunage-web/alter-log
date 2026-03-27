@@ -199,17 +199,27 @@ function AccordionCard({
   infoText: string;
 }) {
   const [open, setOpen] = useState(false);
+  const isObserving = detail.includes("観測中");
+
+  const cardClass = isObserving
+    ? "bg-white/[0.02] backdrop-blur-sm border border-dashed border-[#8A8276]/25 rounded-xl opacity-50 cursor-pointer overflow-hidden transition-all duration-300"
+    : `${GLASS} overflow-hidden hover:border-[#C4A35A]/40 transition-all duration-300 cursor-pointer`;
+
   return (
-    <div
-      className={`${GLASS} overflow-hidden hover:border-[#C4A35A]/40 transition-all duration-300 cursor-pointer`}
-      onClick={() => setOpen((v) => !v)}
-    >
+    <div className={cardClass} onClick={() => setOpen((v) => !v)}>
       <div className="p-4">
         <div className="flex items-center mb-3">
-          <p className={SECTION_LABEL}>{icon}{label}</p>
-          <div className="ml-1.5"><InfoTooltip text={infoText} /></div>
+          <p className={isObserving ? "text-xs tracking-widest text-[#8A8276]/60 font-bold flex items-center gap-1.5" : SECTION_LABEL}>
+            {icon}{label}
+          </p>
+          {!isObserving && <div className="ml-1.5"><InfoTooltip text={infoText} /></div>}
+          {isObserving && (
+            <span className="ml-2 text-[9px] tracking-widest text-[#8A8276]/50 border border-dashed border-[#8A8276]/25 rounded px-1.5 py-0.5">
+              観測中
+            </span>
+          )}
         </div>
-        {summary}
+        <div className={isObserving ? "text-[#8A8276]/50" : ""}>{summary}</div>
       </div>
       {!open && (
         <>
@@ -323,150 +333,8 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
       <div className="min-h-screen bg-[#0B0E13] px-4 py-6 pb-32 md:px-6">
         <div className="max-w-2xl mx-auto space-y-4">
 
-          {/* (1) アクションボタン */}
-          <div className="hl-enter grid grid-cols-2 gap-3 mb-2">
-            <RippleLink href="/chat?mode=journal"
-              className="rounded-xl p-4
-                border border-t-[rgba(255,255,255,0.12)] border-x-[rgba(255,255,255,0.05)] border-b-transparent
-                shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.10)]
-                hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(196,163,90,0.18),inset_0_1px_0_rgba(255,255,255,0.14)]
-                hover:-translate-y-0.5
-                active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
-                transition-all duration-100 ease-out"
-              style={{ background: "linear-gradient(160deg, #3A2910 0%, #1A1408 60%)" }}
-            >
-              <div className="mb-3" style={{ color: "#C4A35A" }}><IcPen /></div>
-              <p className="text-base font-black tracking-tight leading-tight mb-4" style={{ color: "#E8D5A0" }}>気持ちを吐き出す</p>
-              <div className="flex justify-end">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(196,163,90,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-                </svg>
-              </div>
-            </RippleLink>
-
-            <RippleLink href="/chat?mode=coach"
-              className="rounded-xl p-4
-                border border-t-[rgba(255,255,255,0.08)] border-x-[rgba(255,255,255,0.03)] border-b-transparent
-                shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(180,210,190,0.08)]
-                hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(80,130,100,0.18),inset_0_1px_0_rgba(180,210,190,0.12)]
-                hover:-translate-y-0.5
-                active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
-                transition-all duration-100 ease-out"
-              style={{ background: "linear-gradient(160deg, #1C3028 0%, #0D1A16 60%)" }}
-            >
-              <div className="mb-3" style={{ color: "#8BA89E" }}><IcCompass /></div>
-              <p className="text-base font-black tracking-tight leading-tight mb-4" style={{ color: "#D0D5D2" }}>思考を整理する</p>
-              <div className="flex justify-end">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(139,168,158,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-                </svg>
-              </div>
-            </RippleLink>
-          </div>
-
-          {/* (2) Alterの気づき */}
-          <div className="hl-enter hl-d1 flex gap-3 items-center mb-2">
-            <CoachOrb />
-            <div className="relative flex-1 bg-white/[0.06] border border-[#C4A35A]/20 rounded-2xl px-4 py-3.5 shadow-sm">
-              <span className="absolute -left-[7px] top-1/2 -translate-y-1/2 w-0 h-0"
-                style={{ borderTop: "6px solid transparent", borderBottom: "6px solid transparent", borderRight: "7px solid rgba(196,163,90,0.2)" }} />
-              <span className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-0 h-0"
-                style={{ borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderRight: "6px solid rgba(255,255,255,0.06)" }} />
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="text-xs font-bold text-[#C4A35A] tracking-wider">Alterの気づき</span>
-                <InfoTooltip text="直近の対話から、Alterがあなたの無意識のパターンに気づいた時に話しかけます。" />
-              </div>
-              <p className="text-sm text-[#E8E3D8] leading-relaxed">{notice}</p>
-            </div>
-          </div>
-
-          {/* (3) 現在の思考タイプ ＆ 今の脳内シェア */}
-          <div className="hl-enter hl-d2 grid grid-cols-2 gap-3">
-            <div className={`${GLASS} p-3.5`}>
-              <div className="flex items-center gap-1 mb-4">
-                <p className={SECTION_LABEL}>現在の思考タイプ</p>
-                <InfoTooltip text="対話から推測される、あなたの現在の思考のバランスと傾向です。" />
-              </div>
-              <p className="text-[13px] font-black tracking-wide text-[#E8D5A0] text-center mb-4">{thinkingType}</p>
-              <BalanceSliders items={balance} />
-            </div>
-            <div className={`${GLASS} p-3.5`}>
-              <div className="flex items-center gap-1 mb-3">
-                <p className={SECTION_LABEL}>今の脳内シェア</p>
-                <InfoTooltip text="あなたの頭の中の占有率が高いトピックを可視化しています。" />
-              </div>
-              <DonutChart segs={mindShare} />
-            </div>
-          </div>
-
-          {/* (4) 今週の引き算 */}
-          <div className="hl-enter hl-d3">
-            <AccordionCard
-              icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>}
-              label="今週の引き算"
-              infoText="今週やめるべきことを提案します。引き算の行動がコンディション回復の最短ルートです。"
-              summary={
-                <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
-                  今週は<span className="text-[#E8E3D8] font-bold">{subtitleTitle}</span>を一旦ストップし、脳のメモリを解放しましょう。
-                </p>
-              }
-              detail={subtitleDetail}
-            />
-          </div>
-
-          {/* (5) 頭のモヤモヤ整理 */}
-          <div className="hl-enter hl-d4">
-            <AccordionCard
-              icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>}
-              label="頭のモヤモヤ整理"
-              infoText="複雑に絡み合っているタスクを、既知のフレームワークで整理します。"
-              summary={
-                <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
-                  緊急度と重要度のマトリクスに当てはめると、今悩んでいることは
-                  <span className="text-[#E8E3D8] font-semibold">「{organizeTitle}」</span>
-                  領域にあります。
-                </p>
-              }
-              detail={organizeDetail}
-            />
-          </div>
-
-          {/* (6) 今のあなたに響く一冊 */}
-          <div className="hl-enter hl-d5">
-            <AccordionCard
-              icon={<IcBook />}
-              label="今のあなたに響く一冊"
-              infoText="あなたの現在地に最も共鳴する書籍・知見を、対話の文脈から選定しています。"
-              summary={
-                <div className="mt-2">
-                  <p className="text-sm font-black text-[#E8E3D8] leading-snug mb-0.5">『{bookTitle}』</p>
-                  <p className="text-xs text-[#8A8276] mb-2">{bookAuthor} 著</p>
-                  <p className="text-sm text-[#9A9488] leading-relaxed">{bookReason}</p>
-                </div>
-              }
-              detail={`『${bookTitle}』（${bookAuthor}著）\n\n${bookReason}`}
-            />
-          </div>
-
-          {/* (7) あなたの勝ちパターン */}
-          <div className="hl-enter hl-d6">
-            <AccordionCard
-              icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>}
-              label="あなたの勝ちパターン"
-              infoText="過去の対話から、あなたが停滞を打破した成功パターンを抽出しています。"
-              summary={
-                <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
-                  あなたの勝ちパターンは
-                  <span className="text-[#E8E3D8] font-bold">「{winTitle}」</span>
-                  です。今回も同じパターンが適用できます。
-                </p>
-              }
-              detail={winDetail}
-            />
-          </div>
-
-          {/* ── Alter 思考整理ボタン ───────────────────────────────────────────── */}
-          <div className="hl-enter hl-d7 pt-6 border-t border-white/[0.04]">
+          {/* ── Alter 思考整理ボタン（最重要機能・ファーストビュー） ─────── */}
+          <div className="hl-enter">
             {/* マイクロコピー */}
             <p className={`text-xs text-center mb-3 leading-relaxed transition-colors ${
               hasNewLogs ? "text-[#8A8276]" : "text-[#8A8276]/40"
@@ -492,13 +360,157 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
                   <span className="transition-all duration-500">{LOADING_MESSAGES[loadingMsgIdx]}</span>
                 </>
               ) : (
-                <>✨ Alterに思考を整理してもらう</>
+                <>Alterに思考を整理してもらう</>
               )}
             </button>
 
             {error && (
               <p className="mt-2 text-[10px] text-red-400/70 text-center">{error}</p>
             )}
+          </div>
+
+          {/* (1) アクションボタン */}
+          <div className="hl-enter hl-d1 grid grid-cols-2 gap-3 mb-2">
+            <RippleLink href="/chat?mode=journal"
+              className="rounded-xl p-4
+                border border-t-[rgba(255,255,255,0.12)] border-x-[rgba(255,255,255,0.05)] border-b-transparent
+                shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.10)]
+                hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(196,163,90,0.18),inset_0_1px_0_rgba(255,255,255,0.14)]
+                hover:-translate-y-0.5
+                active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
+                transition-all duration-100 ease-out"
+              style={{ background: "linear-gradient(160deg, #3A2910 0%, #1A1408 60%)" }}
+            >
+              <div className="mb-3" style={{ color: "#C4A35A" }}><IcPen /></div>
+              <p className="text-xl font-black tracking-tight leading-tight mb-1" style={{ color: "#E8D5A0" }}>ジャーナル</p>
+              <p className="text-xs font-medium mb-4" style={{ color: "#C4A35A" }}>気持ちを吐き出す</p>
+              <div className="flex justify-end">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(196,163,90,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                </svg>
+              </div>
+            </RippleLink>
+
+            <RippleLink href="/chat?mode=coach"
+              className="rounded-xl p-4
+                border border-t-[rgba(255,255,255,0.08)] border-x-[rgba(255,255,255,0.03)] border-b-transparent
+                shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(180,210,190,0.08)]
+                hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(80,130,100,0.18),inset_0_1px_0_rgba(180,210,190,0.12)]
+                hover:-translate-y-0.5
+                active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
+                transition-all duration-100 ease-out"
+              style={{ background: "linear-gradient(160deg, #1C3028 0%, #0D1A16 60%)" }}
+            >
+              <div className="mb-3" style={{ color: "#8BA89E" }}><IcCompass /></div>
+              <p className="text-xl font-black tracking-tight leading-tight mb-1" style={{ color: "#D0D5D2" }}>壁打ち</p>
+              <p className="text-xs font-medium mb-4" style={{ color: "#8BA89E" }}>思考を整理する</p>
+              <div className="flex justify-end">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(139,168,158,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                </svg>
+              </div>
+            </RippleLink>
+          </div>
+
+          {/* (2) Alterの気づき */}
+          <div className="hl-enter hl-d2 flex gap-3 items-center mb-2">
+            <CoachOrb />
+            <div className="relative flex-1 bg-white/[0.06] border border-[#C4A35A]/20 rounded-2xl px-4 py-3.5 shadow-sm">
+              <span className="absolute -left-[7px] top-1/2 -translate-y-1/2 w-0 h-0"
+                style={{ borderTop: "6px solid transparent", borderBottom: "6px solid transparent", borderRight: "7px solid rgba(196,163,90,0.2)" }} />
+              <span className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-0 h-0"
+                style={{ borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderRight: "6px solid rgba(255,255,255,0.06)" }} />
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <span className="text-xs font-bold text-[#C4A35A] tracking-wider">Alterの気づき</span>
+                <InfoTooltip text="直近の対話から、Alterがあなたの無意識のパターンに気づいた時に話しかけます。" />
+              </div>
+              <p className="text-sm text-[#E8E3D8] leading-relaxed">{notice}</p>
+            </div>
+          </div>
+
+          {/* (3) 現在の思考タイプ ＆ 今の脳内シェア */}
+          <div className="hl-enter hl-d3 grid grid-cols-2 gap-3">
+            <div className={`${GLASS} p-3.5`}>
+              <div className="flex items-center gap-1 mb-4">
+                <p className={SECTION_LABEL}>現在の思考タイプ</p>
+                <InfoTooltip text="対話から推測される、あなたの現在の思考のバランスと傾向です。" />
+              </div>
+              <p className="text-[13px] font-black tracking-wide text-[#E8D5A0] text-center mb-4">{thinkingType}</p>
+              <BalanceSliders items={balance} />
+            </div>
+            <div className={`${GLASS} p-3.5`}>
+              <div className="flex items-center gap-1 mb-3">
+                <p className={SECTION_LABEL}>今の脳内シェア</p>
+                <InfoTooltip text="あなたの頭の中の占有率が高いトピックを可視化しています。" />
+              </div>
+              <DonutChart segs={mindShare} />
+            </div>
+          </div>
+
+          {/* (4) 今週の引き算 */}
+          <div className="hl-enter hl-d4">
+            <AccordionCard
+              icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>}
+              label="今週の引き算"
+              infoText="今週やめるべきことを提案します。引き算の行動がコンディション回復の最短ルートです。"
+              summary={
+                <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
+                  今週は<span className="text-[#E8E3D8] font-bold">{subtitleTitle}</span>を一旦ストップし、脳のメモリを解放しましょう。
+                </p>
+              }
+              detail={subtitleDetail}
+            />
+          </div>
+
+          {/* (5) 頭のモヤモヤ整理 */}
+          <div className="hl-enter hl-d5">
+            <AccordionCard
+              icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>}
+              label="頭のモヤモヤ整理"
+              infoText="複雑に絡み合っているタスクを、既知のフレームワークで整理します。"
+              summary={
+                <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
+                  緊急度と重要度のマトリクスに当てはめると、今悩んでいることは
+                  <span className="text-[#E8E3D8] font-semibold">「{organizeTitle}」</span>
+                  領域にあります。
+                </p>
+              }
+              detail={organizeDetail}
+            />
+          </div>
+
+          {/* (6) 今のあなたに響く一冊 */}
+          <div className="hl-enter hl-d6">
+            <AccordionCard
+              icon={<IcBook />}
+              label="今のあなたに響く一冊"
+              infoText="あなたの現在地に最も共鳴する書籍・知見を、対話の文脈から選定しています。"
+              summary={
+                <div className="mt-2">
+                  <p className="text-sm font-black text-[#E8E3D8] leading-snug mb-0.5">『{bookTitle}』</p>
+                  <p className="text-xs text-[#8A8276] mb-2">{bookAuthor} 著</p>
+                  <p className="text-sm text-[#9A9488] leading-relaxed">{bookReason}</p>
+                </div>
+              }
+              detail={`『${bookTitle}』（${bookAuthor}著）\n\n${bookReason}`}
+            />
+          </div>
+
+          {/* (7) あなたの勝ちパターン */}
+          <div className="hl-enter hl-d7">
+            <AccordionCard
+              icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>}
+              label="あなたの勝ちパターン"
+              infoText="過去の対話から、あなたが停滞を打破した成功パターンを抽出しています。"
+              summary={
+                <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
+                  あなたの勝ちパターンは
+                  <span className="text-[#E8E3D8] font-bold">「{winTitle}」</span>
+                  です。今回も同じパターンが適用できます。
+                </p>
+              }
+              detail={winDetail}
+            />
           </div>
 
         </div>
