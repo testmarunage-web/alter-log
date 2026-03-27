@@ -85,7 +85,7 @@ export async function POST(req: Request) {
         }));
 
     const result = streamText({
-      model: anthropic("claude-4-sonnet-20250514"),
+      model: anthropic("claude-haiku-4-5"),
       system: systemPrompt,
       messages: coreMessages,
       maxTokens: isOpenTrigger ? 256 : 1024,
