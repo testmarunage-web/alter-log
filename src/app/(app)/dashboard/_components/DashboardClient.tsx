@@ -200,6 +200,7 @@ function AccordionCard({
 interface Props {
   initialAlterLog: AlterLogInsights | null;
   hasNewLogs: boolean;
+  isFirstVisit: boolean;
 }
 
 const LOADING_MESSAGES = [
@@ -209,13 +210,21 @@ const LOADING_MESSAGES = [
   "レポートを書き上げています。もう少しだけお待ちください...",
 ];
 
-export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
+export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: Props) {
   const [log, setLog] = useState<AlterLogInsights | null>(initialAlterLog);
   const [isPending, startTransition] = useTransition();
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [showButtonGlow, setShowButtonGlow] = useState(false);
   const router = useRouter();
+
+  // 初回訪問時: メッセージ表示から3.5秒後にアクションボタンを光らせる
+  useEffect(() => {
+    if (!isFirstVisit) return;
+    const t = setTimeout(() => setShowButtonGlow(true), 3500);
+    return () => clearTimeout(t);
+  }, [isFirstVisit]);
 
   // ローディング中のメッセージ切り替え（4秒ごと）
   useEffect(() => {
@@ -283,6 +292,16 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
         .hl-d5 { animation-delay: 0.30s; }
         .hl-d6 { animation-delay: 0.36s; }
         .hl-d7 { animation-delay: 0.42s; }
+        @keyframes btn-attract-j {
+          0%, 100% { transform: translateY(0); filter: none; }
+          40% { transform: translateY(-5px); filter: drop-shadow(0 0 18px rgba(196,163,90,0.65)); }
+        }
+        @keyframes btn-attract-c {
+          0%, 100% { transform: translateY(0); filter: none; }
+          40% { transform: translateY(-5px); filter: drop-shadow(0 0 16px rgba(80,160,120,0.60)); }
+        }
+        .btn-j-attract { animation: btn-attract-j 0.85s cubic-bezier(0.22,1,0.36,1) 3; }
+        .btn-c-attract { animation: btn-attract-c 0.85s cubic-bezier(0.22,1,0.36,1) 3; animation-delay: 0.18s; }
       `}</style>
 
       <div className="bg-[#0B0E13] px-4 py-6 pb-32 md:px-6">
@@ -322,16 +341,39 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
             )}
           </div>
 
+          {/* ── 初回ウェルカムメッセージ ─────────────────────────────────── */}
+          {isFirstVisit && (
+            <div className="hl-enter flex gap-3 items-start">
+              <div className="flex-shrink-0 mt-0.5">
+                <AlterIcon size={36} />
+              </div>
+              <div className="flex-1 relative bg-white/[0.04] border border-[#C4A35A]/20 rounded-2xl px-4 py-4 shadow-sm">
+                <span className="absolute -left-[7px] top-5 w-0 h-0"
+                  style={{ borderTop: "6px solid transparent", borderBottom: "6px solid transparent", borderRight: "7px solid rgba(196,163,90,0.20)" }} />
+                <span className="absolute -left-[5px] top-5 w-0 h-0"
+                  style={{ borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderRight: "6px solid rgba(255,255,255,0.04)" }} />
+                <p className="text-xs font-bold text-[#C4A35A] tracking-wider mb-3">Alter</p>
+                <div className="space-y-3 text-sm text-[#E8E3D8] leading-relaxed">
+                  <p>はじめまして、Alterです。<br />私は、あなたの心と思考を映し出す「鏡」です。</p>
+                  <p>今の私はまだ真っ白な状態。最高の理解者になるために、まずはあなたの言葉を私に預けてください。</p>
+                  <p>日々の出来事や静かな振り返りは「ジャーナル」へ。<br />直感的なアイデアや、思考を深めたいときは「壁打ち」へ。<br />壁打ちでは、私と対話しながら新しい視点やアイデアを見つけることができます。</p>
+                  <p>あなたの言葉が蓄積されるほど、私はあなたと深くシンクロし、やがて「あなた以上にあなたを知る存在」として最適なインサイトを返せるようになります。</p>
+                  <p className="text-[#C4A35A] font-medium">まずは今の率直な気持ちを、私に教えてくれませんか？</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* (1) アクションボタン */}
           <div className="hl-enter hl-d1 grid grid-cols-2 gap-3 mb-2">
             <RippleLink href="/chat?mode=journal"
-              className="rounded-xl p-4
+              className={`rounded-xl p-4
                 border border-t-[rgba(255,255,255,0.12)] border-x-[rgba(255,255,255,0.05)] border-b-transparent
                 shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.10)]
                 hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(196,163,90,0.18),inset_0_1px_0_rgba(255,255,255,0.14)]
                 hover:-translate-y-0.5
                 active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
-                transition-all duration-100 ease-out"
+                transition-all duration-100 ease-out${showButtonGlow ? " btn-j-attract" : ""}`}
               style={{ background: "linear-gradient(160deg, #3A2910 0%, #1A1408 60%)" }}
             >
               <div className="mb-3" style={{ color: "#C4A35A" }}><IcPen /></div>
@@ -345,13 +387,13 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
             </RippleLink>
 
             <RippleLink href="/chat?mode=coach"
-              className="rounded-xl p-4
+              className={`rounded-xl p-4
                 border border-t-[rgba(255,255,255,0.08)] border-x-[rgba(255,255,255,0.03)] border-b-transparent
                 shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(180,210,190,0.08)]
                 hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(80,130,100,0.18),inset_0_1px_0_rgba(180,210,190,0.12)]
                 hover:-translate-y-0.5
                 active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
-                transition-all duration-100 ease-out"
+                transition-all duration-100 ease-out${showButtonGlow ? " btn-c-attract" : ""}`}
               style={{ background: "linear-gradient(160deg, #1C3028 0%, #0D1A16 60%)" }}
             >
               <div className="mb-3" style={{ color: "#8BA89E" }}><IcCompass /></div>

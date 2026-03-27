@@ -25,7 +25,19 @@ export default async function ChatPage({
     update: {},
     include: { profile: true },
   });
-  if (!user.profile) redirect("/onboarding");
+  // プロフィールがなければ自動生成（オンボーディング質問フロー廃止に伴う）
+  if (!user.profile) {
+    await prisma.userProfile.create({
+      data: {
+        userId: user.id,
+        goal: "",
+        industry: "",
+        coachStyle: "",
+        mainChallenge: "",
+        aiPersonaPrompt: "",
+      },
+    });
+  }
 
   const clerkUser = await currentUser();
   const userName = clerkUser?.firstName ?? "You";

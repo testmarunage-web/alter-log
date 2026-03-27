@@ -35,5 +35,10 @@ export default async function DashboardPage() {
     hasNewLogs = journalCount + coachCount > 0;
   }
 
-  return <DashboardClient initialAlterLog={initialAlterLog} hasNewLogs={hasNewLogs} />;
+  // ジャーナルデータが0件＝初回訪問と判定（初回ウェルカムメッセージの表示制御）
+  const isFirstVisit = user
+    ? (await prisma.journalEntry.count({ where: { userId: user.id } })) === 0
+    : false;
+
+  return <DashboardClient initialAlterLog={initialAlterLog} hasNewLogs={hasNewLogs} isFirstVisit={isFirstVisit} />;
 }
