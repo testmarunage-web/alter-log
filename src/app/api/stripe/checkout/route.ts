@@ -35,6 +35,7 @@ export async function POST() {
 
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
+    client_reference_id: userId, // Clerk userId をセッションに確実に紐付け
     mode: "subscription",
     payment_method_types: ["card"],
     line_items: [
@@ -44,7 +45,7 @@ export async function POST() {
       },
     ],
     success_url: `${baseUrl}/dashboard?subscribed=true`,
-    cancel_url: `${baseUrl}/dashboard`,
+    cancel_url: `${baseUrl}/subscribe`,
     metadata: { clerkId: userId },
   });
 

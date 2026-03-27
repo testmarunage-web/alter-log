@@ -31,11 +31,33 @@ export async function POST(req: Request) {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.mode !== "subscription") break;
 
-        const clerkId = session.metadata?.clerkId;
-        if (!clerkId) break;
+        // client_reference_id → metadata.clerkId の順で安全に取得
+        const clerkId = session.client_reference_id ?? session.metadata?.clerkId ?? null;
+        if (!clerkId) {
+          console.error("[stripe webhook] checkout.session.completed: clerkId not found", {
+            sessionId: session.id,
+            metadata: session.metadata,
+            client_reference_id: session.client_reference_id,
+          });
+          break;
+        }
 
-        const customerId = session.customer as string;
-        const subscriptionId = session.subscription as string;
+        // customer / subscription は string | object どちらの場合も対応
+        const customerId =
+          typeof session.customer === "string" ? session.customer : session.customer?.id;
+        const subscriptionId =
+          typeof session.subscription === "string"
+            ? session.subscription
+            : session.subscription?.id;
+
+        if (!customerId || !subscriptionId) {
+          console.error("[stripe webhook] checkout.session.completed: missing customer or subscription", {
+            sessionId: session.id,
+            customer: session.customer,
+            subscription: session.subscription,
+          });
+          break;
+        }
 
         // サブスクリプション詳細を取得して priceId と期間を保存
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
@@ -66,6 +88,8 @@ export async function POST(req: Request) {
             currentPeriodEnd: periodEnd,
           },
         });
+
+        console.log(`[stripe webhook] checkout.session.completed: subscription activated for clerkId=${clerkId}`);
         break;
       }
 
@@ -137,7 +161,9 @@ export async function POST(req: Request) {
         break;
     }
   } catch (err) {
-    console.error(`[stripe webhook] event handling error (${event.type}):`, err);
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    console.error(`[stripe webhook] event handling error (${event.type}):`, { message, stack });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 
