@@ -345,27 +345,29 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
               type="button"
               onClick={handleGenerate}
               disabled={!hasNewLogs || isGenerating || isPending}
-              className={`w-full flex items-center justify-center gap-2.5 py-4 px-5 rounded-2xl font-bold transition-all duration-200 ${
+              className={`w-full flex flex-col items-center justify-center gap-1.5 py-5 px-5 rounded-2xl font-bold transition-all duration-200 ${
                 hasNewLogs && !isGenerating && !isPending
-                  ? "text-lg bg-[#C4A35A]/15 border border-[#C4A35A]/50 text-[#E8D5A0] hover:bg-[#C4A35A]/25 hover:border-[#C4A35A]/70 hover:shadow-[0_0_20px_rgba(196,163,90,0.2)]"
-                  : "text-base bg-white/[0.02] border border-white/[0.06] text-[#8A8276]/40 cursor-not-allowed"
+                  ? "bg-[#C4A35A]/15 border border-[#C4A35A]/50 text-[#E8D5A0] hover:bg-[#C4A35A]/25 hover:border-[#C4A35A]/70 hover:shadow-[0_0_20px_rgba(196,163,90,0.2)]"
+                  : "bg-white/[0.02] border border-white/[0.06] text-[#8A8276]/40 cursor-not-allowed"
               }`}
             >
               {isGenerating || isPending ? (
                 <>
-                  <span className="w-3.5 h-3.5 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                  <span className="w-4 h-4 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin" />
                   <span className="text-sm font-semibold transition-all duration-500">{LOADING_MESSAGES[loadingMsgIdx]}</span>
                 </>
               ) : (
-                <>Alterに思考を整理してもらう</>
+                <>
+                  <span className="text-xl font-black tracking-tight leading-tight">Alterに思考を整理してもらう</span>
+                  {!hasNewLogs && (
+                    <span className="text-xs font-normal text-[#8A8276]/60 leading-relaxed">
+                      新しい記録がありません。まずはジャーナルに今の思考を吐き出してみましょう。
+                    </span>
+                  )}
+                </>
               )}
             </button>
 
-            {!hasNewLogs && !isGenerating && !isPending && (
-              <p className="mt-2 text-sm text-[#8A8276]/50 text-center leading-relaxed">
-                新しい記録がありません。まずはジャーナルに今の思考を吐き出してみましょう。
-              </p>
-            )}
             {error && (
               <p className="mt-2 text-[10px] text-red-400/70 text-center">{error}</p>
             )}
