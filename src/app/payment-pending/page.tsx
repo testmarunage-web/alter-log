@@ -4,13 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const POLL_INTERVAL_MS = 1200;
-const MAX_ATTEMPTS = 13; // 約15秒でタイムアウト
+const MAX_ATTEMPTS = 13; // 約15秒でフォールバック起動
 
 export default function PaymentPendingPage() {
   const router = useRouter();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const attemptsRef = useRef(0);
-  const [timedOut, setTimedOut] = useState(false);
+  const [phase, setPhase] = useState<"polling" | "activating" | "timeout">("polling");
 
   useEffect(() => {
     async function checkStatus() {
@@ -32,7 +32,8 @@ export default function PaymentPendingPage() {
 
       if (attemptsRef.current >= MAX_ATTEMPTS) {
         if (intervalRef.current) clearInterval(intervalRef.current);
-        setTimedOut(true);
+        // Webhookが届いていない可能性 → Stripe直接確認のフォールバックを起動
+        runFallbackActivation();
       }
     }
 
@@ -43,6 +44,23 @@ export default function PaymentPendingPage() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [router]);
+
+  async function runFallbackActivation() {
+    setPhase("activating");
+    try {
+      const res = await fetch("/api/subscription-activate", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.activated) {
+          router.replace("/dashboard");
+          return;
+        }
+      }
+    } catch {
+      // フォールバックも失敗
+    }
+    setPhase("timeout");
+  }
 
   return (
     <main className="min-h-screen bg-[#0B0E13] flex flex-col items-center justify-center px-6">
@@ -56,7 +74,7 @@ export default function PaymentPendingPage() {
       <div className="relative z-10 w-full max-w-sm text-center">
         <p className="text-sm font-black tracking-tight text-[#C4A35A]/70 mb-10">Alter Log</p>
 
-        {timedOut ? (
+        {phase === "timeout" ? (
           <>
             <div className="flex items-center justify-center mb-8">
               <div className="w-12 h-12 rounded-full bg-[#C4A35A]/10 border border-[#C4A35A]/20 flex items-center justify-center">
@@ -82,7 +100,9 @@ export default function PaymentPendingPage() {
             <div className="flex items-center justify-center mb-8">
               <div className="w-12 h-12 rounded-full border-2 border-[#C4A35A]/20 border-t-[#C4A35A] animate-spin" />
             </div>
-            <h1 className="text-lg font-bold text-[#F0EAD8] mb-3">決済を確認しています...</h1>
+            <h1 className="text-lg font-bold text-[#F0EAD8] mb-3">
+              {phase === "activating" ? "アカウントを有効化しています..." : "決済を確認しています..."}
+            </h1>
             <p className="text-sm text-[#8A8276] leading-relaxed">
               しばらくそのままお待ちください。
               <br />
