@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRef, useCallback, useState, useTransition } from "react";
-import { generateAlterLog, type AlterLogInsights } from "@/app/actions/generateAlterLog";
+import { generateAlterLog } from "@/app/actions/generateAlterLog";
+import type { AlterLogInsights } from "@/app/actions/alterLogSchema";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SVG アイコン
