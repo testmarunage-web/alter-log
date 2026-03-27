@@ -22,10 +22,13 @@ model User {
   updatedAt DateTime @updatedAt
 
   // リレーション
-  profile       UserProfile?
-  sessions      Session[]
-  subscription  Subscription?
-  weeklyReports WeeklyReport[]
+  profile        UserProfile?
+  sessions       Session[]
+  subscription   Subscription?
+  weeklyReports  WeeklyReport[]
+  journalEntries JournalEntry[]
+  coachMessages  CoachMessage[]
+  alterLogs      AlterLog[]
 
   @@map("users")
 }
@@ -39,10 +42,10 @@ model UserProfile {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // 初期4問アンケートの回答（例: ゴール, 業種, コーチングスタイル, 課題）
-  goal         String   // Q1: 達成したいこと
-  industry     String   // Q2: 業種・職種
-  coachStyle   String   // Q3: 好みのコーチングスタイル（厳格 / 共感的 / 論理的 など）
-  mainChallenge String  // Q4: 現在の主な課題
+  goal          String // Q1: 達成したいこと
+  industry      String // Q2: 業種・職種
+  coachStyle    String // Q3: 好みのコーチングスタイル（厳格 / 共感的 / 論理的 など）
+  mainChallenge String // Q4: 現在の主な課題
 
   // AIが参照する人格プロンプト（アンケート回答から自動生成して保存）
   aiPersonaPrompt String @db.Text
@@ -65,8 +68,8 @@ model Subscription {
   stripeSubscriptionId String? @unique
   stripePriceId        String? // アーリーバード or スタンダードの価格ID
 
-  status        SubscriptionStatus @default(INACTIVE)
-  isEarlyBird   Boolean            @default(false) // アーリーバード永続フラグ
+  status           SubscriptionStatus @default(INACTIVE)
+  isEarlyBird      Boolean            @default(false) // アーリーバード永続フラグ
   currentPeriodEnd DateTime?
 
   createdAt DateTime @default(now())
@@ -90,11 +93,11 @@ model Session {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  date           DateTime @db.Date          // セッションの日付（日次で1レコード）
-  dailyLimit     Int      @default(10)       // 当日の上限回数
-  usedCount      Int      @default(0)        // 使用済み回数
-  cliffhangerText String? @db.Text          // 翌日の予告テーマ（クリフハンガー）
-  openingQuestion String? @db.Text          // AIが生成した当日の冒頭質問
+  date            DateTime @db.Date // セッションの日付（日次で1レコード）
+  dailyLimit      Int      @default(10) // 当日の上限回数
+  usedCount       Int      @default(0) // 使用済み回数
+  cliffhangerText String?  @db.Text // 翌日の予告テーマ（クリフハンガー）
+  openingQuestion String?  @db.Text // AIが生成した当日の冒頭質問
 
   messages Message[]
 
@@ -109,7 +112,7 @@ model Session {
 // 個々のメッセージ（対話ログ）
 // ============================================================
 model Message {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   sessionId String
   session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
@@ -151,4 +154,53 @@ model WeeklyReport {
 
   @@unique([userId, weekStart])
   @@map("weekly_reports")
+}
+
+// ============================================================
+// ジャーナルモード：ユーザーの入力データ
+// ============================================================
+model JournalEntry {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  content String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("journal_entries")
+}
+
+// ============================================================
+// 壁打ちモード：チャット履歴
+// ============================================================
+model CoachMessage {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role    String // "user" または "ai"
+  content String @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@map("coach_messages")
+}
+
+// ============================================================
+// AIが生成するダッシュボード・週次分析データ
+// ============================================================
+model AlterLog {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date     DateTime
+  type     String // "daily" または "weekly"
+  insights Json // 分析データ（項目の増減に柔軟対応）
+
+  createdAt DateTime @default(now())
+
+  @@map("alter_logs")
 }
