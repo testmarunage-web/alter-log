@@ -1,8 +1,38 @@
 import { Suspense } from "react";
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import { Sidebar } from "./_components/Sidebar";
 import { BottomNav } from "./_components/BottomNav";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  // サブスクリプション有効性チェック
+  const user = await prisma.user.findUnique({
+    where: { clerkId: userId },
+    select: {
+      subscription: {
+        select: {
+          stripeSubscriptionId: true,
+          status: true,
+          currentPeriodEnd: true,
+        },
+      },
+    },
+  });
+
+  const sub = user?.subscription;
+  const isActive =
+    sub?.stripeSubscriptionId &&
+    (sub.status === "ACTIVE" || sub.status === "PAST_DUE") &&
+    (sub.currentPeriodEnd === null || sub.currentPeriodEnd > new Date());
+
+  if (!isActive) {
+    redirect("/subscribe");
+  }
+
   return (
     <div className="flex h-screen bg-[#0B0E13] overflow-hidden">
       {/* PC: 左サイドバー */}
