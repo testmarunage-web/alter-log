@@ -1,18 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { navItems } from "./NavItems";
 import { NavIconSvg } from "./NavIcon";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  function isActive(href: string) {
+    const [hrefPath, hrefQuery] = href.split("?");
+    if (pathname !== hrefPath && !pathname.startsWith(hrefPath + "/")) return false;
+    if (!hrefQuery) return true;
+    const hrefParams = new URLSearchParams(hrefQuery);
+    for (const [key, value] of hrefParams.entries()) {
+      if (searchParams.get(key) !== value) return false;
+    }
+    return true;
+  }
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0B0E13]/95 backdrop-blur-md border-t border-[#C4A35A]/10">
       <div className="flex items-stretch">
         {navItems.map(({ href, shortLabel, icon }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
+          const active = isActive(href);
           return (
             <Link
               key={href}

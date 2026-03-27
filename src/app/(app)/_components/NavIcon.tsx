@@ -22,10 +22,19 @@ export function NavIconSvg({ icon, size = 20 }: { icon: NavIcon; size?: number }
           <rect x="11" y="11" width="7" height="7" rx="1.5" />
         </svg>
       );
-    case "chat":
+    case "journal":
       return (
         <svg {...props}>
-          <path d="M17 12a2 2 0 0 1-2 2H6l-3 3V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7Z" />
+          <path d="M14 2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z" />
+          <path d="M7 7h6M7 10h6M7 13h4" />
+        </svg>
+      );
+    case "coach":
+      return (
+        <svg {...props}>
+          <circle cx="10" cy="10" r="8" />
+          <path d="M10 2v2M10 16v2M2 10h2M16 10h2" />
+          <path d="M7 7l6 6M13 7l-6 6" />
         </svg>
       );
     case "archive":

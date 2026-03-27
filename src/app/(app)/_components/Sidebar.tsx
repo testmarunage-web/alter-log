@@ -1,13 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 import { navItems } from "./NavItems";
 import { NavIconSvg } from "./NavIcon";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  function isActive(href: string) {
+    const [hrefPath, hrefQuery] = href.split("?");
+    if (pathname !== hrefPath && !pathname.startsWith(hrefPath + "/")) return false;
+    if (!hrefQuery) return true;
+    const hrefParams = new URLSearchParams(hrefQuery);
+    for (const [key, value] of hrefParams.entries()) {
+      if (searchParams.get(key) !== value) return false;
+    }
+    return true;
+  }
 
   return (
     <aside className="hidden md:flex flex-col w-56 h-screen bg-[#0B0E13] border-r border-[#C4A35A]/10 flex-shrink-0">
@@ -21,7 +33,7 @@ export function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 px-2.5 py-3 space-y-0.5 overflow-y-auto">
         {navItems.map(({ href, label, icon }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
+          const active = isActive(href);
           return (
             <Link
               key={href}
