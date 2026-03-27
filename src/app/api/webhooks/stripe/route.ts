@@ -5,6 +5,14 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+/** Stripe の current_period_end (Unix秒) を安全に Date に変換する。
+ *  undefined / null / NaN の場合は null を返す。 */
+function toPeriodEnd(unixSec: number | null | undefined): Date | null {
+  if (unixSec == null || !isFinite(unixSec)) return null;
+  const d = new Date(unixSec * 1000);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 export async function POST(req: Request) {
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
@@ -62,7 +70,7 @@ export async function POST(req: Request) {
         // サブスクリプション詳細を取得して priceId と期間を保存
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0]?.price.id ?? null;
-        const periodEnd = new Date(subscription.current_period_end * 1000);
+        const periodEnd = toPeriodEnd(subscription.current_period_end);
 
         const user = await prisma.user.upsert({
           where: { clerkId },
@@ -100,7 +108,7 @@ export async function POST(req: Request) {
 
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0]?.price.id ?? null;
-        const periodEnd = new Date(subscription.current_period_end * 1000);
+        const periodEnd = toPeriodEnd(subscription.current_period_end);
 
         await prisma.subscription.updateMany({
           where: { stripeSubscriptionId: subscriptionId },
@@ -116,7 +124,7 @@ export async function POST(req: Request) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const priceId = subscription.items.data[0]?.price.id ?? null;
-        const periodEnd = new Date(subscription.current_period_end * 1000);
+        const periodEnd = toPeriodEnd(subscription.current_period_end);
 
         const statusMap: Record<string, "ACTIVE" | "INACTIVE" | "PAST_DUE" | "CANCELED"> = {
           active: "ACTIVE",

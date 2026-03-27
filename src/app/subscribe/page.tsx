@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { SignOutButton } from "@clerk/nextjs";
 import { CheckoutButton } from "@/app/_components/CheckoutButton";
+import { SignOutLink } from "@/app/_components/SignOutLink";
 
 export default async function SubscribePage() {
   const { userId } = await auth();
@@ -43,14 +43,7 @@ export default async function SubscribePage() {
 
         {/* ログアウト */}
         <div className="mt-12">
-          <SignOutButton>
-            <button
-              type="button"
-              className="text-xs text-[#8A8276]/30 hover:text-[#8A8276]/60 transition-colors"
-            >
-              別のアカウントでログイン
-            </button>
-          </SignOutButton>
+          <SignOutLink />
         </div>
       </div>
     </main>
