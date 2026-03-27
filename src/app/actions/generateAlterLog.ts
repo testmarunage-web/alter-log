@@ -8,16 +8,14 @@ import { revalidatePath } from "next/cache";
 import { alterLogSchema, type AlterLogInsights } from "./alterLogSchema";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 分析エンジン本体
+// コアロジック：clerkId を受け取って AlterLog を生成・保存する
+// バッチ処理（Cron）とUIからの呼び出し双方で使用
 // ─────────────────────────────────────────────────────────────────────────────
-export async function generateAlterLog(): Promise<AlterLogInsights> {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
-
+export async function processAlterLogForUser(clerkId: string): Promise<AlterLogInsights> {
   // User upsert（外部キーエラー防止）
   const user = await prisma.user.upsert({
-    where: { clerkId: userId },
-    create: { clerkId: userId },
+    where: { clerkId },
+    create: { clerkId },
     update: {},
   });
 
@@ -84,11 +82,25 @@ ${context}
     },
   });
 
-  revalidatePath("/dashboard");
   return object;
 }
 
-// 最新のAlterLogを取得（ダッシュボード初期表示用）
+// ─────────────────────────────────────────────────────────────────────────────
+// UI（ダッシュボードのボタン）からの呼び出し用
+// 内部で Clerk auth() を使い、processAlterLogForUser に委譲する
+// ─────────────────────────────────────────────────────────────────────────────
+export async function generateAlterLog(): Promise<AlterLogInsights> {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const result = await processAlterLogForUser(userId);
+  revalidatePath("/dashboard");
+  return result;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 最新の AlterLog を取得（ダッシュボード初期表示用）
+// ─────────────────────────────────────────────────────────────────────────────
 export async function getLatestAlterLog(): Promise<AlterLogInsights | null> {
   const { userId } = await auth();
   if (!userId) return null;

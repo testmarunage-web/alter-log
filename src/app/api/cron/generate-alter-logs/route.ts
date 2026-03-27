@@ -1,0 +1,65 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { processAlterLogForUser } from "@/app/actions/generateAlterLog";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 300; // 最大5分（Vercel Pro以上）
+
+export async function GET(req: Request) {
+  // Vercel推奨のCronシークレット検証
+  const authHeader = req.headers.get("authorization");
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    // 過去24時間以内にアクティブだったユーザーを取得
+    const since = new Date();
+    since.setHours(since.getHours() - 24);
+
+    // JournalEntry または CoachMessage を作成したユーザーのIDを収集
+    const [journalUsers, coachUsers] = await Promise.all([
+      prisma.journalEntry.findMany({
+        where: { createdAt: { gte: since } },
+        select: { user: { select: { clerkId: true } } },
+        distinct: ["userId"],
+      }),
+      prisma.coachMessage.findMany({
+        where: { createdAt: { gte: since }, role: "user" },
+        select: { user: { select: { clerkId: true } } },
+        distinct: ["userId"],
+      }),
+    ]);
+
+    // 重複排除してclerkIdのセットを作成
+    const clerkIdSet = new Set<string>();
+    for (const e of journalUsers) clerkIdSet.add(e.user.clerkId);
+    for (const e of coachUsers) clerkIdSet.add(e.user.clerkId);
+    const clerkIds = Array.from(clerkIdSet);
+
+    if (clerkIds.length === 0) {
+      return NextResponse.json({ message: "No active users in the past 24h.", processed: 0 });
+    }
+
+    // 各ユーザーに対して AlterLog を順次生成
+    const results: { clerkId: string; status: "ok" | "error"; error?: string }[] = [];
+    for (const clerkId of clerkIds) {
+      try {
+        await processAlterLogForUser(clerkId);
+        results.push({ clerkId, status: "ok" });
+      } catch (err) {
+        console.error(`[cron] AlterLog生成失敗 clerkId=${clerkId}:`, err);
+        results.push({ clerkId, status: "error", error: String(err) });
+      }
+    }
+
+    return NextResponse.json({
+      message: "Cron completed.",
+      processed: clerkIds.length,
+      results,
+    });
+  } catch (err) {
+    console.error("[cron] 予期しないエラー:", err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
+}
