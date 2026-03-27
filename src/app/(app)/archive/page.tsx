@@ -139,11 +139,26 @@ export default function ArchivePage() {
             <p className="text-[10px] font-bold tracking-[0.22em] text-[#C4A35A]/70 uppercase mb-3">
               今週の気づき
             </p>
-            <ul className="text-sm text-[#9A9488] leading-[1.85] space-y-2.5 list-disc pl-4 marker:text-[#C4A35A]/50">
-              <li>「意思決定の速度」と「質」のトレードオフに関する葛藤が顕著（新しい役割への責任感の裏返し）。</li>
-              <li>「一人で解決する」という既存の方法論が限界を迎えつつある状態。</li>
-              <li>後半にかけて、自らの軸を言語化しようとする前向きな兆候を観測。</li>
-            </ul>
+            <div className="space-y-4 mt-2">
+              <div>
+                <h3 className="text-xs font-bold text-[#E8E3D8] mb-1">1. 意思決定における速度と質の葛藤</h3>
+                <p className="text-[11.5px] text-[#9A9488] leading-relaxed">
+                  新しい役割への責任感から、「素早く決めること」と「質を高めること」の間で揺れ動く様子が顕著でした。これはマネジメント移行期に特有の正常な反応であり、能力の不足ではありません。
+                </p>
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-[#E8E3D8] mb-1">2. 既存の方法論の限界と権限移譲</h3>
+                <p className="text-[11.5px] text-[#9A9488] leading-relaxed">
+                  「一人で解決する」というこれまで通用してきたアプローチが、限界を迎えつつある状態です。誰かに頼ることへの無意識の抵抗感が、タスクの抱え込みに繋がっていることが観測されました。
+                </p>
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-[#E8E3D8] mb-1">3. 自らの「軸」の再定義の兆候</h3>
+                <p className="text-[11.5px] text-[#9A9488] leading-relaxed">
+                  後半にかけて、他者からの期待ではなく、自らの内発的な動機を言語化しようとする前向きな姿勢が見られました。この「軸」を明確にすることが、現在の停滞感を打破する鍵となります。
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
