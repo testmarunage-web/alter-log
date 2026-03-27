@@ -199,7 +199,7 @@ export function ChatInterface({
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
-              テーマに迷ったら
+              話すことがない場合は
               <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }} className="text-[10px]">▾</span>
             </button>
             {hintOpen && (
@@ -216,6 +216,9 @@ export function ChatInterface({
           <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
             <form onSubmit={submitJournal}>
               <div className="relative">
+                <p className="text-[10px] text-[#8A8276]/45 mb-2 leading-relaxed">
+                  日記のような形でも、愚痴や感情の吐き出しでも構いません
+                </p>
                 <textarea
                   ref={textareaRef}
                   value={journalInput}
@@ -282,7 +285,7 @@ export function ChatInterface({
               <div className="h-full flex flex-col items-center justify-center gap-4 px-6">
                 <AlterOrb size="md" />
                 <p className="text-sm text-[#8A8276] text-center leading-relaxed max-w-[240px]">
-                  オルターと話したいことや、深掘りしたい思考を教えてください
+                  ALTERと話したいことや、深掘りしたい思考を教えてください
                 </p>
               </div>
             ) : (

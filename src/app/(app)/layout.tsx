@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Sidebar } from "./_components/Sidebar";
 import { BottomNav } from "./_components/BottomNav";
+import { AddToHomePrompt } from "./_components/AddToHomePrompt";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
@@ -49,6 +50,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Suspense fallback={null}>
         <BottomNav />
       </Suspense>
+
+      {/* PWA: ホーム画面に追加プロンプト */}
+      <AddToHomePrompt />
     </div>
   );
 }

@@ -97,8 +97,17 @@ export default async function ArchivePage() {
             <div className="bg-[#1A222B]/20 border border-white/[0.06] rounded-xl p-6 text-center">
               <p className="text-sm text-[#8A8276]">まだデータがありません。</p>
               <p className="text-xs text-[#8A8276]/60 mt-2 leading-relaxed">
-                日々のジャーナルを蓄積すると、ここに週末の分析レポートが生成されます。
+                日々のジャーナルを蓄積したり、壁打ちを行うことで、ここに週末の分析レポートが生成されます。
               </p>
+              <Link
+                href="/chat?mode=journal"
+                className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-[#C4A35A]/70 hover:text-[#C4A35A] transition-colors"
+              >
+                ジャーナルへ
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
+                </svg>
+              </Link>
             </div>
           )}
         </div>

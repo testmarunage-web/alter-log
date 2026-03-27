@@ -176,13 +176,11 @@ function AccordionCard({
     >
       {/* 観測中オーバーレイ */}
       {isObserving && (
-        <div className="absolute inset-0 bg-[#0B0E13]/70 backdrop-blur-[3px] flex items-center justify-center z-10 rounded-xl">
-          <span
-            className="text-xs font-bold tracking-widest px-4 py-1.5 rounded border border-[#8A8276]/40 text-[#8A8276]"
-            style={{ transform: "rotate(-12deg)", background: "rgba(20,24,30,0.85)", boxShadow: "0 2px 12px rgba(0,0,0,0.5)" }}
-          >
-            データ蓄積中
-          </span>
+        <div className="absolute inset-0 bg-[#0B0E13]/50 backdrop-blur-[6px] flex items-center justify-center z-10 rounded-xl">
+          <div className="bg-white/[0.06] backdrop-blur-md border border-[#C4A35A]/20 rounded-xl px-5 py-2.5 flex items-center gap-2 shadow-lg">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#C4A35A]/50 animate-pulse flex-shrink-0" />
+            <span className="text-xs font-bold tracking-widest text-[#8A8276]">データ蓄積中</span>
+          </div>
         </div>
       )}
 
@@ -326,18 +324,6 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
               )}
             </button>
 
-            {!hasNewLogs && !isGenerating && !isPending && (
-              <Link
-                href="/chat?mode=journal"
-                className="mt-2 flex items-center justify-center gap-1.5 text-xs text-[#C4A35A]/60 hover:text-[#C4A35A] transition-colors"
-              >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-                まずはジャーナルに今の思考を吐き出してみましょう →
-              </Link>
-            )}
 
             {error && (
               <p className="mt-2 text-[10px] text-red-400/70 text-center">{error}</p>
@@ -406,13 +392,11 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
           {/* (3) 現在の思考タイプ（フル幅） */}
           <div className={`hl-enter hl-d3 ${GLASS} p-4 relative`}>
             {!log && (
-              <div className="absolute inset-0 bg-[#0B0E13]/70 backdrop-blur-[3px] flex items-center justify-center z-10 rounded-xl">
-                <span
-                  className="text-xs font-bold tracking-widest px-4 py-1.5 rounded border border-[#8A8276]/40 text-[#8A8276]"
-                  style={{ background: "rgba(20,24,30,0.85)", boxShadow: "0 2px 12px rgba(0,0,0,0.5)" }}
-                >
-                  データ蓄積中
-                </span>
+              <div className="absolute inset-0 bg-[#0B0E13]/50 backdrop-blur-[6px] flex items-center justify-center z-10 rounded-xl">
+                <div className="bg-white/[0.06] backdrop-blur-md border border-[#C4A35A]/20 rounded-xl px-5 py-2.5 flex items-center gap-2 shadow-lg">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#C4A35A]/50 animate-pulse flex-shrink-0" />
+                  <span className="text-xs font-bold tracking-widest text-[#8A8276]">データ蓄積中</span>
+                </div>
               </div>
             )}
             <div className="flex items-center gap-1 mb-3">

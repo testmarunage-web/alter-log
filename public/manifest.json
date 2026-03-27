@@ -1,8 +1,25 @@
 {
   "name": "Alter Log",
   "short_name": "Alter Log",
+  "description": "もう一人の自分が記録する、究極の内省アプリ",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#0B0E13",
-  "theme_color": "#0B0E13"
+  "theme_color": "#0B0E13",
+  "orientation": "portrait",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
 }

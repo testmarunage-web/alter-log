@@ -15,7 +15,7 @@ export default function AppLoading() {
           }}
         />
       </div>
-      <p className="mt-4 text-xs text-[#8A8276]/60 tracking-widest">読み込み中...</p>
+      <p className="mt-4 text-xs text-[#8A8276]/60 tracking-widest">Now loading...</p>
     </div>
   );
 }
