@@ -10,15 +10,26 @@ export function CheckoutButton({ label = "月額2,980円で始める" }: { label
     setLoading(true);
     try {
       const res = await fetch("/api/stripe/checkout", { method: "POST" });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("Checkout API error:", res.status, text);
+        alert("決済画面への遷移に失敗しました。再度お試しください。");
+        setLoading(false);
+        return;
+      }
+
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
       } else {
         console.error("Stripe checkout URL not returned", data);
+        alert("決済URLの取得に失敗しました。再度お試しください。");
         setLoading(false);
       }
     } catch (err) {
       console.error("Checkout error:", err);
+      alert("通信エラーが発生しました。再度お試しください。");
       setLoading(false);
     }
   }

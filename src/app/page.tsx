@@ -95,12 +95,12 @@ export default async function Home() {
 
         <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
           {isLoggedIn ? (
-            <Link href="/dashboard"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-base bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_28px_rgba(196,163,90,0.35)] transition-all duration-200">
-              ダッシュボードを開く
-            </Link>
+            <CheckoutButton label="月額2,980円でサブスクを開始" />
           ) : (
-            <CheckoutButton label="月額2,980円で始める" />
+            <Link href="/sign-up"
+              className="inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full font-bold text-base tracking-wide bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_28px_rgba(196,163,90,0.35)] active:scale-[0.98] transition-all duration-200">
+              月額2,980円で始める
+            </Link>
           )}
           <p className="text-xs text-[#8A8276]/50">いつでもキャンセル可能</p>
         </div>
@@ -152,12 +152,12 @@ export default async function Home() {
         </p>
 
         {isLoggedIn ? (
-          <Link href="/dashboard"
-            className="relative inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-base bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_28px_rgba(196,163,90,0.35)] transition-all duration-200">
-            ダッシュボードを開く
-          </Link>
+          <CheckoutButton label="月額2,980円でサブスクを開始" />
         ) : (
-          <CheckoutButton label="月額2,980円で始める" />
+          <Link href="/sign-up"
+            className="relative inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-full font-bold text-base tracking-wide bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_28px_rgba(196,163,90,0.35)] active:scale-[0.98] transition-all duration-200">
+            月額2,980円で始める
+          </Link>
         )}
       </section>
 
