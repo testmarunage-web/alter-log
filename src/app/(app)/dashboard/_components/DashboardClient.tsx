@@ -296,24 +296,24 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
     });
   }
 
-  // DBデータがあればそれを使い、なければデフォルトを表示
+  // DBデータがあればそれを使い、なければ観測中プレースホルダーを表示
   const balance  = log?.balance   ?? DEFAULT_BALANCE;
   const mindShare = log?.mind_share ?? DEFAULT_DONUT;
-  const notice   = log?.alter_notice   ?? "ここ数日の対話で「〜すべき」という言葉が15回登場しています。少し無理をしていませんか？";
-  const thinkingType = log?.thinking_type ?? "完璧を求める開拓者";
+  const notice   = log?.alter_notice   ?? "対話データが蓄積されると、ここにAlterからの気づきが届きます。まずはジャーナルや壁打ちで思考を吐き出してみましょう。";
+  const thinkingType = log?.thinking_type ?? "観測中";
 
-  const subtitleTitle  = log?.subtraction_title  ?? "新しいAIツールの検証";
-  const subtitleDetail = log?.subtraction_detail ?? "あなたの直近の対話を分析すると、コンディションが下降傾向にあります。今はインプットを増やすよりも、脳のメモリを空けることが最優先だと判断しました。直近72時間で新規にブックマークしたツールは推定7件。この習慣自体が「行動の代替」になっているサインです。今週は新規インプットをゼロにする実験を試してください。";
+  const subtitleTitle  = log?.subtraction_title  ?? "観測中";
+  const subtitleDetail = log?.subtraction_detail ?? "観測中";
 
-  const organizeTitle  = log?.organize_title  ?? "緊急だが重要ではない";
-  const organizeDetail = log?.organize_detail ?? "複数のプロジェクトが絡み合い、思考の整理が追いついていないようです。まずはこの枠組みでタスクを仕分けし、ノイズを減らしましょう。あなたが悩んでいる「A社対応」は、締切は今週だが戦略的重要性は低い案件です。これを後回しにする決断をするだけで、頭の中の占有率が推定30%解放されます。";
+  const organizeTitle  = log?.organize_title  ?? "観測中";
+  const organizeDetail = log?.organize_detail ?? "観測中";
 
-  const bookTitle  = log?.book_title  ?? "HIGH OUTPUT MANAGEMENT";
-  const bookAuthor = log?.book_author ?? "アンドリュー・S・グローブ";
-  const bookReason = log?.book_reason ?? "「成果を出す」本質をマネジメントの視点で再定義。頑張っても前に進まない感覚の正体がここにある。";
+  const bookTitle  = log?.book_title  ?? "観測中";
+  const bookAuthor = log?.book_author ?? "";
+  const bookReason = log?.book_reason ?? "観測中";
 
-  const winTitle  = log?.win_pattern_title  ?? "小さくテストする";
-  const winDetail = log?.win_pattern_detail ?? "あなたは以前も似たような「リソース不足」の壁に直面しましたが、その際は完璧主義を捨ててプロトタイプを出すことで突破しました。その成功体験を思い出してください。具体的には、昨年11月に「完成度60%でいいから出す」と決めた瞬間、あなたのコンディションスコアは3日間で+22ポイント上昇しています。その判断軸をもう一度。";
+  const winTitle  = log?.win_pattern_title  ?? "観測中";
+  const winDetail = log?.win_pattern_detail ?? "観測中";
 
   return (
     <>
@@ -336,7 +336,7 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
         .hl-d7 { animation-delay: 0.42s; }
       `}</style>
 
-      <div className="min-h-screen bg-[#0B0E13] px-4 py-6 pb-32 md:px-6">
+      <div className="min-h-[100dvh] bg-[#0B0E13] px-4 py-6 pb-32 md:px-6">
         <div className="max-w-2xl mx-auto space-y-4">
 
           {/* ── Alter 思考整理ボタン（最重要機能・ファーストビュー） ─────── */}
@@ -361,7 +361,7 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
                   <span className="text-xl font-black tracking-tight leading-tight">Alterに思考を整理してもらう</span>
                   {!hasNewLogs && (
                     <span className="text-xs font-normal text-[#8A8276]/60 leading-relaxed">
-                      新しい記録がありません。まずはジャーナルに今の思考を吐き出してみましょう。
+                      まずはジャーナルに今の思考を吐き出してみましょう
                     </span>
                   )}
                 </>
@@ -433,7 +433,17 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
           </div>
 
           {/* (3) 現在の思考タイプ ＆ 今の脳内シェア */}
-          <div className="hl-enter hl-d3 grid grid-cols-2 gap-3">
+          <div className="hl-enter hl-d3 grid grid-cols-2 gap-3 relative">
+            {!log && (
+              <div className="absolute inset-0 bg-[#0B0E13]/70 backdrop-blur-[3px] flex items-center justify-center z-10 rounded-xl">
+                <span
+                  className="text-xs font-bold tracking-widest px-4 py-1.5 rounded border border-[#8A8276]/40 text-[#8A8276]"
+                  style={{ background: "rgba(20,24,30,0.85)", boxShadow: "0 2px 12px rgba(0,0,0,0.5)" }}
+                >
+                  データ蓄積中
+                </span>
+              </div>
+            )}
             <div className={`${GLASS} p-3.5`}>
               <div className="flex items-center gap-1 mb-4">
                 <p className={SECTION_LABEL}>現在の思考タイプ</p>

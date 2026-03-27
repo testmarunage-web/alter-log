@@ -67,10 +67,13 @@ export async function POST(req: Request) {
           break;
         }
 
-        // サブスクリプション詳細を取得して priceId と期間を保存
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        // サブスクリプション詳細を取得して priceId と期間を保存（latest_invoice を展開して period_end を取得）
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+          expand: ["latest_invoice"],
+        });
         const priceId = subscription.items.data[0]?.price.id ?? null;
-        const periodEnd = toPeriodEnd(subscription.current_period_end);
+        const latestInvoice = subscription.latest_invoice as Stripe.Invoice | null;
+        const periodEnd = toPeriodEnd(latestInvoice?.period_end);
 
         const user = await prisma.user.upsert({
           where: { clerkId },
@@ -103,12 +106,20 @@ export async function POST(req: Request) {
 
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
-        const subscriptionId = invoice.subscription as string | null;
+        // dahlia API: subscription は invoice.parent.subscription_details.subscription に移動
+        const subDetails = invoice.parent?.subscription_details;
+        const subscriptionId =
+          typeof subDetails?.subscription === "string"
+            ? subDetails.subscription
+            : subDetails?.subscription?.id ?? null;
         if (!subscriptionId) break;
 
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+          expand: ["latest_invoice"],
+        });
         const priceId = subscription.items.data[0]?.price.id ?? null;
-        const periodEnd = toPeriodEnd(subscription.current_period_end);
+        const latestInvoice = subscription.latest_invoice as Stripe.Invoice | null;
+        const periodEnd = toPeriodEnd(latestInvoice?.period_end ?? invoice.period_end);
 
         await prisma.subscription.updateMany({
           where: { stripeSubscriptionId: subscriptionId },
@@ -124,7 +135,12 @@ export async function POST(req: Request) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const priceId = subscription.items.data[0]?.price.id ?? null;
-        const periodEnd = toPeriodEnd(subscription.current_period_end);
+        // dahlia API: current_period_end は Subscription 型から削除。latest_invoice を取得して period_end を使用
+        const retrievedSub = await stripe.subscriptions.retrieve(subscription.id, {
+          expand: ["latest_invoice"],
+        });
+        const updatedInvoice = retrievedSub.latest_invoice as Stripe.Invoice | null;
+        const periodEnd = toPeriodEnd(updatedInvoice?.period_end);
 
         const statusMap: Record<string, "ACTIVE" | "INACTIVE" | "PAST_DUE" | "CANCELED"> = {
           active: "ACTIVE",

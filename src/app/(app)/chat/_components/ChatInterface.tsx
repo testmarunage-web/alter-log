@@ -158,7 +158,7 @@ export function ChatInterface({
   const headerFooterCls = "bg-[#0B0E13]/95 border-[#C4A35A]/10 backdrop-blur-md";
 
   return (
-    <div className="h-full min-h-screen bg-[#0B0E13] text-[#E8E3D8] flex flex-col">
+    <div className="min-h-[100dvh] bg-[#0B0E13] text-[#E8E3D8] flex flex-col">
 
       {/* ── ヘッダー ── */}
       <header className={`border-b ${headerFooterCls} sticky top-0 z-10`}>
@@ -184,7 +184,7 @@ export function ChatInterface({
 
           {/* 残りセッション数（壁打ちのみ表示） */}
           {!isJournal ? (
-            <div className="w-16 flex justify-end items-center gap-1.5 group relative cursor-help">
+            <div className="w-16 flex justify-end items-center gap-1.5 group relative cursor-help whitespace-nowrap">
               <span className="text-xs font-mono text-[#C4A35A]/70 tabular-nums">
                 {remaining}<span className="text-[#8A8276]"> / {dailyLimit}</span>
               </span>
@@ -260,10 +260,8 @@ export function ChatInterface({
                   ref={textareaRef}
                   value={journalInput}
                   onChange={handleJournalInputChange}
-                  placeholder="今、頭の中にあることを、そのまま吐き出してください。
-まとめなくていい。正しくなくていい。
-声に出すつもりで書くと、自然と言葉になっていきます。"
-                  className="absolute inset-0 w-full h-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-base leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
+                  placeholder="ここをタップし、キーボードのマイクで思考を話してください..."
+                  className="absolute inset-0 w-full h-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
                 />
                 {/* 文字数カウンター */}
                 {journalInput.length > 0 && (
@@ -367,18 +365,6 @@ export function ChatInterface({
                     className="flex-1 resize-none bg-white/[0.03] border border-white/[0.1] focus:border-[#C4A35A]/50 rounded-2xl px-4 py-3 text-sm text-[#E8E3D8] placeholder:text-[#8A8276] focus:outline-none disabled:opacity-50 transition-colors"
                     style={{ minHeight: "44px", maxHeight: "120px" }}
                   />
-                  {/* マイクボタン */}
-                  <button
-                    type="button"
-                    className="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-2xl bg-white/[0.04] border border-white/[0.08] text-[#8A8276] hover:text-[#C4A35A] transition-colors"
-                    aria-label="音声入力"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                      <line x1="12" y1="19" x2="12" y2="22" />
-                    </svg>
-                  </button>
                   {/* 送信ボタン */}
                   <button
                     type="submit"
