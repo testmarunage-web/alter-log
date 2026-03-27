@@ -81,10 +81,11 @@ function BalanceSliders() {
 // 脳内シェア（ドーナツ）
 // ─────────────────────────────────────────────────────────────────────────────
 const DONUT_SEGS = [
-  { label: "A社商談への不安",  pct: 40, color: "#7A9E8E" },
-  { label: "○○の採用について", pct: 30, color: "#C4A35A" },
-  { label: "新規事業のアイデア", pct: 20, color: "#8A7A5A" },
-  { label: "その他",            pct: 10, color: "#2A3A34" },
+  { label: "A社商談への不安",   pct: 34, color: "#7A9E8E" },
+  { label: "新規事業のアイデア", pct: 27, color: "#C4A35A" },
+  { label: "チームの採用課題",  pct: 18, color: "#8A7A5A" },
+  { label: "体調・睡眠不足",    pct: 12, color: "#4A5A54" },
+  { label: "その他",            pct: 9,  color: "#2A3A34" },
 ];
 
 function DonutChart() {
@@ -313,9 +314,22 @@ export default function DashboardPage() {
           </div>
 
           {/* (3) Alterの気づき（チャットUI風） ────────────────────────────────────── */}
-          <div className="hl-enter hl-d1 flex gap-3 items-end mb-2">
+          <div className="hl-enter hl-d1 flex gap-3 items-center mb-2">
             <CoachOrb />
-            <div className="relative flex-1 bg-white/[0.06] border border-[#C4A35A]/20 rounded-2xl rounded-bl-sm px-4 py-3.5 shadow-sm">
+            <div className="relative flex-1 bg-white/[0.06] border border-[#C4A35A]/20 rounded-2xl px-4 py-3.5 shadow-sm">
+              {/* しっぽ */}
+              <span className="absolute -left-[7px] top-1/2 -translate-y-1/2 w-0 h-0"
+                style={{
+                  borderTop: "6px solid transparent",
+                  borderBottom: "6px solid transparent",
+                  borderRight: "7px solid rgba(196,163,90,0.2)",
+                }} />
+              <span className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-0 h-0"
+                style={{
+                  borderTop: "5px solid transparent",
+                  borderBottom: "5px solid transparent",
+                  borderRight: "6px solid rgba(255,255,255,0.06)",
+                }} />
               <div className="flex items-center gap-1.5 mb-1.5">
                 <span className="text-xs font-bold text-[#C4A35A] tracking-wider">Alterの気づき</span>
                 <InfoTooltip text="直近の対話から、Alterがあなたの無意識のパターンに気づいた時に話しかけます。" />
@@ -364,7 +378,7 @@ export default function DashboardPage() {
               infoText="今週やめるべきことを提案します。引き算の行動がコンディション回復の最短ルートです。"
               summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
-                  今週は新しいAIツールの検証を一旦ストップし、脳のメモリを解放しましょう。
+                  今週は<span className="text-[#E8E3D8] font-bold">新しいAIツールの検証</span>を一旦ストップし、脳のメモリを解放しましょう。
                 </p>
               }
               detail="あなたの直近の対話を分析すると、コンディションが下降傾向にあります。今はインプットを増やすよりも、脳のメモリを空けることが最優先だと判断しました。直近72時間で新規にブックマークしたツールは推定7件。この習慣自体が「行動の代替」になっているサインです。今週は新規インプットをゼロにする実験を試してください。"
@@ -401,10 +415,7 @@ export default function DashboardPage() {
               summary={
                 <div className="mt-2">
                   <p className="text-sm font-black text-[#E8E3D8] leading-snug mb-0.5">『HIGH OUTPUT MANAGEMENT』</p>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs text-[#8A8276]">アンドリュー・S・グローブ 著</p>
-                    <p className="text-[10px] font-mono text-[#C4A35A]/60">¥2,420</p>
-                  </div>
+                  <p className="text-xs text-[#8A8276] mb-2">アンドリュー・S・グローブ 著</p>
                   <p className="text-sm text-[#9A9488] leading-relaxed">
                     「成果を出す」本質をマネジメントの視点で再定義。頑張っても前に進まない感覚の正体がここにある。
                   </p>
@@ -427,7 +438,7 @@ export default function DashboardPage() {
               summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
                   半年前、あなたは
-                  <span className="text-[#C4A35A]/85 font-semibold">「小さくテストする」</span>
+                  <span className="text-[#E8E3D8] font-bold">「小さくテストする」</span>
                   ことで停滞を突破しました。今回も同じパターンが適用できます。
                 </p>
               }
