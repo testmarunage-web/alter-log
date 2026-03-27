@@ -216,15 +216,28 @@ export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: P
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [showButtonGlow, setShowButtonGlow] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalFading, setModalFading] = useState(false);
   const router = useRouter();
 
-  // 初回訪問時: メッセージ表示から3.5秒後にアクションボタンを光らせる
+  // 初回訪問かつlocalStorageに記録がない場合のみモーダルを表示
   useEffect(() => {
     if (!isFirstVisit) return;
-    const t = setTimeout(() => setShowButtonGlow(true), 3500);
-    return () => clearTimeout(t);
+    try {
+      if (!localStorage.getItem("alter-log-welcomed")) {
+        setShowModal(true);
+      }
+    } catch { /* localStorage unavailable */ }
   }, [isFirstVisit]);
+
+  function handleModalClose() {
+    setModalFading(true);
+    try { localStorage.setItem("alter-log-welcomed", "1"); } catch { /* noop */ }
+    setTimeout(() => {
+      setShowModal(false);
+      setModalFading(false);
+    }, 420);
+  }
 
   // ローディング中のメッセージ切り替え（4秒ごと）
   useEffect(() => {
@@ -292,16 +305,6 @@ export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: P
         .hl-d5 { animation-delay: 0.30s; }
         .hl-d6 { animation-delay: 0.36s; }
         .hl-d7 { animation-delay: 0.42s; }
-        @keyframes btn-attract-j {
-          0%, 100% { transform: translateY(0); filter: none; }
-          40% { transform: translateY(-5px); filter: drop-shadow(0 0 18px rgba(196,163,90,0.65)); }
-        }
-        @keyframes btn-attract-c {
-          0%, 100% { transform: translateY(0); filter: none; }
-          40% { transform: translateY(-5px); filter: drop-shadow(0 0 16px rgba(80,160,120,0.60)); }
-        }
-        .btn-j-attract { animation: btn-attract-j 0.85s cubic-bezier(0.22,1,0.36,1) 3; }
-        .btn-c-attract { animation: btn-attract-c 0.85s cubic-bezier(0.22,1,0.36,1) 3; animation-delay: 0.18s; }
       `}</style>
 
       <div className="bg-[#0B0E13] px-4 py-6 pb-32 md:px-6">
@@ -341,39 +344,16 @@ export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: P
             )}
           </div>
 
-          {/* ── 初回ウェルカムメッセージ ─────────────────────────────────── */}
-          {isFirstVisit && (
-            <div className="hl-enter flex gap-3 items-start">
-              <div className="flex-shrink-0 mt-0.5">
-                <AlterIcon size={36} />
-              </div>
-              <div className="flex-1 relative bg-white/[0.04] border border-[#C4A35A]/20 rounded-2xl px-4 py-4 shadow-sm">
-                <span className="absolute -left-[7px] top-5 w-0 h-0"
-                  style={{ borderTop: "6px solid transparent", borderBottom: "6px solid transparent", borderRight: "7px solid rgba(196,163,90,0.20)" }} />
-                <span className="absolute -left-[5px] top-5 w-0 h-0"
-                  style={{ borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderRight: "6px solid rgba(255,255,255,0.04)" }} />
-                <p className="text-xs font-bold text-[#C4A35A] tracking-wider mb-3">Alter</p>
-                <div className="space-y-3 text-sm text-[#E8E3D8] leading-relaxed">
-                  <p>はじめまして、Alterです。<br />私は、あなたの心と思考を映し出す「鏡」です。</p>
-                  <p>今の私はまだ真っ白な状態。最高の理解者になるために、まずはあなたの言葉を私に預けてください。</p>
-                  <p>日々の出来事や静かな振り返りは「ジャーナル」へ。<br />直感的なアイデアや、思考を深めたいときは「壁打ち」へ。<br />壁打ちでは、私と対話しながら新しい視点やアイデアを見つけることができます。</p>
-                  <p>あなたの言葉が蓄積されるほど、私はあなたと深くシンクロし、やがて「あなた以上にあなたを知る存在」として最適なインサイトを返せるようになります。</p>
-                  <p className="text-[#C4A35A] font-medium">まずは今の率直な気持ちを、私に教えてくれませんか？</p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* (1) アクションボタン */}
           <div className="hl-enter hl-d1 grid grid-cols-2 gap-3 mb-2">
             <RippleLink href="/chat?mode=journal"
-              className={`rounded-xl p-4
+              className="rounded-xl p-4
                 border border-t-[rgba(255,255,255,0.12)] border-x-[rgba(255,255,255,0.05)] border-b-transparent
                 shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.10)]
                 hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(196,163,90,0.18),inset_0_1px_0_rgba(255,255,255,0.14)]
                 hover:-translate-y-0.5
                 active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
-                transition-all duration-100 ease-out${showButtonGlow ? " btn-j-attract" : ""}`}
+                transition-all duration-100 ease-out"
               style={{ background: "linear-gradient(160deg, #3A2910 0%, #1A1408 60%)" }}
             >
               <div className="mb-3" style={{ color: "#C4A35A" }}><IcPen /></div>
@@ -387,13 +367,13 @@ export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: P
             </RippleLink>
 
             <RippleLink href="/chat?mode=coach"
-              className={`rounded-xl p-4
+              className="rounded-xl p-4
                 border border-t-[rgba(255,255,255,0.08)] border-x-[rgba(255,255,255,0.03)] border-b-transparent
                 shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(180,210,190,0.08)]
                 hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(80,130,100,0.18),inset_0_1px_0_rgba(180,210,190,0.12)]
                 hover:-translate-y-0.5
                 active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
-                transition-all duration-100 ease-out${showButtonGlow ? " btn-c-attract" : ""}`}
+                transition-all duration-100 ease-out"
               style={{ background: "linear-gradient(160deg, #1C3028 0%, #0D1A16 60%)" }}
             >
               <div className="mb-3" style={{ color: "#8BA89E" }}><IcCompass /></div>
@@ -511,6 +491,70 @@ export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: P
 
         </div>
       </div>
+
+      {/* ── 初回ウェルカムモーダル ────────────────────────────────────────── */}
+      {showModal && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center px-4"
+          style={{
+            background: "rgba(11,14,19,0.88)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
+            opacity: modalFading ? 0 : 1,
+            transition: "opacity 0.42s ease-out",
+            pointerEvents: modalFading ? "none" : "auto",
+          }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl overflow-hidden flex flex-col"
+            style={{
+              background: "rgba(20,27,34,0.97)",
+              border: "1px solid rgba(196,163,90,0.28)",
+              boxShadow: "0 0 60px rgba(196,163,90,0.12), 0 24px 48px rgba(0,0,0,0.7)",
+              maxHeight: "88dvh",
+            }}
+          >
+            {/* ヘッダー */}
+            <div className="flex items-center gap-3 px-5 pt-5 pb-4 border-b border-[#C4A35A]/12 flex-shrink-0">
+              <AlterIcon size={28} />
+              <span className="text-sm font-bold tracking-[0.12em] text-[#C4A35A] uppercase">Alter</span>
+            </div>
+
+            {/* 本文（スクロール可能） */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 text-sm text-[#E8E3D8] leading-relaxed">
+              <p>
+                はじめまして、Alterです。<br />
+                私は、あなたの心と思考を映し出す「鏡」です。
+              </p>
+              <p>
+                今の私はまだ真っ白な状態。最高の理解者になるために、まずはあなたの言葉を私に預けてください。
+              </p>
+              <p>
+                日々の出来事や静かな振り返りは「ジャーナル」へ。<br />
+                直感的なアイデアや、思考を深めたいときは「壁打ち」へ。<br />
+                壁打ちでは、私と対話しながら新しい視点やアイデアを見つけることができます。
+              </p>
+              <p>
+                あなたの言葉が蓄積されるほど、私はあなたと深くシンクロし、やがて「あなた以上にあなたを知る存在」として最適なインサイトを返せるようになります。
+              </p>
+              <p className="text-[#C4A35A] font-medium">
+                まずは今の率直な気持ちを、私に教えてくれませんか？
+              </p>
+            </div>
+
+            {/* フッター：プライマリーボタン */}
+            <div className="flex-shrink-0 px-5 pb-5 pt-4 border-t border-[#C4A35A]/12">
+              <button
+                type="button"
+                onClick={handleModalClose}
+                className="w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide text-[#0B0E13] bg-[#C4A35A] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.35)] active:scale-[0.98] transition-all duration-150"
+              >
+                Alterと話し始める
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
