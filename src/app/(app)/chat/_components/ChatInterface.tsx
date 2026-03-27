@@ -132,8 +132,6 @@ export function ChatInterface({
 
   function handleJournalInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setJournalInput(e.target.value);
-    e.target.style.height = "auto";
-    e.target.style.height = `${Math.min(e.target.scrollHeight, 300)}px`;
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>, onSubmit: () => void) {
@@ -203,89 +201,100 @@ export function ChatInterface({
         </div>
       </header>
 
-      {/* ── ジャーナルモード ── */}
+      {/* ── ジャーナルモード（フルスクリーンキャンバス） ── */}
       {isJournal && (
-        <>
-          <main className="flex-1 overflow-y-auto">
-            <div className="max-w-2xl mx-auto px-4 py-6">
+        <main className="flex-1 flex flex-col overflow-hidden">
 
-              {/* 空の状態 */}
-              {journalMessages.length === 0 && (
-                <div className="text-center py-16 text-[#8A8276]/60">
-                  <p className="text-sm">今日の気持ちを書き出してみましょう。</p>
-                </div>
-              )}
-
-              {/* カードUI */}
-              {journalMessages.map((m) => (
-                <div
-                  key={m.id}
-                  className="bg-white/[0.04] border border-[#C4A35A]/10 rounded-xl p-4 mb-3 w-full"
-                >
-                  <p className="text-[10px] text-[#8A8276]/70 font-mono mb-2">
-                    {formatDateTime(m.createdAt)}
-                  </p>
-                  <p className="text-sm text-[#E8E3D8] leading-relaxed whitespace-pre-wrap">
-                    {m.content}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </main>
-
-          {/* ジャーナル入力フッター */}
-          <div className={`border-t ${headerFooterCls} sticky bottom-0`}>
-            <div className="max-w-2xl mx-auto px-4 pt-3 pb-6">
-              {/* ヒントアコーディオン */}
-              <div className="mb-2">
-                <button
-                  type="button"
-                  onClick={() => setHintOpen((v) => !v)}
-                  className="flex items-center gap-1.5 text-xs text-[#8A8276] hover:text-[#E8E3D8] transition-colors"
-                  aria-expanded={hintOpen}
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
-                  話すテーマに迷ったら
-                  <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }} className="text-[10px]">▾</span>
-                </button>
-                {hintOpen && (
-                  <div className="mt-1.5 bg-white/[0.02] border border-[#C4A35A]/20 rounded-xl px-4 py-2.5">
-                    <p className="text-xs text-[#8A8276] mb-1">Alterからの問いかけ</p>
-                    <p className="text-sm text-[#E8E3D8] leading-relaxed">
-                      <span className="font-semibold text-[#C4A35A]">「最近、一番ホッとした瞬間はいつですか？」</span>
+          {/* 過去エントリ（存在する場合のみ compact 表示） */}
+          {journalMessages.length > 0 && (
+            <div className="flex-shrink-0 max-h-[28vh] overflow-y-auto border-b border-white/[0.04]">
+              <div className="max-w-2xl mx-auto px-4 py-3 space-y-2">
+                {journalMessages.map((m) => (
+                  <div
+                    key={m.id}
+                    className="bg-white/[0.03] border border-[#C4A35A]/10 rounded-xl px-4 py-3"
+                  >
+                    <p className="text-[10px] text-[#8A8276]/60 font-mono mb-1.5">
+                      {formatDateTime(m.createdAt)}
+                    </p>
+                    <p className="text-sm text-[#E8E3D8]/80 leading-relaxed whitespace-pre-wrap line-clamp-3">
+                      {m.content}
                     </p>
                   </div>
-                )}
+                ))}
               </div>
+            </div>
+          )}
 
-              {/* 長文テキストエリア */}
-              <form onSubmit={submitJournal} className="flex items-end gap-2">
+          {/* 入力キャンバス */}
+          <div className="flex-1 flex flex-col min-h-0 max-w-2xl mx-auto w-full px-4 py-4">
+
+            {/* ヒントアコーディオン */}
+            <div className="flex-shrink-0 mb-3">
+              <button
+                type="button"
+                onClick={() => setHintOpen((v) => !v)}
+                className="flex items-center gap-1.5 text-xs text-[#8A8276]/70 hover:text-[#8A8276] transition-colors"
+                aria-expanded={hintOpen}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                テーマに迷ったら
+                <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }} className="text-[10px]">▾</span>
+              </button>
+              {hintOpen && (
+                <div className="mt-2 bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl px-4 py-3">
+                  <p className="text-[10px] text-[#8A8276]/60 mb-1 tracking-wide uppercase">Alterからの問いかけ</p>
+                  <p className="text-sm text-[#E8E3D8] leading-relaxed">
+                    <span className="font-semibold text-[#C4A35A]">「最近、一番ホッとした瞬間はいつですか？」</span>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* メインテキストエリア（思考のキャンバス） */}
+            <form onSubmit={submitJournal} className="flex-1 flex flex-col min-h-0">
+              <div className="flex-1 relative min-h-0">
                 <textarea
                   ref={textareaRef}
                   value={journalInput}
                   onChange={handleJournalInputChange}
-                  onKeyDown={(e) => handleKeyDown(e, submitJournal)}
-                  placeholder="頭の中のモヤモヤをそのまま書き出してください..."
-                  rows={3}
-                  className="flex-1 resize-none bg-white/[0.03] border border-white/[0.1] focus:border-[#C4A35A]/50 rounded-2xl px-4 py-3 text-sm text-[#E8E3D8] placeholder:text-[#8A8276] focus:outline-none transition-colors"
-                  style={{ minHeight: "80px", maxHeight: "300px" }}
+                  placeholder="今、頭の中にあることを、そのまま吐き出してください。
+まとめなくていい。正しくなくていい。
+声に出すつもりで書くと、自然と言葉になっていきます。"
+                  className="absolute inset-0 w-full h-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-base leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
                 />
+                {/* 文字数カウンター */}
+                {journalInput.length > 0 && (
+                  <span className="absolute bottom-3 right-4 text-[10px] text-[#8A8276]/40 font-mono pointer-events-none">
+                    {journalInput.length}
+                  </span>
+                )}
+              </div>
+
+              {/* 送信ボタン */}
+              <div className="flex-shrink-0 pt-3">
                 <button
                   type="submit"
                   disabled={!journalInput.trim()}
-                  className="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-2xl bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] transition-colors disabled:opacity-30"
-                  aria-label="送信"
+                  className={`w-full py-4 rounded-2xl font-bold text-base tracking-wide transition-all duration-200 flex items-center justify-center gap-2.5
+                    ${journalInput.trim()
+                      ? "bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.3)] active:scale-[0.98]"
+                      : "bg-white/[0.03] border border-white/[0.06] text-[#8A8276]/30 cursor-not-allowed"
+                    }`}
                 >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 8h10M9 4l4 4-4 4" />
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                   </svg>
+                  ジャーナルを記録する
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
+
           </div>
-        </>
+        </main>
       )}
 
       {/* ── 壁打ちモード ── */}
