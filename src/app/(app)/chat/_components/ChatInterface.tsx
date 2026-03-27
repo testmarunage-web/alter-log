@@ -7,6 +7,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 // React StrictMode の2重発火ガード
 const openedSessions = new Set<string>();
 
+// メッセージ時刻フォーマット
+function formatTime(date?: Date): string {
+  if (!date) return "";
+  return date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
 // AIメッセージのマークダウン記号を除去
 function stripMarkdown(text: string): string {
   return text.replace(/\*\*/g, "").replace(/\*/g, "").replace(/^#+\s/gm, "").trim();
@@ -335,7 +341,7 @@ export function ChatInterface({
               {visibleMessages.length === 0 && isLoading && <TypingIndicator />}
 
               {visibleMessages.map((m) => (
-                <div key={m.id} className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""}`}>
+                <div key={m.id} className={`flex gap-2 items-end ${m.role === "user" ? "flex-row-reverse" : ""}`}>
                   {m.role === "assistant" ? (
                     <AlterOrb />
                   ) : (
@@ -352,6 +358,9 @@ export function ChatInterface({
                   >
                     {m.role === "assistant" ? stripMarkdown(m.content) : m.content}
                   </div>
+                  <span className="text-[9px] text-[#8A8276] font-mono flex-shrink-0 mb-0.5">
+                    {formatTime(m.createdAt)}
+                  </span>
                 </div>
               ))}
 

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Serif_JP } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
@@ -20,9 +20,23 @@ const notoSerifJP = Noto_Serif_JP({
   preload: false,
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#0B0E13",
+};
+
 export const metadata: Metadata = {
   title: "Alter Log",
-  description: "Alter Log — 思考を深める、ビジネスパーソン向けAIジャーナリングアプリ",
+  description: "Alter Log",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Alter Log",
+  },
 };
 
 export default function RootLayout({

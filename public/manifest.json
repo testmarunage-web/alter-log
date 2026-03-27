@@ -1,0 +1,8 @@
+{
+  "name": "Alter Log",
+  "short_name": "Alter Log",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0B0E13",
+  "theme_color": "#0B0E13"
+}
