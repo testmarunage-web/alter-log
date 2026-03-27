@@ -6,6 +6,8 @@ import { Sidebar } from "./_components/Sidebar";
 import { BottomNav } from "./_components/BottomNav";
 import { AddToHomePrompt } from "./_components/AddToHomePrompt";
 
+export const dynamic = "force-dynamic";
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");

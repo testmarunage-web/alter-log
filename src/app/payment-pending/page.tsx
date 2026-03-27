@@ -22,7 +22,8 @@ export default function PaymentPendingPage() {
           const data = await res.json();
           if (data.active) {
             if (intervalRef.current) clearInterval(intervalRef.current);
-            router.replace("/dashboard");
+            // router.replace ではなくフルリロードで遷移（AppLayoutのサーバーキャッシュを確実に破棄）
+            window.location.href = "/dashboard";
             return;
           }
         }
@@ -52,7 +53,7 @@ export default function PaymentPendingPage() {
       if (res.ok) {
         const data = await res.json();
         if (data.activated) {
-          router.replace("/dashboard");
+          window.location.href = "/dashboard";
           return;
         }
       }
@@ -89,7 +90,7 @@ export default function PaymentPendingPage() {
             </p>
             <button
               type="button"
-              onClick={() => router.replace("/dashboard")}
+              onClick={() => { window.location.href = "/dashboard"; }}
               className="px-7 py-3 rounded-xl bg-[#C4A35A] text-[#0B0E13] font-bold text-sm hover:bg-[#D4B36A] transition-colors"
             >
               ダッシュボードを確認する
