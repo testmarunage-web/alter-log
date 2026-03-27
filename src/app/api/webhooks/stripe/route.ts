@@ -70,40 +70,43 @@ export async function POST(req: Request) {
           break;
         }
 
-        // サブスクリプション詳細を取得して priceId と期間を保存（latest_invoice を展開して period_end を取得）
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
-          expand: ["latest_invoice"],
-        });
-        const priceId = subscription.items.data[0]?.price.id ?? null;
-        const latestInvoice = subscription.latest_invoice as Stripe.Invoice | null;
-        const periodEnd = toPeriodEnd(latestInvoice?.period_end);
+        // User をDBに確保（clerkIdで紐付け）
+        let user: { id: string };
+        try {
+          user = await prisma.user.upsert({
+            where: { clerkId },
+            create: { clerkId },
+            update: {},
+          });
+          console.log(`[stripe webhook] user upsert ok userId=${user.id} t=+${Date.now() - webhookStart}ms`);
+        } catch (dbErr) {
+          console.error("[stripe webhook] user upsert failed:", dbErr);
+          throw dbErr;
+        }
 
-        const user = await prisma.user.upsert({
-          where: { clerkId },
-          create: { clerkId },
-          update: {},
-        });
-
-        await prisma.subscription.upsert({
-          where: { userId: user.id },
-          create: {
-            userId: user.id,
-            stripeCustomerId: customerId,
-            stripeSubscriptionId: subscriptionId,
-            stripePriceId: priceId,
-            status: "ACTIVE",
-            currentPeriodEnd: periodEnd,
-          },
-          update: {
-            stripeCustomerId: customerId,
-            stripeSubscriptionId: subscriptionId,
-            stripePriceId: priceId,
-            status: "ACTIVE",
-            currentPeriodEnd: periodEnd,
-          },
-        });
-
-        console.log(`[stripe webhook] checkout.session.completed: DB updated clerkId=${clerkId} t=+${Date.now() - webhookStart}ms`);
+        // Subscription をACTIVEで保存（periodEndはinvoice.payment_succeededで後から更新される）
+        try {
+          await prisma.subscription.upsert({
+            where: { userId: user.id },
+            create: {
+              userId: user.id,
+              stripeCustomerId: customerId,
+              stripeSubscriptionId: subscriptionId,
+              stripePriceId: null,
+              status: "ACTIVE",
+              currentPeriodEnd: null,
+            },
+            update: {
+              stripeCustomerId: customerId,
+              stripeSubscriptionId: subscriptionId,
+              status: "ACTIVE",
+            },
+          });
+          console.log(`[stripe webhook] checkout.session.completed: DB updated clerkId=${clerkId} t=+${Date.now() - webhookStart}ms`);
+        } catch (dbErr) {
+          console.error("[stripe webhook] subscription upsert failed:", dbErr);
+          throw dbErr;
+        }
         break;
       }
 

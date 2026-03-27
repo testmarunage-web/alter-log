@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
   const { userId } = await auth();
@@ -27,5 +28,7 @@ export async function GET() {
     (sub.status === "ACTIVE" || sub.status === "PAST_DUE") &&
     (sub.currentPeriodEnd === null || sub.currentPeriodEnd > new Date());
 
-  return NextResponse.json({ active });
+  return NextResponse.json({ active }, {
+    headers: { "Cache-Control": "no-store, max-age=0" },
+  });
 }
