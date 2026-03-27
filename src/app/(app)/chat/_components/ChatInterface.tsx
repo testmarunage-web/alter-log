@@ -366,6 +366,22 @@ export function ChatInterface({
                     <TypingIndicator />
                   )}
 
+                {/* 上限到達システムメッセージ */}
+                {remaining <= 0 && !isLoading && visibleMessages.length > 0 && (
+                  <div className="flex flex-col items-center gap-3 pt-2 pb-4">
+                    <p className="text-xs text-[#8A8276] text-center tracking-wide">
+                      今日の壁打ち上限に達しました。
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/archive")}
+                      className="px-5 py-2.5 rounded-xl text-sm font-medium border border-[#C4A35A]/30 text-[#C4A35A] hover:bg-[#C4A35A]/10 transition-colors"
+                    >
+                      今日のレポートを見る
+                    </button>
+                  </div>
+                )}
+
                 <div ref={messagesEndRef} />
               </div>
             )}
@@ -374,13 +390,9 @@ export function ChatInterface({
           {/* 壁打ち入力フッター（flex-none: 絶対に押し出されない） */}
           <div className={`flex-none border-t ${headerCls}`}>
             <div className="max-w-2xl mx-auto px-4 pt-3 pb-6">
-              {remaining <= 0 ? (
-                <p className="text-center text-sm text-[#9A9488] py-2">
-                  今日はここまでにしましょう。明日また話しましょう。
-                </p>
-              ) : (
+              {remaining > 0 && (
                 <form onSubmit={(e) => {
-                  handleSubmit(e, { body: { turnNumber: localUsedCount + 1 } });
+                  handleSubmit(e);
                   if (textareaRef.current) textareaRef.current.style.height = "auto";
                 }} className="flex items-end gap-2">
                   <textarea
@@ -389,7 +401,7 @@ export function ChatInterface({
                     onChange={handleCoachInputChange}
                     onKeyDown={(e) => handleKeyDown(e, () => {
                       if (input.trim() && !isLoading) {
-                        handleSubmit(e as unknown as React.FormEvent, { body: { turnNumber: localUsedCount + 1 } });
+                        handleSubmit(e as unknown as React.FormEvent);
                         if (textareaRef.current) textareaRef.current.style.height = "auto";
                       }
                     })}
