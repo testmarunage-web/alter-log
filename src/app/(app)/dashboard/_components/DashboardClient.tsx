@@ -236,6 +236,7 @@ export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: P
     setTimeout(() => {
       setShowModal(false);
       setModalFading(false);
+      router.push("/chat?mode=journal");
     }, 420);
   }
 
@@ -497,9 +498,9 @@ export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: P
         <div
           className="fixed inset-0 z-[200] flex items-center justify-center px-4"
           style={{
-            background: "rgba(11,14,19,0.88)",
-            backdropFilter: "blur(14px)",
-            WebkitBackdropFilter: "blur(14px)",
+            background: "rgba(11,14,19,0.55)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
             opacity: modalFading ? 0 : 1,
             transition: "opacity 0.42s ease-out",
             pointerEvents: modalFading ? "none" : "auto",
