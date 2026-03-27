@@ -203,25 +203,29 @@ function AccordionCard({
   const [open, setOpen] = useState(false);
   const isObserving = observing ?? detail.includes("観測中");
 
-  const cardClass = isObserving
-    ? "bg-white/[0.02] backdrop-blur-sm border border-dashed border-[#8A8276]/25 rounded-xl opacity-50 cursor-pointer overflow-hidden transition-all duration-300"
-    : `${GLASS} overflow-hidden hover:border-[#C4A35A]/40 transition-all duration-300 cursor-pointer`;
-
   return (
-    <div className={cardClass} onClick={() => setOpen((v) => !v)}>
+    <div
+      className={`${GLASS} overflow-hidden hover:border-[#C4A35A]/40 transition-all duration-300 cursor-pointer relative`}
+      onClick={() => setOpen((v) => !v)}
+    >
+      {/* 観測中オーバーレイ */}
+      {isObserving && (
+        <div className="absolute inset-0 bg-[#0B0E13]/70 backdrop-blur-[3px] flex items-center justify-center z-10 rounded-xl">
+          <span
+            className="text-xs font-bold tracking-widest px-4 py-1.5 rounded border border-[#8A8276]/40 text-[#8A8276]"
+            style={{ transform: "rotate(-12deg)", background: "rgba(20,24,30,0.85)", boxShadow: "0 2px 12px rgba(0,0,0,0.5)" }}
+          >
+            データ蓄積中
+          </span>
+        </div>
+      )}
+
       <div className="p-4">
         <div className="flex items-center mb-3">
-          <p className={isObserving ? "text-xs tracking-widest text-[#8A8276]/60 font-bold flex items-center gap-1.5" : SECTION_LABEL}>
-            {icon}{label}
-          </p>
-          {!isObserving && <div className="ml-1.5"><InfoTooltip text={infoText} /></div>}
-          {isObserving && (
-            <span className="ml-2 text-[9px] tracking-widest text-[#8A8276]/50 border border-dashed border-[#8A8276]/25 rounded px-1.5 py-0.5">
-              観測中
-            </span>
-          )}
+          <p className={SECTION_LABEL}>{icon}{label}</p>
+          <div className="ml-1.5"><InfoTooltip text={infoText} /></div>
         </div>
-        <div className={isObserving ? "text-[#8A8276]/50" : ""}>{summary}</div>
+        {summary}
       </div>
       {!open && (
         <>
@@ -341,16 +345,16 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
               type="button"
               onClick={handleGenerate}
               disabled={!hasNewLogs || isGenerating || isPending}
-              className={`w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-2xl text-sm font-semibold transition-all duration-200 ${
+              className={`w-full flex items-center justify-center gap-2.5 py-4 px-5 rounded-2xl font-bold transition-all duration-200 ${
                 hasNewLogs && !isGenerating && !isPending
-                  ? "bg-[#C4A35A]/10 border border-[#C4A35A]/30 text-[#E8D5A0] hover:bg-[#C4A35A]/18 hover:border-[#C4A35A]/50"
-                  : "bg-white/[0.02] border border-white/[0.06] text-[#8A8276]/40 cursor-not-allowed"
+                  ? "text-lg bg-[#C4A35A]/15 border border-[#C4A35A]/50 text-[#E8D5A0] hover:bg-[#C4A35A]/25 hover:border-[#C4A35A]/70 hover:shadow-[0_0_20px_rgba(196,163,90,0.2)]"
+                  : "text-base bg-white/[0.02] border border-white/[0.06] text-[#8A8276]/40 cursor-not-allowed"
               }`}
             >
               {isGenerating || isPending ? (
                 <>
                   <span className="w-3.5 h-3.5 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-                  <span className="transition-all duration-500">{LOADING_MESSAGES[loadingMsgIdx]}</span>
+                  <span className="text-sm font-semibold transition-all duration-500">{LOADING_MESSAGES[loadingMsgIdx]}</span>
                 </>
               ) : (
                 <>Alterに思考を整理してもらう</>
