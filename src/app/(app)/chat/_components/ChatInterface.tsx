@@ -58,6 +58,30 @@ function AlterAvatar({ size = "md" }: { size?: "sm" | "md" }) {
   return <AlterIcon size={px} />;
 }
 
+// ── 利用回数リング ────────────────────────────────────────────────────────
+function UsageRing({ remaining, total }: { remaining: number; total: number }) {
+  const r = 8;
+  const circ = 2 * Math.PI * r;
+  const pct = Math.max(remaining, 0) / total;
+  const offset = circ * (1 - pct);
+  const color = remaining > 3 ? "#C4A35A" : remaining > 0 ? "#D4844A" : "#8A8276";
+  return (
+    <div className="relative w-7 h-7 flex items-center justify-center flex-shrink-0">
+      <svg width="28" height="28" viewBox="0 0 28 28" className="absolute inset-0">
+        <circle cx="14" cy="14" r={r} fill="none" stroke="rgba(138,130,118,0.18)" strokeWidth="2.5" />
+        <circle
+          cx="14" cy="14" r={r} fill="none"
+          stroke={color} strokeWidth="2.5" strokeLinecap="round"
+          strokeDasharray={circ} strokeDashoffset={offset}
+          transform="rotate(-90 14 14)"
+          style={{ transition: "stroke-dashoffset 0.45s ease" }}
+        />
+      </svg>
+      <span className="text-[9px] font-mono font-bold leading-none" style={{ color }}>{remaining}</span>
+    </div>
+  );
+}
+
 // ── メインコンポーネント ─────────────────────────────────────────────────────
 export function ChatInterface({
   defaultMode,
@@ -131,6 +155,13 @@ export function ChatInterface({
   return (
     // h-full: AppLayoutのmain(flex-1)を埋める / overflow-hidden: 自身をはみ出させない
     <div className="h-full w-full flex flex-col overflow-hidden bg-[#0B0E13] text-[#E8E3D8]">
+      <style>{`
+        @keyframes msg-in {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .msg-fade-in { animation: msg-in 0.32s cubic-bezier(0.22,1,0.36,1) both; }
+      `}</style>
 
       {/* ── ヘッダー（flex-none: 絶対に押し出されない） ── */}
       <header className={`flex-none border-b ${headerCls}`}>
@@ -153,19 +184,11 @@ export function ChatInterface({
           </div>
 
           {!isJournal ? (
-            <div className="w-16 flex justify-end items-center gap-1.5 group relative cursor-help whitespace-nowrap">
-              <span className="text-xs font-mono text-[#C4A35A]/70 tabular-nums">
-                {remaining}<span className="text-[#8A8276]"> / {dailyLimit}</span>
-              </span>
-              <svg className="w-3.5 h-3.5 text-[#8A8276] group-hover:text-[#C4A35A] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
-              </svg>
-              <div className="absolute top-full right-0 mt-2 w-max px-3 py-1.5 bg-[#1A222B] border border-[#C4A35A]/20 rounded-md text-[10px] text-[#E8E3D8] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                1日あたり10回まで
-              </div>
+            <div className="w-8 flex justify-end">
+              <UsageRing remaining={remaining} total={dailyLimit} />
             </div>
           ) : (
-            <div className="w-16" />
+            <div className="w-8" />
           )}
         </div>
       </header>
@@ -225,30 +248,42 @@ export function ChatInterface({
               <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }} className="text-[10px]">▾</span>
             </button>
             {hintOpen && (
-              <div className="mt-2 bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl px-4 py-3">
-                <p className="text-[10px] text-[#8A8276]/60 mb-1 tracking-wide uppercase">Alterからの問いかけ</p>
-                <p className="text-sm text-[#E8E3D8] leading-relaxed">
-                  <span className="font-semibold text-[#C4A35A]">「最近、一番ホッとした瞬間はいつですか？」</span>
+              <div className="mt-2 rounded-xl px-4 py-3 shadow-[0_0_18px_rgba(196,163,90,0.10)]"
+                style={{ background: "rgba(26,20,8,0.6)", border: "1px solid rgba(196,163,90,0.22)" }}>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <AlterIcon size={12} />
+                  <p className="text-[10px] text-[#C4A35A]/70 tracking-widest uppercase font-bold">Alterからの問いかけ</p>
+                </div>
+                <p className="text-sm text-[#E8E3D8] leading-relaxed font-medium">
+                  「最近、一番ホッとした瞬間はいつですか？」
                 </p>
               </div>
             )}
           </div>
 
-          {/* 3. 過去のジャーナルログ（flex-1 スクロール可能） */}
+          {/* 3. 過去のジャーナルログ（タイムライン・flex-1 スクロール可能） */}
           {journalMessages.length > 0 && (
             <div className="flex-1 overflow-y-auto border-t border-white/[0.04] min-h-0">
-              <div className="max-w-2xl mx-auto px-4 py-3 space-y-2">
-                <p className="text-[10px] text-[#8A8276]/50 tracking-wide mb-1">過去のジャーナル</p>
-                {[...journalMessages].reverse().map((m) => (
-                  <div key={m.id} className="bg-white/[0.03] border border-[#C4A35A]/10 rounded-xl px-4 py-3">
-                    <p className="text-[10px] text-[#8A8276]/60 font-mono mb-1.5">
-                      {formatDateTime(m.createdAt)}
-                    </p>
-                    <p className="text-sm text-[#E8E3D8]/80 leading-relaxed whitespace-pre-wrap line-clamp-3">
-                      {m.content}
-                    </p>
+              <div className="max-w-2xl mx-auto px-4 py-4">
+                <p className="text-[10px] text-[#8A8276]/45 tracking-widest uppercase mb-4">過去のジャーナル</p>
+                <div className="relative">
+                  {/* 縦線 */}
+                  <div className="absolute left-[5px] top-1 bottom-0 w-px bg-gradient-to-b from-[#C4A35A]/30 via-[#C4A35A]/12 to-transparent" />
+                  <div className="space-y-6 pl-5">
+                    {[...journalMessages].reverse().map((m) => (
+                      <div key={m.id} className="relative">
+                        {/* ドット */}
+                        <span className="absolute -left-[22px] top-[5px] w-2.5 h-2.5 rounded-full bg-[#0B0E13] border border-[#C4A35A]/45" />
+                        <p className="text-[10px] text-[#8A8276]/55 font-mono tracking-wide mb-1.5">
+                          {formatDateTime(m.createdAt)}
+                        </p>
+                        <p className="text-sm text-[#E8E3D8]/75 leading-relaxed whitespace-pre-wrap">
+                          {m.content}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           )}
@@ -287,7 +322,7 @@ export function ChatInterface({
                     <div
                       className={`max-w-[78%] px-4 py-3.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                         m.role === "assistant"
-                          ? "bg-white/[0.04] border border-[#C4A35A]/15 text-[#E8E3D8] rounded-tl-sm"
+                          ? "bg-white/[0.04] border border-[#C4A35A]/22 text-[#E8E3D8] rounded-tl-sm shadow-[0_0_14px_rgba(196,163,90,0.09)] msg-fade-in"
                           : "bg-[#C4A35A]/10 border border-[#C4A35A]/20 text-[#E8E3D8] rounded-tr-sm"
                       }`}
                     >
