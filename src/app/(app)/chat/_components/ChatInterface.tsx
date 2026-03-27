@@ -3,7 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { saveChatMessage } from "@/app/actions/chat";
+import { saveChatMessage, resetSession } from "@/app/actions/chat";
 import { AlterIcon } from "../../_components/AlterIcon";
 
 // メッセージ時刻フォーマット（壁打ちモード用）
@@ -104,14 +104,27 @@ export function ChatInterface({
   const [journalInput, setJournalInput]       = useState("");
   const [localUsedCount, setLocalUsedCount]   = useState(initialUsedCount);
   const [hintOpen, setHintOpen]               = useState(false);
+  const [isResetting, setIsResetting]         = useState(false);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } =
     useChat({
       api: "/api/chat",
       initialMessages,
       body: { sessionId },
       onFinish: () => setLocalUsedCount((c) => c + 1),
     });
+
+  async function handleReset() {
+    if (isResetting || isLoading) return;
+    setIsResetting(true);
+    try {
+      await resetSession(sessionId);
+      setMessages([]);
+      setLocalUsedCount(0);
+    } finally {
+      setIsResetting(false);
+    }
+  }
 
   // 新メッセージで最下部へスクロール（壁打ちのみ・メッセージがある場合のみ）
   useEffect(() => {
@@ -184,7 +197,20 @@ export function ChatInterface({
           </div>
 
           {!isJournal ? (
-            <div className="w-8 flex justify-end">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleReset}
+                disabled={isResetting || isLoading}
+                aria-label="会話をリセット"
+                title="会話をリセット"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-[#8A8276] hover:text-[#E8E3D8] hover:bg-white/[0.05] transition-colors disabled:opacity-30"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+              </button>
               <UsageRing remaining={remaining} total={dailyLimit} />
             </div>
           ) : (

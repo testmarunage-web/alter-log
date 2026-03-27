@@ -43,6 +43,24 @@ export async function getChatHistory(mode: "journal" | "coach") {
   }
 }
 
+// 壁打ちセッションのメッセージ履歴を全削除してリセット
+export async function resetSession(sessionId: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+  if (!user) throw new Error("User not found");
+
+  // 所有者チェック
+  const session = await prisma.session.findUnique({ where: { id: sessionId } });
+  if (!session || session.userId !== user.id) throw new Error("Invalid session");
+
+  await prisma.$transaction([
+    prisma.message.deleteMany({ where: { sessionId } }),
+    prisma.session.update({ where: { id: sessionId }, data: { usedCount: 0 } }),
+  ]);
+}
+
 // メッセージを保存
 export async function saveChatMessage(
   mode: "journal" | "coach",
