@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveChatMessage } from "@/app/actions/chat";
 
-
 // メッセージ時刻フォーマット（壁打ちモード用）
 function formatTime(date?: Date): string {
   if (!date) return "";
@@ -83,12 +82,12 @@ export function ChatInterface({
   initialJournalMessages,
   userName,
 }: Props) {
-  const bottomRef   = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const router = useRouter();
 
-  // モードは defaultMode から固定（トグルなし）
   const isJournal = defaultMode === "journal";
 
   const [journalMessages, setJournalMessages] = useState<JournalMessage[]>(initialJournalMessages);
@@ -104,10 +103,11 @@ export function ChatInterface({
       onFinish: () => setLocalUsedCount((c) => c + 1),
     });
 
-
-  // 新メッセージで最下部へスクロール（壁打ちのみ）
+  // 新メッセージで最下部へスクロール（壁打ちのみ・メッセージがある場合のみ）
   useEffect(() => {
-    if (defaultMode === "coach") bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (defaultMode !== "coach") return;
+    if (messages.length === 0) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, defaultMode]);
 
   function handleCoachInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -134,22 +134,21 @@ export function ChatInterface({
     const now = new Date();
     setJournalMessages((prev) => [...prev, { id: `j-${Date.now()}`, content, createdAt: now }]);
     setJournalInput("");
-    if (textareaRef.current) textareaRef.current.style.height = "auto";
     await saveChatMessage("journal", content);
   }
 
   const remaining       = dailyLimit - localUsedCount;
   const visibleMessages = messages.filter((m) => m.content !== "__OPEN__");
   const initial         = userName.slice(0, 1).toUpperCase();
-  const headerFooterCls = "bg-[#0B0E13]/95 border-[#C4A35A]/10 backdrop-blur-md";
+  const headerCls       = "bg-[#0B0E13]/95 border-[#C4A35A]/10 backdrop-blur-md";
 
   return (
-    <div className="min-h-[100dvh] bg-[#0B0E13] text-[#E8E3D8] flex flex-col">
+    // h-full: AppLayoutのmain(flex-1)を埋める / overflow-hidden: 自身をはみ出させない
+    <div className="h-full w-full flex flex-col overflow-hidden bg-[#0B0E13] text-[#E8E3D8]">
 
-      {/* ── ヘッダー ── */}
-      <header className={`border-b ${headerFooterCls} sticky top-0 z-10`}>
+      {/* ── ヘッダー（flex-none: 絶対に押し出されない） ── */}
+      <header className={`flex-none border-b ${headerCls}`}>
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          {/* 戻るボタン */}
           <button
             type="button"
             onClick={() => router.push("/dashboard")}
@@ -161,14 +160,12 @@ export function ChatInterface({
             </svg>
           </button>
 
-          {/* モードタイトル */}
           <div className="flex-1 flex justify-center">
             <h1 className="text-sm font-semibold text-[#E8E3D8] tracking-wide">
               {isJournal ? "ジャーナル" : "壁打ち"}
             </h1>
           </div>
 
-          {/* 残りセッション数（壁打ちのみ表示） */}
           {!isJournal ? (
             <div className="w-16 flex justify-end items-center gap-1.5 group relative cursor-help whitespace-nowrap">
               <span className="text-xs font-mono text-[#C4A35A]/70 tabular-nums">
@@ -189,10 +186,10 @@ export function ChatInterface({
 
       {/* ── ジャーナルモード ── */}
       {isJournal && (
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden min-h-0">
 
-          {/* 1. ヒントアコーディオン（固定ヘッダー） */}
-          <div className="flex-shrink-0 max-w-2xl mx-auto w-full px-4 pt-3 pb-2">
+          {/* 1. ヒントアコーディオン（flex-none） */}
+          <div className="flex-none max-w-2xl mx-auto w-full px-4 pt-3 pb-2">
             <button
               type="button"
               onClick={() => setHintOpen((v) => !v)}
@@ -215,15 +212,15 @@ export function ChatInterface({
             )}
           </div>
 
-          {/* 2. 入力エリア＋送信ボタン（固定・常に画面内） */}
-          <div className="flex-shrink-0 max-w-2xl mx-auto w-full px-4 pb-3">
+          {/* 2. 入力エリア＋送信ボタン（flex-none・常に画面内） */}
+          <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
             <form onSubmit={submitJournal}>
               <div className="relative">
                 <textarea
                   ref={textareaRef}
                   value={journalInput}
                   onChange={handleJournalInputChange}
-                  placeholder="ここをタップし、キーボードのマイクで思考を話してください..."
+                  placeholder="ここをタップして、キーボードのマイクで思考を話すか、テキストで入力してください..."
                   className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
                   style={{ height: "140px" }}
                 />
@@ -251,16 +248,13 @@ export function ChatInterface({
             </form>
           </div>
 
-          {/* 3. 過去のジャーナルログ（スクロール可能・下部） */}
+          {/* 3. 過去のジャーナルログ（flex-1 スクロール可能） */}
           {journalMessages.length > 0 && (
-            <div className="flex-1 overflow-y-auto border-t border-white/[0.04]">
+            <div className="flex-1 overflow-y-auto border-t border-white/[0.04] min-h-0">
               <div className="max-w-2xl mx-auto px-4 py-3 space-y-2">
                 <p className="text-[10px] text-[#8A8276]/50 tracking-wide mb-1">過去のジャーナル</p>
                 {[...journalMessages].reverse().map((m) => (
-                  <div
-                    key={m.id}
-                    className="bg-white/[0.03] border border-[#C4A35A]/10 rounded-xl px-4 py-3"
-                  >
+                  <div key={m.id} className="bg-white/[0.03] border border-[#C4A35A]/10 rounded-xl px-4 py-3">
                     <p className="text-[10px] text-[#8A8276]/60 font-mono mb-1.5">
                       {formatDateTime(m.createdAt)}
                     </p>
@@ -272,63 +266,66 @@ export function ChatInterface({
               </div>
             </div>
           )}
-
         </main>
       )}
 
       {/* ── 壁打ちモード ── */}
       {!isJournal && (
         <>
-          <main className="flex-1 overflow-y-auto">
-            <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+          {/* メッセージエリア（flex-1・スクロール） */}
+          <main
+            ref={messagesAreaRef}
+            className="flex-1 overflow-y-auto min-h-0"
+          >
+            {visibleMessages.length === 0 && !isLoading ? (
+              /* Empty State：ど真ん中に中央配置 */
+              <div className="h-full flex flex-col items-center justify-center gap-4 px-6">
+                <AlterOrb size="md" />
+                <p className="text-sm text-[#8A8276] text-center leading-relaxed max-w-[240px]">
+                  オルターと話したいことや、深掘りしたい思考を教えてください
+                </p>
+              </div>
+            ) : (
+              <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+                {visibleMessages.length === 0 && isLoading && <TypingIndicator />}
 
-              {visibleMessages.length === 0 && !isLoading && (
-                <div className="flex flex-col items-center justify-center py-16 gap-4">
-                  <AlterOrb size="md" />
-                  <p className="text-sm text-[#8A8276] text-center leading-relaxed">
-                    壁打ちしたいことを話しかけてください
-                  </p>
-                </div>
-              )}
-
-              {visibleMessages.length === 0 && isLoading && <TypingIndicator />}
-
-              {visibleMessages.map((m) => (
-                <div key={m.id} className={`flex gap-2 items-end ${m.role === "user" ? "flex-row-reverse" : ""}`}>
-                  {m.role === "assistant" ? (
-                    <AlterOrb />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-[#C4A35A]/20 text-[#C4A35A] flex items-center justify-center text-sm font-bold flex-shrink-0">
-                      {initial}
+                {visibleMessages.map((m) => (
+                  <div key={m.id} className={`flex gap-2 items-end ${m.role === "user" ? "flex-row-reverse" : ""}`}>
+                    {m.role === "assistant" ? (
+                      <AlterOrb />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-[#C4A35A]/20 text-[#C4A35A] flex items-center justify-center text-sm font-bold flex-shrink-0">
+                        {initial}
+                      </div>
+                    )}
+                    <div
+                      className={`max-w-[78%] px-4 py-3.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                        m.role === "assistant"
+                          ? "bg-[#3AAFCA]/10 border border-[#3AAFCA]/20 text-[#E8E3D8] rounded-tl-sm"
+                          : "bg-[#C4A35A]/10 border border-[#C4A35A]/20 text-[#E8E3D8] rounded-tr-sm"
+                      }`}
+                    >
+                      {m.role === "assistant" ? stripMarkdown(m.content) : m.content}
                     </div>
-                  )}
-                  <div
-                    className={`max-w-[78%] px-4 py-3.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                      m.role === "assistant"
-                        ? "bg-[#3AAFCA]/10 border border-[#3AAFCA]/20 text-[#E8E3D8] rounded-tl-sm"
-                        : "bg-[#C4A35A]/10 border border-[#C4A35A]/20 text-[#E8E3D8] rounded-tr-sm"
-                    }`}
-                  >
-                    {m.role === "assistant" ? stripMarkdown(m.content) : m.content}
+                    <span className="text-[9px] text-[#8A8276] font-mono flex-shrink-0 mb-0.5">
+                      {formatTime(m.createdAt)}
+                    </span>
                   </div>
-                  <span className="text-[9px] text-[#8A8276] font-mono flex-shrink-0 mb-0.5">
-                    {formatTime(m.createdAt)}
-                  </span>
-                </div>
-              ))}
+                ))}
 
-              {isLoading &&
-                visibleMessages.length > 0 &&
-                visibleMessages[visibleMessages.length - 1]?.role === "user" && (
-                  <TypingIndicator />
-                )}
+                {isLoading &&
+                  visibleMessages.length > 0 &&
+                  visibleMessages[visibleMessages.length - 1]?.role === "user" && (
+                    <TypingIndicator />
+                  )}
 
-              <div ref={bottomRef} />
-            </div>
+                <div ref={messagesEndRef} />
+              </div>
+            )}
           </main>
 
-          {/* 壁打ち入力フッター */}
-          <div className={`border-t ${headerFooterCls} sticky bottom-0`}>
+          {/* 壁打ち入力フッター（flex-none: 絶対に押し出されない） */}
+          <div className={`flex-none border-t ${headerCls}`}>
             <div className="max-w-2xl mx-auto px-4 pt-3 pb-6">
               {remaining <= 0 ? (
                 <p className="text-center text-sm text-[#9A9488] py-2">
@@ -355,7 +352,6 @@ export function ChatInterface({
                     className="flex-1 resize-none bg-white/[0.03] border border-white/[0.1] focus:border-[#C4A35A]/50 rounded-2xl px-4 py-3 text-sm text-[#E8E3D8] placeholder:text-[#8A8276] focus:outline-none disabled:opacity-50 transition-colors"
                     style={{ minHeight: "44px", maxHeight: "120px" }}
                   />
-                  {/* 送信ボタン */}
                   <button
                     type="submit"
                     disabled={!input.trim() || isLoading}

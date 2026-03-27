@@ -34,7 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-screen bg-[#0B0E13] overflow-hidden">
+    <div className="flex h-[100dvh] bg-[#0B0E13] overflow-hidden">
       {/* PC: 左サイドバー */}
       <Suspense fallback={null}>
         <Sidebar />

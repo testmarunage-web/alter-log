@@ -301,7 +301,7 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
         .hl-d7 { animation-delay: 0.42s; }
       `}</style>
 
-      <div className="min-h-[100dvh] bg-[#0B0E13] px-4 py-6 pb-32 md:px-6">
+      <div className="bg-[#0B0E13] px-4 py-6 pb-32 md:px-6">
         <div className="max-w-2xl mx-auto space-y-4">
 
           {/* ── Alter 思考整理ボタン（最重要機能・ファーストビュー） ─────── */}

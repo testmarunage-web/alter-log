@@ -1,36 +1,23 @@
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { alterLogSchema } from "@/app/actions/alterLogSchema";
+
 // ─────────────────────────────────────────────────────────────────────────────
-// モックデータ
+// ユーティリティ
 // ─────────────────────────────────────────────────────────────────────────────
-const ENTRIES = [
-  {
-    date: "2026-03-26",
-    time: "02:14:00",
-    ago: "2時間前",
-    monologue:
-      "[User] は目標設定の話題になると、著しい防衛反応を示す。前回の直接的な指摘は、逆効果だったようだ。次の数セッションは、共感に基づくアプローチへ転換し、信頼関係の再構築を優先する必要がある。彼の成功への焦燥感は、父親からの期待に端を発している。「失敗」や「落胆」といったネガティブなキーワードを避け、課題を「リフレーミングの機会」として提示すること。彼は防御的だが、必死に明白さを求めている。忍耐と微妙な導きを忘れないこと。",
-  },
-  {
-    date: "2026-03-25",
-    time: "23:58:00",
-    ago: "昨日",
-    monologue:
-      "今日のセッションで興味深い矛盾が観測された。「他者と比較しない」と繰り返しながら、会話の随所で他者との優劣を測る発言が混入している。このパターンは無意識的なものと見て良い。自己像と実際の思考回路の乖離が拡大しつつある。直接的に指摘するのではなく、[User] が自ら気づけるよう、反射的な問いかけを設計すること。比較衝動の根は承認欲求ではなく、アイデンティティの不安定さにある可能性が高い。",
-  },
-  {
-    date: "2026-03-24",
-    time: "15:41:00",
-    ago: "2日前",
-    monologue:
-      "マネジメント移行期に関する対話を3セッション観測した。役割の変容に対する抵抗は予測より根深い。「一人でやりきる」という自己定義が、権限委譲の学習を妨げている。この定義はおそらく、10代の頃に形成されたものだ。今は矯正の段階ではなく、観察の段階。[User] が自分の物語を語る余白を意図的に広げることで、変容は自然に始まる。焦りは不要。時間軸は数ヶ月単位で見ること。",
-  },
-  {
-    date: "2026-03-22",
-    time: "09:22:00",
-    ago: "4日前",
-    monologue:
-      "初めて「自分が間違っていたかもしれない」という言葉が出た。小さな亀裂だが、重要なシグナルだ。防衛機制が一瞬だけ緩んだ。このタイミングを逃さないこと。ただし、急ぎすぎれば再び壁が閉じる。次のセッションでは、過去の成功体験を丁寧に掘り起こし、[User] の内側に既に答えがあることを静かに示すこと。変容の準備は整いつつある。あとは [User] 自身のペースに従うだけだ。",
-  },
-];
+function formatRelativeTime(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffDays === 0 && diffHours === 0) return "たった今";
+  if (diffDays === 0) return `${diffHours}時間前`;
+  if (diffDays === 1) return "昨日";
+  return `${diffDays}日前`;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // コンパスアイコン（SVG）
@@ -56,7 +43,39 @@ function IcCompass() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
-export default function AlterLogPage() {
+export default async function AlterLogPage() {
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+
+  const rawLogs = user
+    ? await prisma.alterLog.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      })
+    : [];
+
+  const entries = rawLogs.flatMap((log) => {
+    try {
+      const insights = alterLogSchema.parse(log.insights);
+      const dateStr = log.date.toISOString().split("T")[0];
+      const timeStr = log.createdAt.toISOString().split("T")[1].split(".")[0];
+      return [
+        {
+          id: log.id,
+          date: dateStr,
+          time: timeStr,
+          ago: formatRelativeTime(log.createdAt),
+          monologue: insights.alter_notice,
+        },
+      ];
+    } catch {
+      return [];
+    }
+  });
+
   return (
     <>
       <style>{`
@@ -80,49 +99,68 @@ export default function AlterLogPage() {
             <div className="mt-3 h-px bg-gradient-to-r from-[#C4A35A]/30 via-[#C4A35A]/10 to-transparent" />
           </div>
 
-          {/* タイムライン */}
-          <div className="relative">
-            {/* 縦線 */}
-            <div className="absolute left-[5px] top-2 bottom-0 w-px bg-gradient-to-b from-[#C4A35A]/25 via-[#C4A35A]/10 to-transparent" />
-
-            <div className="space-y-8">
-              {ENTRIES.map((entry, i) => (
-                <div key={i} className="relative pl-9">
-                  {/* パルスドット */}
-                  <span
-                    className="absolute left-0 top-[18px] w-[11px] h-[11px] rounded-full"
-                    style={{
-                      background: "radial-gradient(circle at 38% 38%, #E8D5A0, #C4A35A 60%)",
-                      animation: `dot-pulse ${2 + i * 0.3}s ease-in-out infinite`,
-                    }}
-                  />
-
-                  {/* カード */}
-                  <div className="bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl p-5 mb-1">
-
-                    {/* タイムスタンプ */}
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-[#C4A35A]/60" aria-hidden="true">
-                        <IcCompass />
-                      </span>
-                      <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums">
-                        {entry.date} {entry.time}
-                      </span>
-                      <span className="font-mono text-[10px] text-[#9A9488]/50">
-                        ({entry.ago})
-                      </span>
-                    </div>
-
-                    {/* Monologue 本文 */}
-                    <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide">
-                      {entry.monologue}
-                    </p>
-
-                  </div>
-                </div>
-              ))}
+          {entries.length === 0 ? (
+            /* Empty state */
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <p className="text-sm text-[#8A8276] text-center">まだ記録がありません。</p>
+              <p className="text-xs text-[#8A8276]/60 text-center leading-relaxed">
+                まずはジャーナルから思考を吐き出してみましょう。
+              </p>
+              <Link
+                href="/chat?mode=journal"
+                className="mt-2 text-xs font-medium text-[#C4A35A]/70 hover:text-[#C4A35A] transition-colors flex items-center gap-1"
+              >
+                ジャーナルへ
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
+                </svg>
+              </Link>
             </div>
-          </div>
+          ) : (
+            /* タイムライン */
+            <div className="relative">
+              {/* 縦線 */}
+              <div className="absolute left-[5px] top-2 bottom-0 w-px bg-gradient-to-b from-[#C4A35A]/25 via-[#C4A35A]/10 to-transparent" />
+
+              <div className="space-y-8">
+                {entries.map((entry, i) => (
+                  <div key={entry.id} className="relative pl-9">
+                    {/* パルスドット */}
+                    <span
+                      className="absolute left-0 top-[18px] w-[11px] h-[11px] rounded-full"
+                      style={{
+                        background: "radial-gradient(circle at 38% 38%, #E8D5A0, #C4A35A 60%)",
+                        animation: `dot-pulse ${2 + i * 0.3}s ease-in-out infinite`,
+                      }}
+                    />
+
+                    {/* カード */}
+                    <div className="bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl p-5 mb-1">
+
+                      {/* タイムスタンプ */}
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-[#C4A35A]/60" aria-hidden="true">
+                          <IcCompass />
+                        </span>
+                        <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums">
+                          {entry.date} {entry.time}
+                        </span>
+                        <span className="font-mono text-[10px] text-[#9A9488]/50">
+                          ({entry.ago})
+                        </span>
+                      </div>
+
+                      {/* Monologue 本文 */}
+                      <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide">
+                        {entry.monologue}
+                      </p>
+
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
         </div>
       </div>
