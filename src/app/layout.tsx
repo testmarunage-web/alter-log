@@ -50,7 +50,7 @@ export default function RootLayout({
         lang="ja"
         className={`${geistSans.variable} ${geistMono.variable} ${notoSerifJP.variable} h-full antialiased`}
       >
-        <body className="min-h-full flex flex-col">{children}</body>
+        <body className="min-h-full flex flex-col bg-[#0B0E13]">{children}</body>
       </html>
     </ClerkProvider>
   );
