@@ -7,12 +7,23 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
+// ─── ターン数に応じたフェーズ指示 ──────────────────────────────────────────
+function getPhasePrompt(turn: number): string {
+  if (turn <= 5) {
+    return "\n\n---\n【現在のフェーズ：深掘りフェーズ（序盤〜中盤）】\n現在は対話の序盤〜中盤です。ユーザーの言葉を優しく受け止め、思考を広げるための温かい質問や深掘りを1つだけ投げかけてください。";
+  }
+  if (turn <= 8) {
+    return "\n\n---\n【現在のフェーズ：整理フェーズ（後半）】\n対話の後半に入りました。ここから新しい話題は振らないでください。これまでのユーザーの思考を整理・要約し、気づきを促すようなフィードバックを中心に返答してください。質問は極力控えてください。";
+  }
+  return "\n\n---\n【現在のフェーズ：クロージングフェーズ（最終）】\n対話の最終フェーズです。**絶対に疑問文（質問）で返答を終わらせないでください。** 今日の対話の総括と、ユーザーの思考や感情に対する温かい肯定、そして「明日またお話ししましょう」といった穏やかな締めくくりの言葉を伝え、美しく会話を終わらせてください。";
+}
+
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { messages, sessionId } = await req.json();
+    const { messages, sessionId, turnNumber = 1 } = await req.json();
 
     // ユーザー＆プロフィール取得（Webhook未設定でも動くよう upsert）
     const user = await prisma.user.upsert({
@@ -61,7 +72,7 @@ export async function POST(req: Request) {
           "\n---\n上記の記憶を参考に、今日の対話で矛盾や未完了の課題があれば積極的に突くこと。"
         : "";
 
-    const systemPrompt = basePersona + memoryBlock;
+    const systemPrompt = basePersona + memoryBlock + getPhasePrompt(turnNumber);
 
     // 最後のユーザーメッセージ内容を保持（onFinishで使用）
     const lastUserMsg = [...messages].reverse().find((m: CoreMessage) => m.role === "user");

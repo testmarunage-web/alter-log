@@ -354,7 +354,7 @@ export function ChatInterface({
                 </p>
               ) : (
                 <form onSubmit={(e) => {
-                  handleSubmit(e);
+                  handleSubmit(e, { body: { turnNumber: localUsedCount + 1 } });
                   if (textareaRef.current) textareaRef.current.style.height = "auto";
                 }} className="flex items-end gap-2">
                   <textarea
@@ -363,7 +363,7 @@ export function ChatInterface({
                     onChange={handleCoachInputChange}
                     onKeyDown={(e) => handleKeyDown(e, () => {
                       if (input.trim() && !isLoading) {
-                        handleSubmit(e as unknown as React.FormEvent);
+                        handleSubmit(e as unknown as React.FormEvent, { body: { turnNumber: localUsedCount + 1 } });
                         if (textareaRef.current) textareaRef.current.style.height = "auto";
                       }
                     })}
