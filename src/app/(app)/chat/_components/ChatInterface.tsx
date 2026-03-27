@@ -5,8 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveChatMessage } from "@/app/actions/chat";
 
-// React StrictMode の2重発火ガード
-const openedSessions = new Set<string>();
 
 // メッセージ時刻フォーマット（壁打ちモード用）
 function formatTime(date?: Date): string {
@@ -85,9 +83,8 @@ export function ChatInterface({
   initialJournalMessages,
   userName,
 }: Props) {
-  const bottomRef    = useRef<HTMLDivElement>(null);
-  const textareaRef  = useRef<HTMLTextAreaElement>(null);
-  const hasOpenedRef = useRef(false);
+  const bottomRef   = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const router = useRouter();
 
@@ -99,7 +96,7 @@ export function ChatInterface({
   const [localUsedCount, setLocalUsedCount]   = useState(initialUsedCount);
   const [hintOpen, setHintOpen]               = useState(false);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, append } =
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
     useChat({
       api: "/api/chat",
       initialMessages,
@@ -107,17 +104,6 @@ export function ChatInterface({
       onFinish: () => setLocalUsedCount((c) => c + 1),
     });
 
-  // 壁打ちモード：初回のみ開幕トリガーを送る
-  useEffect(() => {
-    if (defaultMode !== "coach") return;
-    if (initialMessages.length > 0) return;
-    if (hasOpenedRef.current) return;
-    if (openedSessions.has(sessionId)) return;
-    hasOpenedRef.current = true;
-    openedSessions.add(sessionId);
-    append({ role: "user", content: "__OPEN__" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // 新メッセージで最下部へスクロール（壁打ちのみ）
   useEffect(() => {
@@ -201,15 +187,76 @@ export function ChatInterface({
         </div>
       </header>
 
-      {/* ── ジャーナルモード（フルスクリーンキャンバス） ── */}
+      {/* ── ジャーナルモード ── */}
       {isJournal && (
         <main className="flex-1 flex flex-col overflow-hidden">
 
-          {/* 過去エントリ（存在する場合のみ compact 表示） */}
+          {/* 1. ヒントアコーディオン（固定ヘッダー） */}
+          <div className="flex-shrink-0 max-w-2xl mx-auto w-full px-4 pt-3 pb-2">
+            <button
+              type="button"
+              onClick={() => setHintOpen((v) => !v)}
+              className="flex items-center gap-1.5 text-xs text-[#8A8276]/70 hover:text-[#8A8276] transition-colors"
+              aria-expanded={hintOpen}
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              テーマに迷ったら
+              <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }} className="text-[10px]">▾</span>
+            </button>
+            {hintOpen && (
+              <div className="mt-2 bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl px-4 py-3">
+                <p className="text-[10px] text-[#8A8276]/60 mb-1 tracking-wide uppercase">Alterからの問いかけ</p>
+                <p className="text-sm text-[#E8E3D8] leading-relaxed">
+                  <span className="font-semibold text-[#C4A35A]">「最近、一番ホッとした瞬間はいつですか？」</span>
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* 2. 入力エリア＋送信ボタン（固定・常に画面内） */}
+          <div className="flex-shrink-0 max-w-2xl mx-auto w-full px-4 pb-3">
+            <form onSubmit={submitJournal}>
+              <div className="relative">
+                <textarea
+                  ref={textareaRef}
+                  value={journalInput}
+                  onChange={handleJournalInputChange}
+                  placeholder="ここをタップし、キーボードのマイクで思考を話してください..."
+                  className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
+                  style={{ height: "140px" }}
+                />
+                {journalInput.length > 0 && (
+                  <span className="absolute bottom-3 right-4 text-[10px] text-[#8A8276]/40 font-mono pointer-events-none">
+                    {journalInput.length}
+                  </span>
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={!journalInput.trim()}
+                className={`mt-2.5 w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2
+                  ${journalInput.trim()
+                    ? "bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.3)] active:scale-[0.98]"
+                    : "bg-white/[0.03] border border-white/[0.06] text-[#8A8276]/30 cursor-not-allowed"
+                  }`}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                ジャーナルを記録する
+              </button>
+            </form>
+          </div>
+
+          {/* 3. 過去のジャーナルログ（スクロール可能・下部） */}
           {journalMessages.length > 0 && (
-            <div className="flex-shrink-0 max-h-[28vh] overflow-y-auto border-b border-white/[0.04]">
+            <div className="flex-1 overflow-y-auto border-t border-white/[0.04]">
               <div className="max-w-2xl mx-auto px-4 py-3 space-y-2">
-                {journalMessages.map((m) => (
+                <p className="text-[10px] text-[#8A8276]/50 tracking-wide mb-1">過去のジャーナル</p>
+                {[...journalMessages].reverse().map((m) => (
                   <div
                     key={m.id}
                     className="bg-white/[0.03] border border-[#C4A35A]/10 rounded-xl px-4 py-3"
@@ -226,72 +273,6 @@ export function ChatInterface({
             </div>
           )}
 
-          {/* 入力キャンバス */}
-          <div className="flex-1 flex flex-col min-h-0 max-w-2xl mx-auto w-full px-4 py-4">
-
-            {/* ヒントアコーディオン */}
-            <div className="flex-shrink-0 mb-3">
-              <button
-                type="button"
-                onClick={() => setHintOpen((v) => !v)}
-                className="flex items-center gap-1.5 text-xs text-[#8A8276]/70 hover:text-[#8A8276] transition-colors"
-                aria-expanded={hintOpen}
-              >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                テーマに迷ったら
-                <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }} className="text-[10px]">▾</span>
-              </button>
-              {hintOpen && (
-                <div className="mt-2 bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl px-4 py-3">
-                  <p className="text-[10px] text-[#8A8276]/60 mb-1 tracking-wide uppercase">Alterからの問いかけ</p>
-                  <p className="text-sm text-[#E8E3D8] leading-relaxed">
-                    <span className="font-semibold text-[#C4A35A]">「最近、一番ホッとした瞬間はいつですか？」</span>
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* メインテキストエリア（思考のキャンバス） */}
-            <form onSubmit={submitJournal} className="flex-1 flex flex-col min-h-0">
-              <div className="flex-1 relative min-h-0">
-                <textarea
-                  ref={textareaRef}
-                  value={journalInput}
-                  onChange={handleJournalInputChange}
-                  placeholder="ここをタップし、キーボードのマイクで思考を話してください..."
-                  className="absolute inset-0 w-full h-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
-                />
-                {/* 文字数カウンター */}
-                {journalInput.length > 0 && (
-                  <span className="absolute bottom-3 right-4 text-[10px] text-[#8A8276]/40 font-mono pointer-events-none">
-                    {journalInput.length}
-                  </span>
-                )}
-              </div>
-
-              {/* 送信ボタン */}
-              <div className="flex-shrink-0 pt-3">
-                <button
-                  type="submit"
-                  disabled={!journalInput.trim()}
-                  className={`w-full py-4 rounded-2xl font-bold text-base tracking-wide transition-all duration-200 flex items-center justify-center gap-2.5
-                    ${journalInput.trim()
-                      ? "bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.3)] active:scale-[0.98]"
-                      : "bg-white/[0.03] border border-white/[0.06] text-[#8A8276]/30 cursor-not-allowed"
-                    }`}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                  ジャーナルを記録する
-                </button>
-              </div>
-            </form>
-
-          </div>
         </main>
       )}
 
@@ -300,6 +281,15 @@ export function ChatInterface({
         <>
           <main className="flex-1 overflow-y-auto">
             <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+
+              {visibleMessages.length === 0 && !isLoading && (
+                <div className="flex flex-col items-center justify-center py-16 gap-4">
+                  <AlterOrb size="md" />
+                  <p className="text-sm text-[#8A8276] text-center leading-relaxed">
+                    壁打ちしたいことを話しかけてください
+                  </p>
+                </div>
+              )}
 
               {visibleMessages.length === 0 && isLoading && <TypingIndicator />}
 

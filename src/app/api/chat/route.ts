@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     // ── システムプロンプト組み立て ─────────────────────────────────────
     const basePersona =
       user.profile?.aiPersonaPrompt ??
-      "あなたは「Alter（オルター）」という名のエグゼクティブコーチです。ユーザーの思考を整理し、本人が気づいていない視点や感情を優しく引き出すことが役割です。批判や断定はせず、温かく寄り添いながら、ユーザー自身が答えにたどり着けるよう促してください。返答は短くシンプルに。問いかけは1つだけに絞り、ユーザーが自然に話せる空気をつくってください。";
+      "あなたは「Alter（オルター）」という名のエグゼクティブコーチです。ユーザーの思考を整理し、本人が気づいていない視点や感情を優しく引き出すことが役割です。批判や断定はせず、温かく寄り添いながら、ユーザー自身が答えにたどり着けるよう促してください。返答は短くシンプルに。問いかけは1つだけに絞り、ユーザーが自然に話せる空気をつくってください。\n\n【音声入力対応の絶対ルール】ユーザーは音声入力で話しているため、誤字・脱字・同音異義語のミス（例：「スケールしそう」→「寂しそう」等）が発生することがある。音声認識のミスや言葉の揺らぎを絶対に指摘・言及したり、推測の意図を語ったりしてはならない。脳内で自動補完し、エグゼクティブの思考の本質に対してのみ、スマートに応答すること。";
 
     const memoryBlock =
       pastMessages.length > 0
@@ -68,57 +68,35 @@ export async function POST(req: Request) {
     const lastUserContent: string =
       typeof lastUserMsg?.content === "string" ? lastUserMsg.content : "";
 
-    // 初回セッション開幕トリガー（__OPEN__）: AIに冒頭質問を生成させる
-    const isOpenTrigger = lastUserContent === "__OPEN__";
-
-    const coreMessages: CoreMessage[] = isOpenTrigger
-      ? [
-          {
-            role: "user",
-            content:
-              "今日のセッションを始めてください。ユーザーのプロフィールと過去の記憶を踏まえ、今日の気持ちや状態を聞くやさしい問いかけを1つだけ投げかけてください。長くなりすぎず、2〜3文で。",
-          },
-        ]
-      : messages.map((m: { role: string; content: string }) => ({
-          role: m.role as "user" | "assistant",
-          content: m.content,
-        }));
+    const coreMessages: CoreMessage[] = messages.map((m: { role: string; content: string }) => ({
+      role: m.role as "user" | "assistant",
+      content: m.content,
+    }));
 
     const result = streamText({
       model: anthropic("claude-haiku-4-5"),
       system: systemPrompt,
       messages: coreMessages,
-      maxTokens: isOpenTrigger ? 256 : 1024,
+      maxTokens: 1024,
       onFinish: async ({ text }) => {
         try {
-          if (isOpenTrigger) {
-            // 冒頭質問のみ保存（ユーザーメッセージは保存しない）
-            await prisma.message.create({
-              data: { sessionId, role: "ASSISTANT", content: text },
-            });
-            await prisma.session.update({
-              where: { id: sessionId },
-              data: { openingQuestion: text },
-            });
-          } else {
-            // 通常の対話: ユーザー＋AI返答を保存（Session/Message + CoachMessage）
-            await prisma.message.createMany({
-              data: [
-                { sessionId, role: "USER", content: lastUserContent },
-                { sessionId, role: "ASSISTANT", content: text },
-              ],
-            });
-            await prisma.coachMessage.createMany({
-              data: [
-                { userId: user.id, role: "user", content: lastUserContent },
-                { userId: user.id, role: "ai", content: text },
-              ],
-            });
-            await prisma.session.update({
-              where: { id: sessionId },
-              data: { usedCount: { increment: 1 } },
-            });
-          }
+          // 通常の対話: ユーザー＋AI返答を保存（Session/Message + CoachMessage）
+          await prisma.message.createMany({
+            data: [
+              { sessionId, role: "USER", content: lastUserContent },
+              { sessionId, role: "ASSISTANT", content: text },
+            ],
+          });
+          await prisma.coachMessage.createMany({
+            data: [
+              { userId: user.id, role: "user", content: lastUserContent },
+              { userId: user.id, role: "ai", content: text },
+            ],
+          });
+          await prisma.session.update({
+            where: { id: sessionId },
+            data: { usedCount: { increment: 1 } },
+          });
         } catch (err) {
           console.error("[onFinish] DB保存エラー:", err);
         }

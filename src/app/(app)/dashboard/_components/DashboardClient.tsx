@@ -80,42 +80,6 @@ function BalanceSliders({ items }: { items: typeof DEFAULT_BALANCE }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 脳内シェア（ドーナツ）
-// ─────────────────────────────────────────────────────────────────────────────
-const DEFAULT_DONUT = [
-  { label: "A社商談への不安",   pct: 34, color: "#7A9E8E" },
-  { label: "新規事業のアイデア", pct: 27, color: "#C4A35A" },
-  { label: "チームの採用課題",  pct: 18, color: "#8A7A5A" },
-  { label: "体調・睡眠不足",    pct: 12, color: "#4A5A54" },
-  { label: "その他",            pct: 9,  color: "#2A3A34" },
-];
-
-function DonutChart({ segs }: { segs: typeof DEFAULT_DONUT }) {
-  const stops = segs.reduce<{ color: string; start: number; end: number }[]>((acc, s) => {
-    const start = acc.length ? acc[acc.length - 1].end : 0;
-    return [...acc, { color: s.color, start, end: start + s.pct * 3.6 }];
-  }, []);
-  const gradient = stops.map((s) => `${s.color} ${s.start}deg ${s.end}deg`).join(", ");
-  return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative w-16 h-16 mt-2">
-        <div className="w-full h-full rounded-full"
-          style={{ background: `conic-gradient(from -90deg, ${gradient})` }} />
-        <div className="absolute inset-[22%] rounded-full bg-[#0B0E13]" />
-      </div>
-      <div className="space-y-0.5 w-full mt-1">
-        {segs.slice(0, 3).map((s) => (
-          <div key={s.label} className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
-            <span className="text-[10px] text-[#9A9488] truncate flex-1">{s.label}</span>
-            <span className="text-[10px] text-[#8A8276] tabular-nums">{s.pct}%</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // インフォメーションツールチップ
@@ -192,6 +156,7 @@ function AccordionCard({
   detail,
   infoText,
   observing,
+  compact = false,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -199,6 +164,7 @@ function AccordionCard({
   detail: string;
   infoText: string;
   observing?: boolean;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const isObserving = observing ?? detail.includes("観測中");
@@ -220,23 +186,23 @@ function AccordionCard({
         </div>
       )}
 
-      <div className="p-4">
-        <div className="flex items-center mb-3">
-          <p className={SECTION_LABEL}>{icon}{label}</p>
+      <div className={compact ? "px-3.5 py-3" : "p-4"}>
+        <div className={`flex items-center ${compact ? "mb-1.5" : "mb-3"}`}>
+          <p className={compact ? "text-[10px] tracking-widest text-[#C4A35A]/70 font-bold flex items-center gap-1" : SECTION_LABEL}>{icon}{label}</p>
           <div className="ml-1.5"><InfoTooltip text={infoText} /></div>
         </div>
         {summary}
       </div>
       {!open && (
         <>
-          <div className="px-4 pb-2.5 flex justify-end">
-            <span className="text-[10px] text-[#8A8276]/60 tracking-wide">タップして詳細を展開 ▾</span>
+          <div className={`${compact ? "px-3.5 pb-2" : "px-4 pb-2.5"} flex justify-end`}>
+            <span className="text-[9px] text-[#8A8276]/50 tracking-wide">タップして展開 ▾</span>
           </div>
-          <div className="h-3 bg-gradient-to-t from-[#C4A35A]/[0.05] to-transparent" />
+          <div className="h-2 bg-gradient-to-t from-[#C4A35A]/[0.04] to-transparent" />
         </>
       )}
       {open && (
-        <div className="px-4 pb-4 border-t border-[#C4A35A]/10">
+        <div className={`${compact ? "px-3.5 pb-3" : "px-4 pb-4"} border-t border-[#C4A35A]/10`}>
           <p className="text-xs text-[#9A9488]/80 leading-relaxed pt-3 italic">{detail}</p>
         </div>
       )}
@@ -298,7 +264,6 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
 
   // DBデータがあればそれを使い、なければ観測中プレースホルダーを表示
   const balance  = log?.balance   ?? DEFAULT_BALANCE;
-  const mindShare = log?.mind_share ?? DEFAULT_DONUT;
   const notice   = log?.alter_notice   ?? "対話データが蓄積されると、ここにAlterからの気づきが届きます。まずはジャーナルや壁打ちで思考を吐き出してみましょう。";
   const thinkingType = log?.thinking_type ?? "観測中";
 
@@ -345,28 +310,34 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
               type="button"
               onClick={handleGenerate}
               disabled={!hasNewLogs || isGenerating || isPending}
-              className={`w-full flex flex-col items-center justify-center gap-1.5 py-5 px-5 rounded-2xl font-bold transition-all duration-200 ${
+              className={`w-full min-h-[68px] flex flex-col items-center justify-center gap-1.5 py-4 px-5 rounded-2xl font-bold transition-all duration-200 ${
                 hasNewLogs && !isGenerating && !isPending
                   ? "bg-[#C4A35A]/15 border border-[#C4A35A]/50 text-[#E8D5A0] hover:bg-[#C4A35A]/25 hover:border-[#C4A35A]/70 hover:shadow-[0_0_20px_rgba(196,163,90,0.2)]"
                   : "bg-white/[0.02] border border-white/[0.06] text-[#8A8276]/40 cursor-not-allowed"
               }`}
             >
               {isGenerating || isPending ? (
-                <>
-                  <span className="w-4 h-4 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-sm font-semibold transition-all duration-500">{LOADING_MESSAGES[loadingMsgIdx]}</span>
-                </>
+                <div className="flex items-center gap-2.5">
+                  <span className="w-3.5 h-3.5 flex-shrink-0 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm font-semibold text-[#C4A35A]/80">分析中...</span>
+                </div>
               ) : (
-                <>
-                  <span className="text-xl font-black tracking-tight leading-tight">Alterに思考を整理してもらう</span>
-                  {!hasNewLogs && (
-                    <span className="text-xs font-normal text-[#8A8276]/60 leading-relaxed">
-                      まずはジャーナルに今の思考を吐き出してみましょう
-                    </span>
-                  )}
-                </>
+                <span className="text-lg font-black tracking-tight leading-tight">Alterに思考を整理してもらう</span>
               )}
             </button>
+
+            {!hasNewLogs && !isGenerating && !isPending && (
+              <Link
+                href="/chat?mode=journal"
+                className="mt-2 flex items-center justify-center gap-1.5 text-xs text-[#C4A35A]/60 hover:text-[#C4A35A] transition-colors"
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                まずはジャーナルに今の思考を吐き出してみましょう →
+              </Link>
+            )}
 
             {error && (
               <p className="mt-2 text-[10px] text-red-400/70 text-center">{error}</p>
@@ -432,8 +403,8 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
             </div>
           </div>
 
-          {/* (3) 現在の思考タイプ ＆ 今の脳内シェア */}
-          <div className="hl-enter hl-d3 grid grid-cols-2 gap-3 relative">
+          {/* (3) 現在の思考タイプ（フル幅） */}
+          <div className={`hl-enter hl-d3 ${GLASS} p-4 relative`}>
             {!log && (
               <div className="absolute inset-0 bg-[#0B0E13]/70 backdrop-blur-[3px] flex items-center justify-center z-10 rounded-xl">
                 <span
@@ -444,32 +415,24 @@ export function DashboardClient({ initialAlterLog, hasNewLogs }: Props) {
                 </span>
               </div>
             )}
-            <div className={`${GLASS} p-3.5`}>
-              <div className="flex items-center gap-1 mb-4">
-                <p className={SECTION_LABEL}>現在の思考タイプ</p>
-                <InfoTooltip text="対話から推測される、あなたの現在の思考のバランスと傾向です。" />
-              </div>
-              <p className="text-[13px] font-black tracking-wide text-[#E8D5A0] text-center mb-4">{thinkingType}</p>
-              <BalanceSliders items={balance} />
+            <div className="flex items-center gap-1 mb-3">
+              <p className={SECTION_LABEL}>現在の思考タイプ</p>
+              <InfoTooltip text="対話から推測される、あなたの現在の思考のバランスと傾向です。" />
             </div>
-            <div className={`${GLASS} p-3.5`}>
-              <div className="flex items-center gap-1 mb-3">
-                <p className={SECTION_LABEL}>今の脳内シェア</p>
-                <InfoTooltip text="あなたの頭の中の占有率が高いトピックを可視化しています。" />
-              </div>
-              <DonutChart segs={mindShare} />
-            </div>
+            <p className="text-base font-black tracking-wide text-[#E8D5A0] mb-4">{thinkingType}</p>
+            <BalanceSliders items={balance} />
           </div>
 
-          {/* (4) 今週の引き算 */}
+          {/* (4) 今週の引き算（コンパクト） */}
           <div className="hl-enter hl-d4">
             <AccordionCard
-              icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>}
+              icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>}
               label="今週の引き算"
               infoText="今週やめるべきことを提案します。引き算の行動がコンディション回復の最短ルートです。"
+              compact
               summary={
-                <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
-                  今週は<span className="text-[#E8E3D8] font-bold">{subtitleTitle}</span>を一旦ストップし、脳のメモリを解放しましょう。
+                <p className="text-xs text-[#9A9488] leading-relaxed mt-1">
+                  今週は<span className="text-[#E8E3D8] font-semibold">「{subtitleTitle}」</span>を一旦ストップし、脳のメモリを解放しましょう。
                 </p>
               }
               detail={subtitleDetail}
