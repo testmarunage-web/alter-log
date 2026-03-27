@@ -44,7 +44,7 @@ export async function POST() {
         quantity: 1,
       },
     ],
-    success_url: `${baseUrl}/dashboard?subscribed=true`,
+    success_url: `${baseUrl}/payment-pending`,
     cancel_url: `${baseUrl}/subscribe`,
     metadata: { clerkId: userId },
   });
