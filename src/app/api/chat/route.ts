@@ -101,11 +101,17 @@ export async function POST(req: Request) {
               data: { openingQuestion: text },
             });
           } else {
-            // 通常の対話: ユーザー＋AI返答を保存
+            // 通常の対話: ユーザー＋AI返答を保存（Session/Message + CoachMessage）
             await prisma.message.createMany({
               data: [
                 { sessionId, role: "USER", content: lastUserContent },
                 { sessionId, role: "ASSISTANT", content: text },
+              ],
+            });
+            await prisma.coachMessage.createMany({
+              data: [
+                { userId: user.id, role: "user", content: lastUserContent },
+                { userId: user.id, role: "ai", content: text },
               ],
             });
             await prisma.session.update({

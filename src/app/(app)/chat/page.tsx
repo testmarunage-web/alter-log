@@ -4,11 +4,18 @@ import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { ChatInterface } from "./_components/ChatInterface";
 
-export default async function ChatPage() {
+export default async function ChatPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string }>;
+}) {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  // オンボーディング未完了チェック（Webhook未設定でも動くよう upsert）
+  const params = await searchParams;
+  const defaultMode = params.mode === "coach" ? "coach" : "journal";
+
+  // User upsert（外部キーエラー防止）
   const user = await prisma.user.upsert({
     where: { clerkId: userId },
     create: { clerkId: userId },
@@ -17,11 +24,20 @@ export default async function ChatPage() {
   });
   if (!user.profile) redirect("/onboarding");
 
-  // Clerkからユーザー名を取得（表示用）
   const clerkUser = await currentUser();
   const userName = clerkUser?.firstName ?? "You";
 
-  // 今日のセッションを取得または作成（日本時間）
+  // ─── ジャーナル履歴を取得 ───────────────────────────────────────────────
+  const journalEntries = await prisma.journalEntry.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "asc" },
+  });
+  const initialJournalMessages = journalEntries.map((e) => ({
+    id: e.id,
+    content: e.content,
+  }));
+
+  // ─── 壁打ちセッション（日次）を取得または作成 ────────────────────────────
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -31,7 +47,6 @@ export default async function ChatPage() {
     update: {},
   });
 
-  // 今日のメッセージを取得
   const dbMessages = await prisma.message.findMany({
     where: { sessionId: session.id },
     orderBy: { createdAt: "asc" },
@@ -46,10 +61,12 @@ export default async function ChatPage() {
   return (
     <Suspense fallback={<div className="flex-1 flex items-center justify-center text-sm text-[#9A9A9A]">読み込み中...</div>}>
       <ChatInterface
+        defaultMode={defaultMode}
         sessionId={session.id}
         dailyLimit={session.dailyLimit}
         initialUsedCount={session.usedCount}
         initialMessages={initialMessages}
+        initialJournalMessages={initialJournalMessages}
         userName={userName}
       />
     </Suspense>

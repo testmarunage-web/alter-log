@@ -2,7 +2,8 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { saveChatMessage } from "@/app/actions/chat";
 
 // React StrictMode の2重発火ガード
 const openedSessions = new Set<string>();
@@ -27,10 +28,12 @@ interface InitialMessage {
 }
 
 interface Props {
+  defaultMode: Mode;
   sessionId: string;
   dailyLimit: number;
   initialUsedCount: number;
   initialMessages: InitialMessage[];
+  initialJournalMessages: { id: string; content: string }[];
   userName: string;
 }
 
@@ -118,23 +121,24 @@ function ChatInput({
 
 // ── メインコンポーネント ─────────────────────────────────────────────────────
 export function ChatInterface({
+  defaultMode,
   sessionId,
   dailyLimit,
   initialUsedCount,
   initialMessages,
+  initialJournalMessages,
   userName,
 }: Props) {
   const bottomRef   = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const hasOpenedRef = useRef(false);
 
-  const router       = useRouter();
-  const searchParams = useSearchParams();
+  const router = useRouter();
 
-  const [currentMode, setCurrentMode] = useState<Mode>(
-    searchParams.get("mode") === "coach" ? "coach" : "journal"
+  const [currentMode, setCurrentMode] = useState<Mode>(defaultMode);
+  const [journalMessages, setJournalMessages] = useState<{ id: string; content: string }[]>(
+    initialJournalMessages
   );
-  const [journalMessages, setJournalMessages] = useState<{ id: string; content: string }[]>([]);
   const [journalInput, setJournalInput]       = useState("");
   const [localUsedCount, setLocalUsedCount]   = useState(initialUsedCount);
   const [hintOpen, setHintOpen]               = useState(false);
@@ -183,15 +187,16 @@ export function ChatInterface({
     }
   }
 
-  function submitJournal(e?: React.FormEvent) {
+  async function submitJournal(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!journalInput.trim()) return;
-    setJournalMessages((prev) => [
-      ...prev,
-      { id: `j-${Date.now()}`, content: journalInput.trim() },
-    ]);
+    const content = journalInput.trim();
+    if (!content) return;
+    // 楽観的UI更新（即時表示）
+    setJournalMessages((prev) => [...prev, { id: `j-${Date.now()}`, content }]);
     setJournalInput("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
+    // DBに永続化
+    await saveChatMessage("journal", content);
   }
 
   const remaining       = dailyLimit - localUsedCount;
