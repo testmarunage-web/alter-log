@@ -14,6 +14,7 @@ function toPeriodEnd(unixSec: number | null | undefined): Date | null {
 }
 
 export async function POST(req: Request) {
+  const webhookStart = Date.now();
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
 
@@ -32,6 +33,8 @@ export async function POST(req: Request) {
     console.error("[stripe webhook] signature verification failed:", err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
+
+  console.log(`[stripe webhook] received event=${event.type} id=${event.id} t=+${Date.now() - webhookStart}ms`);
 
   try {
     switch (event.type) {
@@ -100,7 +103,7 @@ export async function POST(req: Request) {
           },
         });
 
-        console.log(`[stripe webhook] checkout.session.completed: subscription activated for clerkId=${clerkId}`);
+        console.log(`[stripe webhook] checkout.session.completed: DB updated clerkId=${clerkId} t=+${Date.now() - webhookStart}ms`);
         break;
       }
 

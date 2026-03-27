@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+
+const POLL_INTERVAL_MS = 1200;
+const MAX_ATTEMPTS = 13; // 約15秒でタイムアウト
 
 export default function PaymentPendingPage() {
   const router = useRouter();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const attemptsRef = useRef(0);
-  const MAX_ATTEMPTS = 30; // 最大60秒ポーリング（2秒×30回）
+  const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
     async function checkStatus() {
@@ -28,15 +31,13 @@ export default function PaymentPendingPage() {
       }
 
       if (attemptsRef.current >= MAX_ATTEMPTS) {
-        // タイムアウト：サブスクリプションページに戻す
         if (intervalRef.current) clearInterval(intervalRef.current);
-        router.replace("/subscribe?timeout=true");
+        setTimedOut(true);
       }
     }
 
-    // 即時1回 + 2秒ごとにポーリング
     checkStatus();
-    intervalRef.current = setInterval(checkStatus, 2000);
+    intervalRef.current = setInterval(checkStatus, POLL_INTERVAL_MS);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -55,17 +56,40 @@ export default function PaymentPendingPage() {
       <div className="relative z-10 w-full max-w-sm text-center">
         <p className="text-sm font-black tracking-tight text-[#C4A35A]/70 mb-10">Alter Log</p>
 
-        {/* スピナー */}
-        <div className="flex items-center justify-center mb-8">
-          <div className="w-12 h-12 rounded-full border-2 border-[#C4A35A]/20 border-t-[#C4A35A] animate-spin" />
-        </div>
-
-        <h1 className="text-lg font-bold text-[#F0EAD8] mb-3">決済を確認しています...</h1>
-        <p className="text-sm text-[#8A8276] leading-relaxed">
-          しばらくそのままお待ちください。
-          <br />
-          自動的にダッシュボードへ移動します。
-        </p>
+        {timedOut ? (
+          <>
+            <div className="flex items-center justify-center mb-8">
+              <div className="w-12 h-12 rounded-full bg-[#C4A35A]/10 border border-[#C4A35A]/20 flex items-center justify-center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C4A35A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
+            </div>
+            <h1 className="text-lg font-bold text-[#F0EAD8] mb-3">処理が混み合っています</h1>
+            <p className="text-sm text-[#8A8276] leading-relaxed mb-8">
+              決済自体は完了しています。少し時間をおいてから、ダッシュボードをご確認ください。
+            </p>
+            <button
+              type="button"
+              onClick={() => router.replace("/dashboard")}
+              className="px-7 py-3 rounded-xl bg-[#C4A35A] text-[#0B0E13] font-bold text-sm hover:bg-[#D4B36A] transition-colors"
+            >
+              ダッシュボードを確認する
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-center mb-8">
+              <div className="w-12 h-12 rounded-full border-2 border-[#C4A35A]/20 border-t-[#C4A35A] animate-spin" />
+            </div>
+            <h1 className="text-lg font-bold text-[#F0EAD8] mb-3">決済を確認しています...</h1>
+            <p className="text-sm text-[#8A8276] leading-relaxed">
+              しばらくそのままお待ちください。
+              <br />
+              自動的にダッシュボードへ移動します。
+            </p>
+          </>
+        )}
       </div>
     </main>
   );
