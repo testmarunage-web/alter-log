@@ -49,9 +49,6 @@ export default async function AlterLogPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  // UXリズム統一：ローディングアニメーションを確実に表示するための意図的なディレイ
-  await new Promise<void>((r) => setTimeout(r, 400));
-
   const user = await prisma.user.findUnique({ where: { clerkId: userId } });
 
   const rawLogs = user

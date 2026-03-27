@@ -268,7 +268,7 @@ export function ChatInterface({
               <div className="h-full flex flex-col items-center justify-center gap-4 px-6">
                 <AlterAvatar size="md" />
                 <p className="text-sm text-[#8A8276] text-center">
-                  Alterに何でも聞いてみましょう。
+                  思考の壁打ちを始めましょう。
                 </p>
               </div>
             ) : (
@@ -332,7 +332,7 @@ export function ChatInterface({
                         if (textareaRef.current) textareaRef.current.style.height = "auto";
                       }
                     })}
-                    placeholder="Alterに何でも聞いてみましょう。"
+                    placeholder="Alterに直感や課題をぶつける..."
                     rows={1}
                     disabled={isLoading}
                     className="flex-1 resize-none bg-white/[0.03] border border-white/[0.1] focus:border-[#C4A35A]/50 rounded-2xl px-4 py-3 text-sm text-[#E8E3D8] placeholder:text-[#8A8276] focus:outline-none disabled:opacity-50 transition-colors"
