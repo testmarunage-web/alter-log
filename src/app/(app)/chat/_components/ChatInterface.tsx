@@ -58,29 +58,6 @@ function AlterAvatar({ size = "md" }: { size?: "sm" | "md" }) {
   return <AlterIcon size={px} />;
 }
 
-// ── 利用回数リング ────────────────────────────────────────────────────────
-function UsageRing({ remaining, total }: { remaining: number; total: number }) {
-  const r = 8;
-  const circ = 2 * Math.PI * r;
-  const pct = Math.max(remaining, 0) / total;
-  const offset = circ * (1 - pct);
-  const color = remaining > 3 ? "#C4A35A" : remaining > 0 ? "#D4844A" : "#8A8276";
-  return (
-    <div className="relative w-7 h-7 flex items-center justify-center flex-shrink-0">
-      <svg width="28" height="28" viewBox="0 0 28 28" className="absolute inset-0">
-        <circle cx="14" cy="14" r={r} fill="none" stroke="rgba(138,130,118,0.18)" strokeWidth="2.5" />
-        <circle
-          cx="14" cy="14" r={r} fill="none"
-          stroke={color} strokeWidth="2.5" strokeLinecap="round"
-          strokeDasharray={circ} strokeDashoffset={offset}
-          transform="rotate(-90 14 14)"
-          style={{ transition: "stroke-dashoffset 0.45s ease" }}
-        />
-      </svg>
-      <span className="text-[9px] font-mono font-bold leading-none" style={{ color }}>{remaining}</span>
-    </div>
-  );
-}
 
 // ── メインコンポーネント ─────────────────────────────────────────────────────
 export function ChatInterface({
@@ -211,7 +188,6 @@ export function ChatInterface({
                   <path d="M3 3v5h5" />
                 </svg>
               </button>
-              <UsageRing remaining={remaining} total={dailyLimit} />
             </div>
           ) : (
             <div className="w-8" />
@@ -369,8 +345,8 @@ export function ChatInterface({
                 {/* 上限到達システムメッセージ */}
                 {remaining <= 0 && !isLoading && visibleMessages.length > 0 && (
                   <div className="flex flex-col items-center gap-3 pt-2 pb-4">
-                    <p className="text-xs text-[#8A8276] text-center tracking-wide">
-                      今日の壁打ち上限に達しました。
+                    <p className="text-sm text-[#9A9488] text-center leading-relaxed max-w-xs">
+                      本日は深く思考を巡らせましたね。<br />Alterの脳も休ませていただきます。<br />また明日、続きを話しましょう。
                     </p>
                     <button
                       type="button"

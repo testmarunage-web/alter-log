@@ -94,7 +94,7 @@ model Session {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   date            DateTime @db.Date // セッションの日付（日次で1レコード）
-  dailyLimit      Int      @default(10) // 当日の上限回数
+  dailyLimit      Int      @default(30) // 当日の上限回数
   usedCount       Int      @default(0) // 使用済み回数
   cliffhangerText String?  @db.Text // 翌日の予告テーマ（クリフハンガー）
   openingQuestion String?  @db.Text // AIが生成した当日の冒頭質問
