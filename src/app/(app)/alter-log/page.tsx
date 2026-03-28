@@ -78,7 +78,7 @@ export default async function AlterLogPage() {
           date: dateStr,
           time: timeStr,
           ago: formatRelativeTime(log.createdAt),
-          logEntry: insights.alter_log_entry ?? insights.alter_notice ?? null,
+          logEntry: insights.observed_loops ?? null,
         },
       ];
     } catch {

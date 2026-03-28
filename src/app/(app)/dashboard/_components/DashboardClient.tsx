@@ -296,22 +296,22 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
 
   // DBデータがあればそれを使い、なければ観測中プレースホルダーを表示
   const isInsufficient = log?.is_insufficient_data === true;
-  const balance  = log?.balance   ?? DEFAULT_BALANCE;
-  const notice   = log?.alter_notice   ?? "対話データが蓄積されると、ここにAlterからの気づきが届きます。";
-  const thinkingType = log?.thinking_type ?? "観測中";
+  const balance  = DEFAULT_BALANCE;
+  const notice   = log?.passive_voice_status ?? "対話データが蓄積されると、ここに解析レポートが届きます。";
+  const thinkingType = "観測中";
 
-  const subtitleTitle  = log?.subtraction_title  ?? "観測中";
-  const subtitleDetail = log?.subtraction_detail ?? "観測中";
+  const subtitleTitle  = "観測中";
+  const subtitleDetail = "観測中";
 
-  const organizeTitle  = log?.organize_title  ?? "観測中";
-  const organizeDetail = log?.organize_detail ?? "観測中";
+  const organizeTitle  = "観測中";
+  const organizeDetail = "観測中";
 
-  const bookTitle  = log?.book_title  ?? "観測中";
-  const bookAuthor = log?.book_author ?? "";
-  const bookReason = log?.book_reason ?? "観測中";
+  const bookTitle  = "観測中";
+  const bookAuthor = "";
+  const bookReason = "観測中";
 
-  const winTitle  = log?.win_pattern_title  ?? "観測中";
-  const winDetail = log?.win_pattern_detail ?? "観測中";
+  const winTitle  = "観測中";
+  const winDetail = "観測中";
 
   return (
     <>
