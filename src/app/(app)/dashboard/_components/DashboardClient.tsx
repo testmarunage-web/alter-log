@@ -22,80 +22,15 @@ const IcCompass = () => (
     <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
   </svg>
 );
-const IcBook = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+const IcLock = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
   </svg>
 );
 
-
 // ─────────────────────────────────────────────────────────────────────────────
-// 思考のバランス（二項対立スライダー・5軸）
-// ─────────────────────────────────────────────────────────────────────────────
-const DEFAULT_BALANCE = [
-  { left: "内省", right: "発信", pct: 30 },
-  { left: "直感", right: "論理", pct: 72 },
-  { left: "楽観", right: "慎重", pct: 42 },
-  { left: "現在", right: "未来", pct: 85 },
-  { left: "自責", right: "他責", pct: 20 },
-];
-
-function BalanceSliders({ items }: { items: typeof DEFAULT_BALANCE }) {
-  return (
-    <div className="space-y-2.5 mt-2">
-      {items.map(({ left, right, pct }) => (
-        <div key={left}>
-          <div className="flex justify-between mb-1">
-            <span className="text-[10px] text-[#C4A35A]/80 font-semibold">{left}</span>
-            <span className="text-[10px] text-[#8A8276]">{right}</span>
-          </div>
-          <div className="relative h-px rounded-full" style={{ background: "rgba(196,163,90,0.15)" }}>
-            <div
-              className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full"
-              style={{
-                left: `calc(${pct}% - 5px)`,
-                background: "radial-gradient(circle at 38% 38%, #E8D5A0, #C4A35A 55%)",
-                boxShadow: "0 0 5px rgba(196,163,90,0.70)",
-              }}
-            />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// インフォメーションツールチップ
-// ─────────────────────────────────────────────────────────────────────────────
-function InfoTooltip({ text }: { text: string }) {
-  const [show, setShow] = useState(false);
-  return (
-    <div className="relative inline-flex flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-      <button
-        type="button"
-        onClick={() => setShow((v) => !v)}
-        onMouseEnter={() => setShow(true)}
-        onMouseLeave={() => setShow(false)}
-        className="flex items-center justify-center text-[#C4A35A]/35 hover:text-[#C4A35A]/75 transition-colors"
-      >
-        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" />
-        </svg>
-      </button>
-      {show && (
-        <div className="absolute left-0 top-6 z-20 w-52 p-3 bg-[#141B22] border border-[#C4A35A]/20 rounded-lg shadow-lg">
-          <p className="text-xs text-[#9A9488] leading-relaxed">{text}</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Ripple ボタン
+// Ripple ボタン（ナビ用）
 // ─────────────────────────────────────────────────────────────────────────────
 type Ripple = { id: number; x: number; y: number };
 
@@ -111,7 +46,9 @@ function useRipple() {
   return { ripples, fire };
 }
 
-function RippleLink({ href, children, className = "", style }: { href: string; children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+function RippleLink({ href, children, className = "", style }: {
+  href: string; children: React.ReactNode; className?: string; style?: React.CSSProperties;
+}) {
   const { ripples, fire } = useRipple();
   return (
     <Link href={href} onClick={fire} className={`relative overflow-hidden block ${className}`} style={style}>
@@ -130,77 +67,73 @@ function RippleLink({ href, children, className = "", style }: { href: string; c
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// アコーディオンカード
+// HUD カード（即時スナップショット層）
 // ─────────────────────────────────────────────────────────────────────────────
-const GLASS = "bg-white/[0.04] backdrop-blur-sm border border-[#C4A35A]/20 rounded-xl";
-const SECTION_LABEL = "text-xs tracking-widest text-[#C4A35A]/80 font-bold flex items-center gap-1.5";
-
-function AccordionCard({
-  icon,
-  label,
-  summary,
-  detail,
-  infoText,
-  observing,
-  insufficient,
-  compact = false,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  summary: React.ReactNode;
-  detail: string;
-  infoText: string;
-  observing?: boolean;
-  insufficient?: boolean;
-  compact?: boolean;
+function HudCard({ label, tag, children }: {
+  label: string; tag?: string; children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
-  const isObserving = observing ?? detail.includes("観測中");
+  return (
+    <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase">{label}</span>
+        {tag && (
+          <span className="font-mono text-[9px] tracking-widest text-[#C4A35A]/60 border border-[#C4A35A]/25 rounded px-1.5 py-0.5 leading-none">
+            {tag}
+          </span>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 事実・感情バランスバー
+// ─────────────────────────────────────────────────────────────────────────────
+function FactEmotionBar({ factPct, emotionPct }: { factPct: number; emotionPct: number }) {
+  return (
+    <div>
+      <div className="flex gap-px mb-2 h-[6px] rounded-sm overflow-hidden">
+        <div
+          className="transition-all duration-700"
+          style={{ width: `${factPct}%`, background: "rgba(196,163,90,0.60)" }}
+        />
+        <div
+          className="transition-all duration-700"
+          style={{ width: `${emotionPct}%`, background: "rgba(255,255,255,0.10)" }}
+        />
+      </div>
+      <div className="flex justify-between">
+        <span className="font-mono text-[9px] text-[#C4A35A]/70 tracking-widest">FACT {factPct}%</span>
+        <span className="font-mono text-[9px] text-white/25 tracking-widest">EMOTION {emotionPct}%</span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// プロファイルカード（蓄積層）
+// ─────────────────────────────────────────────────────────────────────────────
+function ProfileCard({ label, value }: { label: string; value: string | null }) {
+  const isLocked = value === null;
   return (
     <div
-      className={`${GLASS} overflow-hidden hover:border-[#C4A35A]/40 transition-all duration-300 cursor-pointer relative`}
-      onClick={() => setOpen((v) => !v)}
+      className="border rounded-lg p-4 overflow-hidden"
+      style={{
+        background: isLocked ? "rgba(255,255,255,0.008)" : "rgba(255,255,255,0.02)",
+        borderColor: isLocked ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.08)",
+      }}
     >
-      {/* 情報不足オーバーレイ */}
-      {insufficient && (
-        <div className="absolute inset-0 bg-[#0B0E13]/60 backdrop-blur-[6px] flex items-center justify-center z-10 rounded-xl">
-          <div className="bg-white/[0.04] backdrop-blur-md border border-white/[0.08] rounded-xl px-5 py-2.5 flex items-center gap-2 shadow-lg">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#8A8276]/50 flex-shrink-0" />
-            <span className="text-xs font-bold tracking-widest text-[#8A8276]">現在の情報量では分析できません</span>
-          </div>
+      <span className="font-mono text-[9px] tracking-[0.22em] text-white/25 uppercase block mb-2">{label}</span>
+      {isLocked ? (
+        <div className="flex items-start gap-2 py-0.5">
+          <span className="text-white/18 mt-0.5 flex-shrink-0"><IcLock /></span>
+          <p className="text-[11.5px] text-white/22 leading-relaxed tracking-wide">
+            データ収集中 — 解析にはあと数回のジャーナル入力が必要です
+          </p>
         </div>
-      )}
-
-      {/* 観測中オーバーレイ */}
-      {!insufficient && isObserving && (
-        <div className="absolute inset-0 bg-[#0B0E13]/50 backdrop-blur-[6px] flex items-center justify-center z-10 rounded-xl">
-          <div className="bg-white/[0.06] backdrop-blur-md border border-[#C4A35A]/20 rounded-xl px-5 py-2.5 flex items-center gap-2 shadow-lg">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#C4A35A]/50 animate-pulse flex-shrink-0" />
-            <span className="text-xs font-bold tracking-widest text-[#8A8276]">データ蓄積中</span>
-          </div>
-        </div>
-      )}
-
-      <div className={compact ? "px-3.5 py-3" : "p-4"}>
-        <div className={`flex items-center ${compact ? "mb-1.5" : "mb-3"}`}>
-          <p className={compact ? "text-[10px] tracking-widest text-[#C4A35A]/70 font-bold flex items-center gap-1" : SECTION_LABEL}>{icon}{label}</p>
-          <div className="ml-1.5"><InfoTooltip text={infoText} /></div>
-        </div>
-        {summary}
-      </div>
-      {!open && (
-        <>
-          <div className={`${compact ? "px-3.5 pb-2" : "px-4 pb-2.5"} flex justify-end`}>
-            <span className="text-[9px] text-[#8A8276]/50 tracking-wide">タップして展開 ▾</span>
-          </div>
-          <div className="h-2 bg-gradient-to-t from-[#C4A35A]/[0.04] to-transparent" />
-        </>
-      )}
-      {open && (
-        <div className={`${compact ? "px-3.5 pb-3" : "px-4 pb-4"} border-t border-[#C4A35A]/10`}>
-          <p className="text-xs text-[#9A9488]/80 leading-relaxed pt-3 italic">{detail}</p>
-        </div>
+      ) : (
+        <p className="text-[12.5px] text-white/65 leading-relaxed">{value}</p>
       )}
     </div>
   );
@@ -218,10 +151,10 @@ interface Props {
 }
 
 const LOADING_MESSAGES = [
-  "最近のあなたの言葉を読み返しています...",
-  "言葉の裏側にあるテーマや、思考のクセを探しています...",
-  "客観的な視点から、あなたへのフィードバックをまとめています...",
-  "レポートを書き上げています。もう少しだけお待ちください...",
+  "テキストを走査しています...",
+  "構文構造を解析しています...",
+  "認知バイアスを検出しています...",
+  "レポートを生成しています...",
 ];
 
 export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: Props) {
@@ -254,27 +187,22 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
     }, 420);
   }
 
-  // ローディング中のメッセージ切り替え（4秒ごと）
+  // ローディングメッセージ切り替え（4秒ごと）
   useEffect(() => {
-    if (!isGenerating) {
-      setLoadingMsgIdx(0);
-      return;
-    }
-    const id = setInterval(() => {
-      setLoadingMsgIdx((i) => (i + 1) % LOADING_MESSAGES.length);
-    }, 4000);
+    if (!isGenerating) { setLoadingMsgIdx(0); return; }
+    const id = setInterval(() => setLoadingMsgIdx((i) => (i + 1) % LOADING_MESSAGES.length), 4000);
     return () => clearInterval(id);
   }, [isGenerating]);
 
   const isButtonActive = buttonState === "B" || buttonState === "D";
   const buttonLabel =
-    buttonState === "A" ? "思考を分析する" :
-    buttonState === "B" ? "本日の思考分析を実行する" :
-    buttonState === "C" ? "分析をアップデートする" :
-    "最新の対話を踏まえて分析を更新する";
+    buttonState === "A" ? "SCAN  —  ジャーナル入力が必要です" :
+    buttonState === "B" ? "SCAN  —  本日の思考を解析する" :
+    buttonState === "C" ? "SCAN  —  対話を増やすとアップデートできます" :
+    "SCAN  —  最新の対話を解析する";
   const helperText =
-    buttonState === "A" ? "※分析を開始するには、まず本日のジャーナルを入力してください。" :
-    buttonState === "C" ? "※分析をアップデートするには、Alterとさらに（3回以上）対話を重ねて思考を深めてください。" :
+    buttonState === "A" ? "解析を開始するには、まず本日のジャーナルを入力してください。" :
+    buttonState === "C" ? "Alterとさらに3回以上対話を重ねると、解析をアップデートできます。" :
     null;
 
   function handleGenerate() {
@@ -294,24 +222,20 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
     });
   }
 
-  // DBデータがあればそれを使い、なければ観測中プレースホルダーを表示
   const isInsufficient = log?.is_insufficient_data === true;
-  const balance  = DEFAULT_BALANCE;
-  const notice   = log?.passive_voice_status ?? "対話データが蓄積されると、ここに解析レポートが届きます。";
-  const thinkingType = "観測中";
 
-  const subtitleTitle  = "観測中";
-  const subtitleDetail = "観測中";
+  // ① 即時スナップショット
+  const factPct         = log?.fact_emotion_ratio?.fact_percentage    ?? 0;
+  const emotionPct      = log?.fact_emotion_ratio?.emotion_percentage  ?? 0;
+  const ratioAnalysis   = log?.fact_emotion_ratio?.analysis            ?? null;
+  const biasName        = log?.cognitive_bias_detected?.bias_name      ?? null;
+  const biasDescription = log?.cognitive_bias_detected?.description    ?? null;
+  const passiveStatus   = log?.passive_voice_status                    ?? null;
 
-  const organizeTitle  = "観測中";
-  const organizeDetail = "観測中";
-
-  const bookTitle  = "観測中";
-  const bookAuthor = "";
-  const bookReason = "観測中";
-
-  const winTitle  = "観測中";
-  const winDetail = "観測中";
+  // ② 蓄積プロファイル（null = ロック表示）
+  const observedLoops    = log?.observed_loops     ?? null;
+  const blindSpots       = log?.blind_spots        ?? null;
+  const pendingDecisions = log?.pending_decisions  ?? null;
 
   return (
     <>
@@ -321,64 +245,59 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
           100% { transform: scale(30); opacity: 0; }
         }
         @keyframes hl-up {
-          from { opacity: 0; transform: translateY(10px); }
+          from { opacity: 0; transform: translateY(7px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .hl-enter { animation: hl-up 0.55s cubic-bezier(0.22,1,0.36,1) both; }
-        .hl-d1 { animation-delay: 0.06s; }
-        .hl-d2 { animation-delay: 0.12s; }
-        .hl-d3 { animation-delay: 0.18s; }
-        .hl-d4 { animation-delay: 0.24s; }
-        .hl-d5 { animation-delay: 0.30s; }
-        .hl-d6 { animation-delay: 0.36s; }
-        .hl-d7 { animation-delay: 0.42s; }
+        .hl-enter { animation: hl-up 0.45s cubic-bezier(0.22,1,0.36,1) both; }
+        .hl-d1 { animation-delay: 0.05s; }
+        .hl-d2 { animation-delay: 0.10s; }
+        .hl-d3 { animation-delay: 0.15s; }
+        .hl-d4 { animation-delay: 0.20s; }
+        .hl-d5 { animation-delay: 0.25s; }
+        .hl-d6 { animation-delay: 0.30s; }
       `}</style>
 
       <div className="bg-[#0B0E13] px-4 py-6 pb-32 md:px-6">
-        <div className="max-w-2xl mx-auto space-y-4">
+        <div className="max-w-2xl mx-auto space-y-3">
 
-          {/* ── Alter 思考整理ボタン（最重要機能・ファーストビュー） ─────── */}
+          {/* ── SCAN ボタン ────────────────────────────────────────────────── */}
           <div className="hl-enter">
             <button
               type="button"
               onClick={handleGenerate}
               disabled={!isButtonActive || isGenerating || isPending}
-              className={`w-full min-h-[68px] flex flex-col items-center justify-center gap-1.5 py-4 px-5 rounded-2xl font-bold transition-all duration-200 ${
+              className={`w-full min-h-[56px] flex items-center justify-center py-4 px-5 rounded-lg font-mono transition-all duration-200 ${
                 isButtonActive && !isGenerating && !isPending
-                  ? "bg-[#C4A35A]/15 border border-[#C4A35A]/50 text-[#E8D5A0] hover:bg-[#C4A35A]/25 hover:border-[#C4A35A]/70 hover:shadow-[0_0_20px_rgba(196,163,90,0.2)]"
-                  : "bg-white/[0.02] border border-white/[0.06] text-[#8A8276]/40 cursor-not-allowed"
+                  ? "bg-[#C4A35A]/10 border border-[#C4A35A]/40 text-[#C4A35A] hover:bg-[#C4A35A]/15 hover:border-[#C4A35A]/60"
+                  : "bg-white/[0.02] border border-white/[0.05] text-white/20 cursor-not-allowed"
               }`}
             >
               {isGenerating || isPending ? (
                 <div className="flex items-center gap-2.5">
-                  <span className="w-3.5 h-3.5 flex-shrink-0 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-sm font-semibold text-[#C4A35A]/80">分析中...</span>
+                  <span className="w-3 h-3 flex-shrink-0 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-[11px] font-mono text-[#C4A35A]/70 tracking-widest">{LOADING_MESSAGES[loadingMsgIdx]}</span>
                 </div>
               ) : (
-                <span className="text-lg font-black tracking-tight leading-tight">{buttonLabel}</span>
+                <span className="text-[13px] font-mono tracking-[0.14em]">{buttonLabel}</span>
               )}
             </button>
 
             {helperText && !isGenerating && !isPending && (
-              <p className="mt-1.5 text-[10px] text-[#8A8276]/50 text-center tracking-wide">
-                {helperText}
-              </p>
+              <p className="mt-1.5 text-[10px] font-mono text-white/20 text-center tracking-wide">{helperText}</p>
             )}
-
             {error && (
-              <p className="mt-2 text-[10px] text-red-400/70 text-center">{error}</p>
+              <p className="mt-2 text-[10px] text-red-400/60 text-center font-mono">{error}</p>
             )}
           </div>
 
-          {/* (1) アクションボタン */}
-          <div className="hl-enter hl-d1 grid grid-cols-2 gap-3 mb-2">
+          {/* ── ナビゲーションボタン ─────────────────────────────────────────── */}
+          <div className="hl-enter hl-d1 grid grid-cols-2 gap-3">
             <RippleLink href="/chat?mode=journal"
               className="rounded-xl p-4
                 border border-t-[rgba(255,255,255,0.12)] border-x-[rgba(255,255,255,0.05)] border-b-transparent
                 shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.10)]
                 hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(196,163,90,0.18),inset_0_1px_0_rgba(255,255,255,0.14)]
-                hover:-translate-y-0.5
-                active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
+                hover:-translate-y-0.5 active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
                 transition-all duration-100 ease-out"
               style={{ background: "linear-gradient(160deg, #3A2910 0%, #1A1408 60%)" }}
             >
@@ -397,8 +316,7 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
                 border border-t-[rgba(255,255,255,0.08)] border-x-[rgba(255,255,255,0.03)] border-b-transparent
                 shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(180,210,190,0.08)]
                 hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(80,130,100,0.18),inset_0_1px_0_rgba(180,210,190,0.12)]
-                hover:-translate-y-0.5
-                active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
+                hover:-translate-y-0.5 active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
                 transition-all duration-100 ease-out"
               style={{ background: "linear-gradient(160deg, #1C3028 0%, #0D1A16 60%)" }}
             >
@@ -413,116 +331,89 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
             </RippleLink>
           </div>
 
-          {/* (2) Alterの気づき */}
-          <div className="hl-enter hl-d2 flex gap-3 items-center mb-2">
-            <AlterIcon size={36} />
-            <div className="relative flex-1 bg-white/[0.06] border border-[#C4A35A]/20 rounded-2xl px-4 py-3.5 shadow-sm">
-              <span className="absolute -left-[7px] top-1/2 -translate-y-1/2 w-0 h-0"
-                style={{ borderTop: "6px solid transparent", borderBottom: "6px solid transparent", borderRight: "7px solid rgba(196,163,90,0.2)" }} />
-              <span className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-0 h-0"
-                style={{ borderTop: "5px solid transparent", borderBottom: "5px solid transparent", borderRight: "6px solid rgba(255,255,255,0.06)" }} />
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="text-xs font-bold text-[#C4A35A] tracking-wider">Alterの気づき</span>
-                <InfoTooltip text="直近の対話から、Alterがあなたの無意識のパターンに気づいた時に話しかけます。" />
-              </div>
-              <p className="text-sm text-[#E8E3D8] leading-relaxed">{notice}</p>
-            </div>
-          </div>
-
-          {/* (3) 現在の思考タイプ（フル幅） */}
-          <div className={`hl-enter hl-d3 ${GLASS} p-4 relative`}>
-            {!log && (
-              <div className="absolute inset-0 bg-[#0B0E13]/50 backdrop-blur-[6px] flex items-center justify-center z-10 rounded-xl">
-                <div className="bg-white/[0.06] backdrop-blur-md border border-[#C4A35A]/20 rounded-xl px-5 py-2.5 flex items-center gap-2 shadow-lg">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#C4A35A]/50 animate-pulse flex-shrink-0" />
-                  <span className="text-xs font-bold tracking-widest text-[#8A8276]">データ蓄積中</span>
-                </div>
-              </div>
+          {/* ─── ① SNAPSHOT セクションヘッダー ─────────────────────────────── */}
+          <div className="hl-enter hl-d2 flex items-center gap-3 pt-2">
+            <span className="font-mono text-[9px] tracking-[0.25em] text-white/25 uppercase">① Snapshot</span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
+            {log && !isInsufficient && (
+              <span className="font-mono text-[9px] text-white/15 tracking-widest">LAST SCAN</span>
             )}
-            <div className="flex items-center gap-1 mb-3">
-              <p className={SECTION_LABEL}>現在の思考タイプ</p>
-              <InfoTooltip text="対話から推測される、あなたの現在の思考のバランスと傾向です。" />
-            </div>
-            <p className="text-base font-black tracking-wide text-[#E8D5A0] mb-4">{thinkingType}</p>
-            <BalanceSliders items={balance} />
           </div>
 
-          {/* (4) 今週の引き算（コンパクト） */}
+          {/* ── 1. 事実・感情バランス ─────────────────────────────────────────── */}
+          <div className="hl-enter hl-d3">
+            <HudCard label="事実・感情バランス">
+              {!log || isInsufficient ? (
+                <p className="font-mono text-[11px] text-white/18">
+                  {isInsufficient ? "— 情報量不足のため解析できません" : "— 解析データなし"}
+                </p>
+              ) : (
+                <>
+                  <FactEmotionBar factPct={factPct} emotionPct={emotionPct} />
+                  {ratioAnalysis && (
+                    <p className="mt-3 text-[12.5px] text-white/55 leading-relaxed">{ratioAnalysis}</p>
+                  )}
+                </>
+              )}
+            </HudCard>
+          </div>
+
+          {/* ── 2. 認知バイアス検知 ───────────────────────────────────────────── */}
           <div className="hl-enter hl-d4">
-            <AccordionCard
-              icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>}
-              label="今週の引き算"
-              infoText="今週やめるべきことを提案します。引き算の行動がコンディション回復の最短ルートです。"
-              insufficient={isInsufficient}
-              compact
-              summary={
-                <p className="text-xs text-[#9A9488] leading-relaxed mt-1">
-                  今週は<span className="text-[#E8E3D8] font-semibold">「{subtitleTitle}」</span>を一旦ストップし、脳のメモリを解放しましょう。
+            <HudCard
+              label="認知バイアス検知"
+              tag={log && !isInsufficient && biasName ? "DETECTED" : undefined}
+            >
+              {!log || isInsufficient ? (
+                <p className="font-mono text-[11px] text-white/18">
+                  {isInsufficient ? "— 情報量不足のため解析できません" : "— 解析データなし"}
                 </p>
-              }
-              detail={subtitleDetail}
-            />
+              ) : (
+                <>
+                  {biasName && (
+                    <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">
+                      「{biasName}」
+                    </p>
+                  )}
+                  {biasDescription && (
+                    <p className="text-[12.5px] text-white/50 leading-relaxed">{biasDescription}</p>
+                  )}
+                </>
+              )}
+            </HudCard>
           </div>
 
-          {/* (5) 頭のモヤモヤ整理 */}
+          {/* ── 3. 意思決定の主体性 ───────────────────────────────────────────── */}
           <div className="hl-enter hl-d5">
-            <AccordionCard
-              icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>}
-              label="頭のモヤモヤ整理"
-              infoText="複雑に絡み合っているタスクを、既知のフレームワークで整理します。"
-              insufficient={isInsufficient}
-              summary={
-                <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
-                  緊急度と重要度のマトリクスに当てはめると、今悩んでいることは
-                  <span className="text-[#E8E3D8] font-semibold">「{organizeTitle}」</span>
-                  領域にあります。
+            <HudCard label="意思決定の主体性">
+              {!log || isInsufficient ? (
+                <p className="font-mono text-[11px] text-white/18">
+                  {isInsufficient ? "— 情報量不足のため解析できません" : "— 解析データなし"}
                 </p>
-              }
-              detail={organizeDetail}
-            />
+              ) : passiveStatus ? (
+                <p className="text-[12.5px] text-white/55 leading-relaxed">{passiveStatus}</p>
+              ) : null}
+            </HudCard>
           </div>
 
-          {/* (6) 今のあなたに響く一冊 */}
-          <div className="hl-enter hl-d6">
-            <AccordionCard
-              icon={<IcBook />}
-              label="今のあなたに響く一冊"
-              infoText="あなたの現在地に最も共鳴する書籍・知見を、対話の文脈から選定しています。"
-              insufficient={isInsufficient}
-              summary={
-                <div className="mt-2">
-                  <p className="text-sm font-black text-[#E8E3D8] leading-snug mb-0.5">『{bookTitle}』</p>
-                  <p className="text-xs text-[#8A8276] mb-2">{bookAuthor} 著</p>
-                  <p className="text-sm text-[#9A9488] leading-relaxed">{bookReason}</p>
-                </div>
-              }
-              detail={`『${bookTitle}』（${bookAuthor}著）\n\n${bookReason}`}
-            />
+          {/* ─── ② PROFILE セクションヘッダー ──────────────────────────────── */}
+          <div className="hl-enter hl-d6 flex items-center gap-3 pt-2">
+            <span className="font-mono text-[9px] tracking-[0.25em] text-white/25 uppercase">② Profile</span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
+            <span className="font-mono text-[9px] text-white/15 tracking-widest">ACCUMULATED</span>
           </div>
 
-          {/* (7) あなたの勝ちパターン */}
-          <div className="hl-enter hl-d7">
-            <AccordionCard
-              icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>}
-              label="あなたの勝ちパターン"
-              infoText="過去の対話から、あなたが停滞を打破した成功パターンを抽出しています。"
-              insufficient={isInsufficient}
-              observing={winTitle.includes("観測中") || winDetail.includes("観測中")}
-              summary={
-                <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
-                  あなたの勝ちパターンは
-                  <span className="text-[#E8E3D8] font-bold">「{winTitle}」</span>
-                  です。今回も同じパターンが適用できます。
-                </p>
-              }
-              detail={winDetail}
-            />
+          {/* ── 蓄積プロファイル層（nullの場合はロック表示） ──────────────────── */}
+          <div className="hl-enter hl-d6 space-y-2">
+            <ProfileCard label="思考ループ観測" value={observedLoops} />
+            <ProfileCard label="盲点エリア"     value={blindSpots} />
+            <ProfileCard label="保留リスト"     value={pendingDecisions} />
           </div>
 
         </div>
       </div>
 
-      {/* ── 初回ウェルカムモーダル ────────────────────────────────────────── */}
+      {/* ── 初回ウェルカムモーダル ────────────────────────────────────────────── */}
       {showModal && (
         <div
           className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0"
@@ -555,23 +446,17 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
 
             {/* 本文 */}
             <div className="flex-1 overflow-y-auto px-5 pb-2">
-              {/* リード */}
               <p className="text-sm text-[#E8E3D8] leading-relaxed mb-5">
                 Alterは、あなたの言葉を蓄積しながら成長する<span className="text-[#C4A35A]">「もう一人の自分」</span>です。<br />
                 3つのコア機能で、思考を深めましょう。
               </p>
 
-              {/* 3つの機能 */}
               <div className="space-y-2.5">
                 {/* Journal */}
-                <div
-                  className="flex items-start gap-3.5 rounded-xl px-3.5 py-3"
-                  style={{ background: "rgba(196,163,90,0.06)", border: "1px solid rgba(196,163,90,0.14)" }}
-                >
-                  <div
-                    className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
-                    style={{ background: "rgba(196,163,90,0.12)" }}
-                  >
+                <div className="flex items-start gap-3.5 rounded-xl px-3.5 py-3"
+                  style={{ background: "rgba(196,163,90,0.06)", border: "1px solid rgba(196,163,90,0.14)" }}>
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
+                    style={{ background: "rgba(196,163,90,0.12)" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C4A35A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -584,14 +469,10 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
                 </div>
 
                 {/* Chat */}
-                <div
-                  className="flex items-start gap-3.5 rounded-xl px-3.5 py-3"
-                  style={{ background: "rgba(139,168,158,0.06)", border: "1px solid rgba(139,168,158,0.14)" }}
-                >
-                  <div
-                    className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
-                    style={{ background: "rgba(139,168,158,0.10)" }}
-                  >
+                <div className="flex items-start gap-3.5 rounded-xl px-3.5 py-3"
+                  style={{ background: "rgba(139,168,158,0.06)", border: "1px solid rgba(139,168,158,0.14)" }}>
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
+                    style={{ background: "rgba(139,168,158,0.10)" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8BA89E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                     </svg>
@@ -603,14 +484,10 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
                 </div>
 
                 {/* Report */}
-                <div
-                  className="flex items-start gap-3.5 rounded-xl px-3.5 py-3"
-                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
-                >
-                  <div
-                    className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
-                    style={{ background: "rgba(255,255,255,0.06)" }}
-                  >
+                <div className="flex items-start gap-3.5 rounded-xl px-3.5 py-3"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
+                    style={{ background: "rgba(255,255,255,0.06)" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9A9488" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
@@ -625,15 +502,11 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
                   </div>
                 </div>
               </div>
-
               <div className="h-5" />
             </div>
 
             {/* フッター：CTA */}
-            <div
-              className="flex-shrink-0 px-5 pb-5 pt-4"
-              style={{ borderTop: "1px solid rgba(196,163,90,0.10)" }}
-            >
+            <div className="flex-shrink-0 px-5 pb-5 pt-4" style={{ borderTop: "1px solid rgba(196,163,90,0.10)" }}>
               <button
                 type="button"
                 onClick={handleModalClose}
