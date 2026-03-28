@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveChatMessage, resetSession } from "@/app/actions/chat";
 import { AlterIcon } from "../../_components/AlterIcon";
+import { Sparkles } from "lucide-react";
 
 // メッセージ時刻フォーマット（壁打ちモード用）
 function formatTime(date?: Date): string {
@@ -179,14 +180,11 @@ export function ChatInterface({
                 type="button"
                 onClick={handleReset}
                 disabled={isResetting || isLoading}
-                aria-label="会話をリセット"
-                title="会話をリセット"
+                aria-label="話題を変える"
+                title="話題を変える"
                 className="w-7 h-7 flex items-center justify-center rounded-lg text-[#8A8276] hover:text-[#E8E3D8] hover:bg-white/[0.05] transition-colors disabled:opacity-30"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                  <path d="M3 3v5h5" />
-                </svg>
+                <Sparkles size={14} />
               </button>
             </div>
           ) : (
