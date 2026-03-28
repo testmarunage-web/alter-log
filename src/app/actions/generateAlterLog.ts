@@ -204,5 +204,7 @@ export async function getLatestAlterLog(): Promise<AlterLogInsights | null> {
   });
 
   if (!log) return null;
-  return alterLogSchema.parse(log.insights);
+  const result = alterLogSchema.safeParse(log.insights);
+  if (!result.success) return null;
+  return result.data;
 }

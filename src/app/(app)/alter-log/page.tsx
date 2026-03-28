@@ -61,7 +61,7 @@ export default async function AlterLogPage() {
 
   const entries = rawLogs.flatMap((log) => {
     try {
-      const insights = alterLogSchema.parse(log.insights);
+      const insights = alterLogSchema.partial().parse(log.insights);
       const dateStr = log.date.toISOString().split("T")[0];
       const timeStr = log.createdAt.toISOString().split("T")[1].split(".")[0];
       return [
@@ -70,8 +70,8 @@ export default async function AlterLogPage() {
           date: dateStr,
           time: timeStr,
           ago: formatRelativeTime(log.createdAt),
-          logEntry: insights.alter_log_entry,
-          notice: insights.alter_notice,
+          logEntry: insights.alter_log_entry ?? null,
+          notice: insights.alter_notice ?? null,
         },
       ];
     } catch {
@@ -154,12 +154,18 @@ export default async function AlterLogPage() {
                       </div>
 
                       {/* 観察日記 本文 */}
-                      <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">
-                        {entry.logEntry}
-                      </p>
+                      {entry.logEntry ? (
+                        <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">
+                          {entry.logEntry}
+                        </p>
+                      ) : entry.notice ? (
+                        <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide">
+                          {entry.notice}
+                        </p>
+                      ) : null}
 
-                      {/* Alterからのメッセージ */}
-                      {entry.notice && (
+                      {/* Alterからのメッセージ（logEntryがある場合のみ下部に表示） */}
+                      {entry.logEntry && entry.notice && (
                         <div className="mt-5 pt-4 border-t border-[#C4A35A]/10">
                           <p className="text-[9px] text-[#C4A35A]/50 uppercase tracking-widest mb-2 font-mono">
                             Alterより
