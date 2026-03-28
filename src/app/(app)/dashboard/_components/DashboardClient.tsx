@@ -142,6 +142,7 @@ function AccordionCard({
   detail,
   infoText,
   observing,
+  insufficient,
   compact = false,
 }: {
   icon: React.ReactNode;
@@ -150,6 +151,7 @@ function AccordionCard({
   detail: string;
   infoText: string;
   observing?: boolean;
+  insufficient?: boolean;
   compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -160,8 +162,18 @@ function AccordionCard({
       className={`${GLASS} overflow-hidden hover:border-[#C4A35A]/40 transition-all duration-300 cursor-pointer relative`}
       onClick={() => setOpen((v) => !v)}
     >
+      {/* 情報不足オーバーレイ */}
+      {insufficient && (
+        <div className="absolute inset-0 bg-[#0B0E13]/60 backdrop-blur-[6px] flex items-center justify-center z-10 rounded-xl">
+          <div className="bg-white/[0.04] backdrop-blur-md border border-white/[0.08] rounded-xl px-5 py-2.5 flex items-center gap-2 shadow-lg">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8A8276]/50 flex-shrink-0" />
+            <span className="text-xs font-bold tracking-widest text-[#8A8276]">現在の情報量では分析できません</span>
+          </div>
+        </div>
+      )}
+
       {/* 観測中オーバーレイ */}
-      {isObserving && (
+      {!insufficient && isObserving && (
         <div className="absolute inset-0 bg-[#0B0E13]/50 backdrop-blur-[6px] flex items-center justify-center z-10 rounded-xl">
           <div className="bg-white/[0.06] backdrop-blur-md border border-[#C4A35A]/20 rounded-xl px-5 py-2.5 flex items-center gap-2 shadow-lg">
             <span className="w-1.5 h-1.5 rounded-full bg-[#C4A35A]/50 animate-pulse flex-shrink-0" />
@@ -283,6 +295,7 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
   }
 
   // DBデータがあればそれを使い、なければ観測中プレースホルダーを表示
+  const isInsufficient = log?.is_insufficient_data === true;
   const balance  = log?.balance   ?? DEFAULT_BALANCE;
   const notice   = log?.alter_notice   ?? "対話データが蓄積されると、ここにAlterからの気づきが届きます。";
   const thinkingType = log?.thinking_type ?? "観測中";
@@ -440,6 +453,7 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
               icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>}
               label="今週の引き算"
               infoText="今週やめるべきことを提案します。引き算の行動がコンディション回復の最短ルートです。"
+              insufficient={isInsufficient}
               compact
               summary={
                 <p className="text-xs text-[#9A9488] leading-relaxed mt-1">
@@ -456,6 +470,7 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
               icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>}
               label="頭のモヤモヤ整理"
               infoText="複雑に絡み合っているタスクを、既知のフレームワークで整理します。"
+              insufficient={isInsufficient}
               summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed mt-1">
                   緊急度と重要度のマトリクスに当てはめると、今悩んでいることは
@@ -473,6 +488,7 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
               icon={<IcBook />}
               label="今のあなたに響く一冊"
               infoText="あなたの現在地に最も共鳴する書籍・知見を、対話の文脈から選定しています。"
+              insufficient={isInsufficient}
               summary={
                 <div className="mt-2">
                   <p className="text-sm font-black text-[#E8E3D8] leading-snug mb-0.5">『{bookTitle}』</p>
@@ -490,6 +506,7 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
               icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>}
               label="あなたの勝ちパターン"
               infoText="過去の対話から、あなたが停滞を打破した成功パターンを抽出しています。"
+              insufficient={isInsufficient}
               observing={winTitle.includes("観測中") || winDetail.includes("観測中")}
               summary={
                 <p className="text-sm text-[#9A9488] leading-relaxed mt-1">

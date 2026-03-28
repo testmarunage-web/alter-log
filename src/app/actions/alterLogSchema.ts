@@ -1,6 +1,9 @@
 import { z } from "zod";
 
 export const alterLogSchema = z.object({
+  is_insufficient_data: z.boolean().describe(
+    "入力されたジャーナルや壁打ちが『テスト1』などの無意味な文字列、または極端に短く情報量が足りない場合は必ず true にすること。十分な情報がある場合は false。"
+  ),
   alter_notice: z.string().describe(
     "ダッシュボード上でユーザーへ直接語りかける2〜3文のメッセージ。一人称から二人称（私は〜、あなたは〜）、です・ます調。観察日記の内容を踏まえ、背中を押す or ハッとさせる問いかけ。"
   ),

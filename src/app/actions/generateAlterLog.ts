@@ -120,7 +120,9 @@ win_pattern（勝ちパターン）:
 ■ 共通ルール
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - 全文日本語。ビジネスパーソン向けの鋭く端的な表現を使う。
-- 音声入力の誤字・同音異義語は指摘せず、文脈から意図を読み取り本質にのみ応答する。`,
+- 音声入力の誤字・同音異義語は指摘せず、文脈から意図を読み取り本質にのみ応答する。
+
+【絶対厳守】入力が「テスト」「test」「テスト1」等の無意味な文字列や、情報量が極端に少ない場合は、絶対に推測で分析やポエムを書かないこと。その場合は必ず \`is_insufficient_data\` を true にし、各テキスト項目には「INSUFFICIENT_DATA」とだけ出力せよ。十分な情報がある場合は \`is_insufficient_data\` を false にすること。`,
       prompt: `以下のユーザーの直近3日間の対話ログを深く分析し、ダッシュボード表示用の分析データをJSONで生成してください。
 
 【データ状況】
@@ -133,6 +135,7 @@ ${context}`,
   } catch (err) {
     console.error("[processAlterLogForUser] generateObject failed — using fallback:", err);
     object = {
+      is_insufficient_data: false,
       alter_notice: "データを分析中です。少し時間をおいてから再度お試しください。",
       alter_log_entry: "本日は記録が少ないため、詳細な考察は控える。",
       thinking_type: "観測中",
