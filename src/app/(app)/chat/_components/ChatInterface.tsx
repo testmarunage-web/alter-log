@@ -51,6 +51,7 @@ interface Props {
   initialMessages: InitialMessage[];
   initialJournalMessages: JournalMessage[];
   userName: string;
+  hasTodayJournal: boolean;
 }
 
 // ── Alterアバター（フラットな欠けた円） ────────────────────────────────────
@@ -69,6 +70,7 @@ export function ChatInterface({
   initialMessages,
   initialJournalMessages,
   userName,
+  hasTodayJournal,
 }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesAreaRef = useRef<HTMLDivElement>(null);
@@ -344,14 +346,18 @@ export function ChatInterface({
                 {remaining <= 0 && !isLoading && visibleMessages.length > 0 && (
                   <div className="flex flex-col items-center gap-3 pt-2 pb-4">
                     <p className="text-sm text-[#9A9488] text-center leading-relaxed max-w-xs">
-                      本日は深く思考を巡らせましたね。<br />Alterの脳も休ませていただきます。<br />また明日、続きを話しましょう。
+                      {hasTodayJournal ? (
+                        <>本日は深く思考を巡らせましたね。<br />Alterの脳も本日は休ませていただきます。</>
+                      ) : (
+                        <>本日は深く思考を巡らせましたね。Alterとの対話はここまでにして、<br />今日の気づきをジャーナルに書き留めませんか？</>
+                      )}
                     </p>
                     <button
                       type="button"
-                      onClick={() => router.push("/archive")}
+                      onClick={() => router.push(hasTodayJournal ? "/dashboard" : "/chat?mode=journal")}
                       className="px-5 py-2.5 rounded-xl text-sm font-medium border border-[#C4A35A]/30 text-[#C4A35A] hover:bg-[#C4A35A]/10 transition-colors"
                     >
-                      今日のレポートを見る
+                      {hasTodayJournal ? "本日の思考分析を確認する" : "ジャーナルに思考をまとめる"}
                     </button>
                   </div>
                 )}

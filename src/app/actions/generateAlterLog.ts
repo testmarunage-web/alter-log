@@ -54,11 +54,13 @@ export async function processAlterLogForUser(clerkId: string): Promise<AlterLogI
 
   const hasData = journals.length > 0 || coachMsgs.length > 0;
 
-  // generateObjectでJSON生成
-  const { object } = await generateObject({
-    model: anthropic("claude-sonnet-4-5"),
-    schema: alterLogSchema,
-    system: `あなたはユーザーの思考の裏側を読み解く、客観的かつ鋭いエグゼクティブコーチ「Alter」です。与えられたジャーナルと壁打ちのログから、ユーザー自身も気づいていない深層心理やパターンを抽出し、指定されたJSONフォーマットに従って出力してください。AI的な「一般的なアドバイス」は一切禁止し、必ず「ログ内の具体的な発言や頻出ワード」というファクトを根拠にしてください。
+  // generateObjectでJSON生成（データ不足や解析失敗時はフォールバックを返す）
+  let object: AlterLogInsights;
+  try {
+    const { object: generated } = await generateObject({
+      model: anthropic("claude-sonnet-4-5"),
+      schema: alterLogSchema,
+      system: `あなたはユーザーの思考の裏側を読み解く、客観的かつ鋭いエグゼクティブコーチ「Alter」です。与えられたジャーナルと壁打ちのログから、ユーザー自身も気づいていない深層心理やパターンを抽出し、指定されたJSONフォーマットに従って出力してください。AI的な「一般的なアドバイス」は一切禁止し、必ず「ログ内の具体的な発言や頻出ワード」というファクトを根拠にしてください。
 
 【🚨データ不足時（初期利用時）の大原則】
 初回利用時など過去の蓄積データがない場合でも、ユーザーをがっかりさせないよう「今日のログから読み取れる最大限の深い分析（脳内シェア、思考タイプ、モヤモヤ整理、書籍提案など）」は全力で提示すること。
@@ -115,14 +117,45 @@ export async function processAlterLogForUser(clerkId: string): Promise<AlterLogI
 全文は日本語で、ビジネスパーソンに向けた鋭く端的な表現を使う。
 
 【音声入力対応の絶対ルール】ユーザーのジャーナルや壁打ちログは音声入力で記録されたものが多く、誤字・脱字・同音異義語のミスが含まれる場合がある。これらを絶対に指摘・言及せず、文脈から意図を読み取り、エグゼクティブの思考の本質に対してのみ分析を行うこと。`,
-    prompt: `以下のユーザーの直近3日間の対話ログを深く分析し、ダッシュボード表示用の分析データをJSONで生成してください。
+      prompt: `以下のユーザーの直近3日間の対話ログを深く分析し、ダッシュボード表示用の分析データをJSONで生成してください。
 
 【データ状況】
 ${hasData ? "過去のログあり（以下のログを根拠に具体的な分析を行うこと）" : "初回利用またはログなし（今日の入力のみ、またはデータがない状態。データ収集段階であることを誠実に伝えること）"}
 
 【分析対象ログ】
 ${context}`,
-  });
+    });
+    object = generated;
+  } catch (err) {
+    console.error("[processAlterLogForUser] generateObject failed — using fallback:", err);
+    object = {
+      alter_notice: "データを分析中です。少し時間をおいてから再度お試しください。",
+      thinking_type: "観測中",
+      balance: [
+        { left: "自分軸", right: "他人軸", pct: 50 },
+        { left: "直感", right: "論理", pct: 50 },
+        { left: "楽観", right: "慎重", pct: 50 },
+        { left: "現在", right: "未来", pct: 50 },
+        { left: "思考", right: "行動", pct: 50 },
+      ],
+      mind_share: [
+        { label: "仕事", pct: 37, color: "#C4A35A" },
+        { label: "思考整理", pct: 23, color: "#7A9E8E" },
+        { label: "人間関係", pct: 19, color: "#8A7A5A" },
+        { label: "将来", pct: 13, color: "#4A5A54" },
+        { label: "その他", pct: 8, color: "#2A3A34" },
+      ],
+      subtraction_title: "観測中",
+      subtraction_detail: "対話データが蓄積されると、ここにリソース解放の提案が届きます。",
+      organize_title: "観測中",
+      organize_detail: "対話データが蓄積されると、思考の整理と提案が届きます。",
+      book_title: "観測中",
+      book_author: "",
+      book_reason: "対話データが蓄積されると、今のあなたに響く一冊が届きます。",
+      win_pattern_title: "観測中",
+      win_pattern_detail: "まだあなたの勝ちパターンを観測中です。焦らずログを貯めていきましょう。",
+    };
+  }
 
   // AlterLogテーブルに保存
   await prisma.alterLog.create({

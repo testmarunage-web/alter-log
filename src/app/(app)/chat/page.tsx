@@ -42,6 +42,14 @@ export default async function ChatPage({
   const clerkUser = await currentUser();
   const userName = clerkUser?.firstName ?? "You";
 
+  // ─── 今日のジャーナル有無を判定 ─────────────────────────────────────────
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayJournalCount = await prisma.journalEntry.count({
+    where: { userId: user.id, createdAt: { gte: todayStart } },
+  });
+  const hasTodayJournal = todayJournalCount > 0;
+
   // ─── ジャーナル履歴を取得 ───────────────────────────────────────────────
   const journalEntries = await prisma.journalEntry.findMany({
     where: { userId: user.id },
@@ -83,6 +91,7 @@ export default async function ChatPage({
       initialMessages={initialMessages}
       initialJournalMessages={initialJournalMessages}
       userName={userName}
+      hasTodayJournal={hasTodayJournal}
     />
   );
 }

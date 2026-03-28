@@ -6,39 +6,61 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+export type ButtonState = "A" | "B" | "C" | "D";
+
 export default async function DashboardPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
   const initialAlterLog = await getLatestAlterLog();
 
-  // hasNewLogs 判定
-  // 最新の AlterLog 以降に JournalEntry または CoachMessage が 1 件以上あるか
-  let hasNewLogs = false;
-  const user = await prisma.user.findUnique({ where: { clerkId: userId } });
-  if (user) {
-    const latestLog = await prisma.alterLog.findFirst({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-      select: { createdAt: true },
-    });
-    const since = latestLog?.createdAt ?? new Date(0);
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
 
-    const [journalCount, coachCount] = await Promise.all([
+  const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+
+  let buttonState: ButtonState = "A";
+  let isFirstVisit = false;
+
+  if (user) {
+    const [todayJournalCount, todayAlterLog, totalJournalCount] = await Promise.all([
       prisma.journalEntry.count({
-        where: { userId: user.id, createdAt: { gt: since } },
+        where: { userId: user.id, createdAt: { gte: todayStart } },
       }),
-      prisma.coachMessage.count({
-        where: { userId: user.id, role: "user", createdAt: { gt: since } },
+      prisma.alterLog.findFirst({
+        where: { userId: user.id, createdAt: { gte: todayStart } },
+        orderBy: { createdAt: "desc" },
+        select: { createdAt: true },
       }),
+      prisma.journalEntry.count({ where: { userId: user.id } }),
     ]);
-    hasNewLogs = journalCount + coachCount > 0;
+
+    isFirstVisit = totalJournalCount === 0;
+
+    if (todayJournalCount === 0) {
+      // 状態A: 今日のジャーナル未記入
+      buttonState = "A";
+    } else if (!todayAlterLog) {
+      // 状態B: ジャーナルあり・分析未実施
+      buttonState = "B";
+    } else {
+      // 状態C/D: 分析済み → 直近の壁打ち数で判定
+      const newCoachCount = await prisma.coachMessage.count({
+        where: {
+          userId: user.id,
+          role: "user",
+          createdAt: { gt: todayAlterLog.createdAt },
+        },
+      });
+      buttonState = newCoachCount >= 3 ? "D" : "C";
+    }
   }
 
-  // ジャーナルデータが0件＝初回訪問と判定（初回ウェルカムメッセージの表示制御）
-  const isFirstVisit = user
-    ? (await prisma.journalEntry.count({ where: { userId: user.id } })) === 0
-    : false;
-
-  return <DashboardClient initialAlterLog={initialAlterLog} hasNewLogs={hasNewLogs} isFirstVisit={isFirstVisit} />;
+  return (
+    <DashboardClient
+      initialAlterLog={initialAlterLog}
+      isFirstVisit={isFirstVisit}
+      buttonState={buttonState}
+    />
+  );
 }

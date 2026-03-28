@@ -197,10 +197,12 @@ function AccordionCard({
 // ─────────────────────────────────────────────────────────────────────────────
 // DashboardClient（メイン）
 // ─────────────────────────────────────────────────────────────────────────────
+type ButtonState = "A" | "B" | "C" | "D";
+
 interface Props {
   initialAlterLog: AlterLogInsights | null;
-  hasNewLogs: boolean;
   isFirstVisit: boolean;
+  buttonState: ButtonState;
 }
 
 const LOADING_MESSAGES = [
@@ -210,7 +212,7 @@ const LOADING_MESSAGES = [
   "レポートを書き上げています。もう少しだけお待ちください...",
 ];
 
-export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: Props) {
+export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: Props) {
   const [log, setLog] = useState<AlterLogInsights | null>(initialAlterLog);
   const [isPending, startTransition] = useTransition();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -252,8 +254,19 @@ export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: P
     return () => clearInterval(id);
   }, [isGenerating]);
 
+  const isButtonActive = buttonState === "B" || buttonState === "D";
+  const buttonLabel =
+    buttonState === "A" ? "思考を分析する" :
+    buttonState === "B" ? "本日の思考分析を実行する" :
+    buttonState === "C" ? "分析をアップデートする" :
+    "最新の対話を踏まえて分析を更新する";
+  const helperText =
+    buttonState === "A" ? "※分析を開始するには、まず本日のジャーナルを入力してください。" :
+    buttonState === "C" ? "※分析をアップデートするには、Alterとさらに（3回以上）対話を重ねて思考を深めてください。" :
+    null;
+
   function handleGenerate() {
-    if (!hasNewLogs || isGenerating) return;
+    if (!isButtonActive || isGenerating) return;
     setError(null);
     setIsGenerating(true);
     startTransition(async () => {
@@ -316,9 +329,9 @@ export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: P
             <button
               type="button"
               onClick={handleGenerate}
-              disabled={!hasNewLogs || isGenerating || isPending}
+              disabled={!isButtonActive || isGenerating || isPending}
               className={`w-full min-h-[68px] flex flex-col items-center justify-center gap-1.5 py-4 px-5 rounded-2xl font-bold transition-all duration-200 ${
-                hasNewLogs && !isGenerating && !isPending
+                isButtonActive && !isGenerating && !isPending
                   ? "bg-[#C4A35A]/15 border border-[#C4A35A]/50 text-[#E8D5A0] hover:bg-[#C4A35A]/25 hover:border-[#C4A35A]/70 hover:shadow-[0_0_20px_rgba(196,163,90,0.2)]"
                   : "bg-white/[0.02] border border-white/[0.06] text-[#8A8276]/40 cursor-not-allowed"
               }`}
@@ -329,14 +342,13 @@ export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: P
                   <span className="text-sm font-semibold text-[#C4A35A]/80">分析中...</span>
                 </div>
               ) : (
-                <span className="text-lg font-black tracking-tight leading-tight">Alterに思考を整理してもらう</span>
+                <span className="text-lg font-black tracking-tight leading-tight">{buttonLabel}</span>
               )}
             </button>
 
-
-            {!hasNewLogs && !isGenerating && !isPending && (
+            {helperText && !isGenerating && !isPending && (
               <p className="mt-1.5 text-[10px] text-[#8A8276]/50 text-center tracking-wide">
-                ※ジャーナルデータが蓄積されると実行できます
+                {helperText}
               </p>
             )}
 
