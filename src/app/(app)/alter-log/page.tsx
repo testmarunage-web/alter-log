@@ -70,7 +70,8 @@ export default async function AlterLogPage() {
           date: dateStr,
           time: timeStr,
           ago: formatRelativeTime(log.createdAt),
-          monologue: insights.alter_notice,
+          logEntry: insights.alter_log_entry,
+          notice: insights.alter_notice,
         },
       ];
     } catch {
@@ -152,10 +153,22 @@ export default async function AlterLogPage() {
                         </span>
                       </div>
 
-                      {/* Monologue 本文 */}
-                      <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide">
-                        {entry.monologue}
+                      {/* 観察日記 本文 */}
+                      <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">
+                        {entry.logEntry}
                       </p>
+
+                      {/* Alterからのメッセージ */}
+                      {entry.notice && (
+                        <div className="mt-5 pt-4 border-t border-[#C4A35A]/10">
+                          <p className="text-[9px] text-[#C4A35A]/50 uppercase tracking-widest mb-2 font-mono">
+                            Alterより
+                          </p>
+                          <p className="text-[11.5px] text-[#C4A35A]/70 leading-[1.85] tracking-wide">
+                            {entry.notice}
+                          </p>
+                        </div>
+                      )}
 
                     </div>
                   </div>
