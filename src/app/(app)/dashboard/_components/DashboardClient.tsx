@@ -496,11 +496,11 @@ export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: P
       {/* ── 初回ウェルカムモーダル ────────────────────────────────────────── */}
       {showModal && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center px-4"
+          className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0"
           style={{
-            background: "rgba(11,14,19,0.55)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
+            background: "rgba(11,14,19,0.65)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
             opacity: modalFading ? 0 : 1,
             transition: "opacity 0.42s ease-out",
             pointerEvents: modalFading ? "none" : "auto",
@@ -509,48 +509,108 @@ export function DashboardClient({ initialAlterLog, hasNewLogs, isFirstVisit }: P
           <div
             className="w-full max-w-sm rounded-2xl overflow-hidden flex flex-col"
             style={{
-              background: "rgba(20,27,34,0.97)",
-              border: "1px solid rgba(196,163,90,0.28)",
-              boxShadow: "0 0 60px rgba(196,163,90,0.12), 0 24px 48px rgba(0,0,0,0.7)",
-              maxHeight: "88dvh",
+              background: "linear-gradient(160deg, rgba(26,33,42,0.98) 0%, rgba(16,21,28,0.98) 100%)",
+              border: "1px solid rgba(196,163,90,0.22)",
+              boxShadow: "0 0 80px rgba(196,163,90,0.10), 0 32px 64px rgba(0,0,0,0.80), inset 0 1px 0 rgba(255,255,255,0.05)",
+              maxHeight: "90dvh",
             }}
           >
             {/* ヘッダー */}
-            <div className="flex items-center gap-3 px-5 pt-5 pb-4 border-b border-[#C4A35A]/12 flex-shrink-0">
-              <AlterIcon size={28} />
-              <span className="text-sm font-bold tracking-[0.12em] text-[#C4A35A] uppercase">Alter</span>
+            <div className="flex items-center gap-3 px-5 pt-5 pb-4 flex-shrink-0">
+              <AlterIcon size={26} />
+              <div>
+                <p className="text-xs font-bold tracking-[0.15em] text-[#C4A35A] uppercase">Alter Log</p>
+                <p className="text-[10px] text-[#8A8276] mt-0.5">あなただけの思考の記録</p>
+              </div>
             </div>
 
-            {/* 本文（スクロール可能） */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 text-sm text-[#E8E3D8] leading-relaxed">
-              <p>
-                はじめまして、Alterです。<br />
-                私は、あなたの心と思考を映し出す「鏡」です。
+            {/* 本文 */}
+            <div className="flex-1 overflow-y-auto px-5 pb-2">
+              {/* リード */}
+              <p className="text-sm text-[#E8E3D8] leading-relaxed mb-5">
+                Alterは、あなたの言葉を蓄積しながら成長する<span className="text-[#C4A35A]">「もう一人の自分」</span>です。<br />
+                3つのコア機能で、思考を深めましょう。
               </p>
-              <p>
-                今の私はまだ真っ白な状態。最高の理解者になるために、まずはあなたの言葉を私に預けてください。
-              </p>
-              <p>
-                日々の出来事や静かな振り返りは「ジャーナル」へ。<br />
-                直感的なアイデアや、思考を深めたいときは「壁打ち」へ。<br />
-                壁打ちでは、私と対話しながら新しい視点やアイデアを見つけることができます。
-              </p>
-              <p>
-                あなたの言葉が蓄積されるほど、私はあなたと深くシンクロし、やがて「あなた以上にあなたを知る存在」として最適なインサイトを返せるようになります。
-              </p>
-              <p className="text-[#C4A35A] font-medium">
-                まずは今の率直な気持ちを、私に教えてくれませんか？
-              </p>
+
+              {/* 3つの機能 */}
+              <div className="space-y-2.5">
+                {/* Journal */}
+                <div
+                  className="flex items-start gap-3.5 rounded-xl px-3.5 py-3"
+                  style={{ background: "rgba(196,163,90,0.06)", border: "1px solid rgba(196,163,90,0.14)" }}
+                >
+                  <div
+                    className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
+                    style={{ background: "rgba(196,163,90,0.12)" }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C4A35A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-[#C4A35A] tracking-wide mb-0.5">Journal</p>
+                    <p className="text-xs text-[#9A9488] leading-relaxed">日々の直感や思考を、音声やテキストで吐き出す。</p>
+                  </div>
+                </div>
+
+                {/* Chat */}
+                <div
+                  className="flex items-start gap-3.5 rounded-xl px-3.5 py-3"
+                  style={{ background: "rgba(139,168,158,0.06)", border: "1px solid rgba(139,168,158,0.14)" }}
+                >
+                  <div
+                    className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
+                    style={{ background: "rgba(139,168,158,0.10)" }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8BA89E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-[#8BA89E] tracking-wide mb-0.5">Chat（壁打ち）</p>
+                    <p className="text-xs text-[#9A9488] leading-relaxed">Alterに疑問や課題をぶつけ、思考を深掘りする。</p>
+                  </div>
+                </div>
+
+                {/* Report */}
+                <div
+                  className="flex items-start gap-3.5 rounded-xl px-3.5 py-3"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
+                >
+                  <div
+                    className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
+                    style={{ background: "rgba(255,255,255,0.06)" }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9A9488" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                      <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-[#9A9488] tracking-wide mb-0.5">Report</p>
+                    <p className="text-xs text-[#9A9488] leading-relaxed">蓄積されたデータから、週末にあなただけの分析レポートを受け取る。</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-5" />
             </div>
 
-            {/* フッター：プライマリーボタン */}
-            <div className="flex-shrink-0 px-5 pb-5 pt-4 border-t border-[#C4A35A]/12">
+            {/* フッター：CTA */}
+            <div
+              className="flex-shrink-0 px-5 pb-5 pt-4"
+              style={{ borderTop: "1px solid rgba(196,163,90,0.10)" }}
+            >
               <button
                 type="button"
                 onClick={handleModalClose}
-                className="w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide text-[#0B0E13] bg-[#C4A35A] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.35)] active:scale-[0.98] transition-all duration-150"
+                className="w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide text-[#0B0E13] bg-[#C4A35A] hover:bg-[#D4B36A] hover:shadow-[0_0_24px_rgba(196,163,90,0.40)] active:scale-[0.98] transition-all duration-150"
               >
-                Alterと話し始める
+                ジャーナルから始める
               </button>
             </div>
           </div>
