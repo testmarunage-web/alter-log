@@ -151,10 +151,10 @@ interface Props {
 }
 
 const LOADING_MESSAGES = [
-  "テキストを走査しています...",
-  "構文構造を解析しています...",
-  "認知バイアスを検出しています...",
-  "レポートを生成しています...",
+  "思考構造を解析中...",
+  "認知バイアスを検出中...",
+  "事実・感情比率を算出中...",
+  "レポートを生成中...",
 ];
 
 export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: Props) {
