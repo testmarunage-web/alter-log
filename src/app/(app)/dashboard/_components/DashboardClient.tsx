@@ -129,7 +129,7 @@ function ProfileCard({ label, value }: { label: string; value: string | null }) 
         <div className="flex items-start gap-2 py-0.5">
           <span className="text-white/18 mt-0.5 flex-shrink-0"><IcLock /></span>
           <p className="text-[11.5px] text-white/22 leading-relaxed tracking-wide">
-            データ収集中 — 解析にはあと数回のジャーナル入力が必要です
+            データ収集中（解析にはさらに多くのジャーナル入力が必要です）
           </p>
         </div>
       ) : (
@@ -198,11 +198,10 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
   const buttonLabel =
     buttonState === "A" ? "SCAN  —  ジャーナル入力が必要です" :
     buttonState === "B" ? "SCAN  —  本日の思考を解析する" :
-    buttonState === "C" ? "SCAN  —  対話を増やすとアップデートできます" :
+    buttonState === "C" ? "SCAN  —  新しいジャーナルを入力するとスキャンできます" :
     "SCAN  —  最新の対話を解析する";
   const helperText =
     buttonState === "A" ? "解析を開始するには、まず本日のジャーナルを入力してください。" :
-    buttonState === "C" ? "Alterとさらに3回以上対話を重ねると、解析をアップデートできます。" :
     null;
 
   function handleGenerate() {
@@ -321,7 +320,7 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
               style={{ background: "linear-gradient(160deg, #1C3028 0%, #0D1A16 60%)" }}
             >
               <div className="mb-3" style={{ color: "#8BA89E" }}><IcCompass /></div>
-              <p className="text-xl font-black tracking-tight leading-tight mb-1" style={{ color: "#D0D5D2" }}>壁打ち</p>
+              <p className="text-xl font-black tracking-tight leading-tight mb-1" style={{ color: "#D0D5D2" }}>セッション</p>
               <p className="text-xs font-medium mb-4" style={{ color: "#8BA89E" }}>思考を整理する</p>
               <div className="flex justify-end">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(139,168,158,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -345,7 +344,7 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
             <HudCard label="事実・感情バランス">
               {!log || isInsufficient ? (
                 <p className="font-mono text-[11px] text-white/18">
-                  {isInsufficient ? "— 情報量不足のため解析できません" : "— 解析データなし"}
+                  {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
                 </p>
               ) : (
                 <>
@@ -366,7 +365,7 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
             >
               {!log || isInsufficient ? (
                 <p className="font-mono text-[11px] text-white/18">
-                  {isInsufficient ? "— 情報量不足のため解析できません" : "— 解析データなし"}
+                  {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
                 </p>
               ) : (
                 <>
@@ -388,7 +387,7 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
             <HudCard label="意思決定の主体性">
               {!log || isInsufficient ? (
                 <p className="font-mono text-[11px] text-white/18">
-                  {isInsufficient ? "— 情報量不足のため解析できません" : "— 解析データなし"}
+                  {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
                 </p>
               ) : passiveStatus ? (
                 <p className="text-[12.5px] text-white/55 leading-relaxed">{passiveStatus}</p>
@@ -400,7 +399,6 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
           <div className="hl-enter hl-d6 flex items-center gap-3 pt-2">
             <span className="font-mono text-[9px] tracking-[0.25em] text-white/25 uppercase">② Profile</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="font-mono text-[9px] text-white/15 tracking-widest">ACCUMULATED</span>
           </div>
 
           {/* ── 蓄積プロファイル層（nullの場合はロック表示） ──────────────────── */}
@@ -478,7 +476,7 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#8BA89E] tracking-wide mb-0.5">Chat（壁打ち）</p>
+                    <p className="text-xs font-bold text-[#8BA89E] tracking-wide mb-0.5">Chat（セッション）</p>
                     <p className="text-xs text-[#9A9488] leading-relaxed">Alterに疑問や課題をぶつけ、思考を深掘りする。</p>
                   </div>
                 </div>

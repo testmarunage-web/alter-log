@@ -72,13 +72,19 @@ export default async function AlterLogPage() {
       const insights = alterLogSchema.partial().parse(log.insights);
       const dateStr = log.date.toISOString().split("T")[0];
       const timeStr = log.createdAt.toISOString().split("T")[1].split(".")[0];
+      const logEntry =
+        insights.observed_loops ??
+        insights.cognitive_bias_detected?.description ??
+        insights.passive_voice_status ??
+        null;
+      if (!logEntry) return [];
       return [
         {
           id: log.id,
           date: dateStr,
           time: timeStr,
           ago: formatRelativeTime(log.createdAt),
-          logEntry: insights.observed_loops ?? null,
+          logEntry,
         },
       ];
     } catch {

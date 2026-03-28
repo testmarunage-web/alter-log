@@ -172,7 +172,7 @@ export function ChatInterface({
 
           <div className="flex-1 flex justify-center">
             <h1 className="text-sm font-semibold text-[#E8E3D8] tracking-wide">
-              {isJournal ? "ジャーナル" : "壁打ち"}
+              {isJournal ? "ジャーナル" : "セッション"}
             </h1>
           </div>
 

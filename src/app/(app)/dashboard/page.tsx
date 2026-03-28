@@ -44,15 +44,16 @@ export default async function DashboardPage() {
       // 状態B: ジャーナルあり・分析未実施
       buttonState = "B";
     } else {
-      // 状態C/D: 分析済み → 直近の壁打ち数で判定
-      const newCoachCount = await prisma.coachMessage.count({
-        where: {
-          userId: user.id,
-          role: "user",
-          createdAt: { gt: todayAlterLog.createdAt },
-        },
-      });
-      buttonState = newCoachCount >= 3 ? "D" : "C";
+      // 状態C/D: 分析済み → 最終スキャン以降に新しいジャーナルorセッションが1件でもあればD
+      const [newJournalCount, newCoachCount] = await Promise.all([
+        prisma.journalEntry.count({
+          where: { userId: user.id, createdAt: { gt: todayAlterLog.createdAt } },
+        }),
+        prisma.coachMessage.count({
+          where: { userId: user.id, role: "user", createdAt: { gt: todayAlterLog.createdAt } },
+        }),
+      ]);
+      buttonState = newJournalCount >= 1 || newCoachCount >= 1 ? "D" : "C";
     }
   }
 
