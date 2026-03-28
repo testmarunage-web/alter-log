@@ -85,6 +85,7 @@ export function ChatInterface({
   const [localUsedCount, setLocalUsedCount]   = useState(initialUsedCount);
   const [hintOpen, setHintOpen]               = useState(false);
   const [isResetting, setIsResetting]         = useState(false);
+  const [isSaving, setIsSaving]               = useState(false);
 
   const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } =
     useChat({
@@ -133,12 +134,16 @@ export function ChatInterface({
   async function submitJournal(e?: React.FormEvent) {
     e?.preventDefault();
     const content = journalInput.trim();
-    if (!content) return;
+    if (!content || isSaving) return;
+    setIsSaving(true);
     const now = new Date();
     setJournalMessages((prev) => [...prev, { id: `j-${Date.now()}`, content, createdAt: now }]);
     setJournalInput("");
-    await saveChatMessage("journal", content);
-    router.refresh();
+    try {
+      await saveChatMessage("journal", content);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   const remaining       = dailyLimit - localUsedCount;
@@ -162,9 +167,10 @@ export function ChatInterface({
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
           <button
             type="button"
-            onClick={() => router.push("/dashboard")}
+            onClick={() => { if (!isSaving) router.push("/dashboard"); }}
+            disabled={isSaving}
             aria-label="ダッシュボードへ戻る"
-            className="w-8 h-8 flex items-center justify-center rounded-xl text-[#8A8276] hover:text-[#E8E3D8] hover:bg-white/[0.05] transition-colors flex-shrink-0"
+            className="w-8 h-8 flex items-center justify-center rounded-xl text-[#8A8276] hover:text-[#E8E3D8] hover:bg-white/[0.05] transition-colors flex-shrink-0 disabled:opacity-40"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 3L5 8l5 5" />
@@ -220,18 +226,22 @@ export function ChatInterface({
               </div>
               <button
                 type="submit"
-                disabled={!journalInput.trim()}
+                disabled={!journalInput.trim() || isSaving}
                 className={`mt-2.5 w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2
-                  ${journalInput.trim()
+                  ${journalInput.trim() && !isSaving
                     ? "bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.3)] active:scale-[0.98]"
                     : "bg-white/[0.03] border border-white/[0.06] text-[#8A8276]/30 cursor-not-allowed"
                   }`}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-                ジャーナルを記録する
+                {isSaving ? (
+                  <span className="w-4 h-4 border border-[#8A8276]/60 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                )}
+                {isSaving ? "保存中..." : "ジャーナルを記録する"}
               </button>
             </form>
           </div>
