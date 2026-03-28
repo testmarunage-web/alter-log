@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 // ユーザーを取得または作成（外部キーエラー防止）
@@ -70,9 +71,11 @@ export async function saveChatMessage(
   const user = await getOrCreateUser();
 
   if (mode === "journal") {
-    return prisma.journalEntry.create({
+    const entry = await prisma.journalEntry.create({
       data: { userId: user.id, content },
     });
+    revalidatePath("/dashboard");
+    return entry;
   } else {
     return prisma.coachMessage.create({
       data: { userId: user.id, role, content },

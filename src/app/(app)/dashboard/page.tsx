@@ -14,46 +14,43 @@ export default async function DashboardPage() {
 
   const initialAlterLog = await getLatestAlterLog();
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-
   const user = await prisma.user.findUnique({ where: { clerkId: userId } });
 
   let buttonState: ButtonState = "A";
   let isFirstVisit = false;
 
   if (user) {
-    const [todayJournalCount, todayAlterLog, totalJournalCount] = await Promise.all([
-      prisma.journalEntry.count({
-        where: { userId: user.id, createdAt: { gte: todayStart } },
-      }),
-      prisma.alterLog.findFirst({
-        where: { userId: user.id, createdAt: { gte: todayStart } },
-        orderBy: { createdAt: "desc" },
-        select: { createdAt: true },
-      }),
-      prisma.journalEntry.count({ where: { userId: user.id } }),
-    ]);
+    const totalJournalCount = await prisma.journalEntry.count({ where: { userId: user.id } });
 
     isFirstVisit = totalJournalCount === 0;
 
-    if (todayJournalCount === 0) {
-      // 状態A: 今日のジャーナル未記入
+    if (totalJournalCount === 0) {
+      // 状態A: ジャーナルが1件もない → 非活性
       buttonState = "A";
-    } else if (!todayAlterLog) {
-      // 状態B: ジャーナルあり・分析未実施
-      buttonState = "B";
     } else {
-      // 状態C/D: 分析済み → 最終スキャン以降に新しいジャーナルorセッションが1件でもあればD
-      const [newJournalCount, newCoachCount] = await Promise.all([
-        prisma.journalEntry.count({
-          where: { userId: user.id, createdAt: { gt: todayAlterLog.createdAt } },
-        }),
-        prisma.coachMessage.count({
-          where: { userId: user.id, role: "user", createdAt: { gt: todayAlterLog.createdAt } },
-        }),
-      ]);
-      buttonState = newJournalCount >= 1 || newCoachCount >= 1 ? "D" : "C";
+      const latestAlterLog = await prisma.alterLog.findFirst({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+        select: { createdAt: true },
+      });
+
+      if (!latestAlterLog) {
+        // 状態B: ジャーナルあり・一度も解析していない → 活性
+        buttonState = "B";
+      } else {
+        // 前回スキャン以降の新規ジャーナル数・セッション数を確認
+        const [newJournalCount, newCoachCount] = await Promise.all([
+          prisma.journalEntry.count({
+            where: { userId: user.id, createdAt: { gt: latestAlterLog.createdAt } },
+          }),
+          prisma.coachMessage.count({
+            where: { userId: user.id, role: "user", createdAt: { gt: latestAlterLog.createdAt } },
+          }),
+        ]);
+        // 状態C: 新規ジャーナルあり or セッション3回以上 → 活性
+        // 状態D: 最新状態 → 非活性
+        buttonState = newJournalCount >= 1 || newCoachCount >= 3 ? "C" : "D";
+      }
     }
   }
 

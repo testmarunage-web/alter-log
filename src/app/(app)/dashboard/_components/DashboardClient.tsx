@@ -194,14 +194,15 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
     return () => clearInterval(id);
   }, [isGenerating]);
 
-  const isButtonActive = buttonState === "B" || buttonState === "D";
+  const isButtonActive = buttonState === "B" || buttonState === "C";
   const buttonLabel =
     buttonState === "A" ? "SCAN  —  ジャーナル入力が必要です" :
-    buttonState === "B" ? "SCAN  —  本日の思考を解析する" :
-    buttonState === "C" ? "SCAN  —  新しいジャーナルを入力するとスキャンできます" :
-    "SCAN  —  最新の対話を解析する";
+    buttonState === "B" ? "SCAN  —  思考を解析する" :
+    buttonState === "C" ? "SCAN  —  最新の入力を解析する" :
+    "SCAN  —  解析済み（最新状態）";
   const helperText =
-    buttonState === "A" ? "解析を開始するには、まず本日のジャーナルを入力してください。" :
+    buttonState === "A" ? "解析を開始するには、まずジャーナルを入力してください。" :
+    buttonState === "D" ? "新しいジャーナルを入力するか、セッションを3回以上重ねると解析をアップデートできます" :
     null;
 
   function handleGenerate() {
