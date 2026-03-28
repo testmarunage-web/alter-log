@@ -75,6 +75,7 @@ export async function saveChatMessage(
       data: { userId: user.id, content },
     });
     revalidatePath("/dashboard");
+    revalidatePath("/");
     return entry;
   } else {
     return prisma.coachMessage.create({

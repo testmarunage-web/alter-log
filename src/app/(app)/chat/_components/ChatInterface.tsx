@@ -138,6 +138,7 @@ export function ChatInterface({
     setJournalMessages((prev) => [...prev, { id: `j-${Date.now()}`, content, createdAt: now }]);
     setJournalInput("");
     await saveChatMessage("journal", content);
+    router.refresh();
   }
 
   const remaining       = dailyLimit - localUsedCount;
