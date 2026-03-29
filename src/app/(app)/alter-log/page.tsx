@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { alterLogSchema } from "@/app/actions/alterLogSchema";
-import { generateMissingDailyLogs } from "@/app/actions/generateAlterLog";
+import { DevBatchButton } from "./_components/DevBatchButton";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ユーティリティ
@@ -57,13 +57,6 @@ export const dynamic = "force-dynamic";
 export default async function AlterLogPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
-
-  // 過去の未生成日をここで遅延生成（最大3件）
-  try {
-    await generateMissingDailyLogs(userId);
-  } catch (err) {
-    console.error("[AlterLogPage] generateMissingDailyLogs failed:", err);
-  }
 
   const user = await prisma.user.findUnique({ where: { clerkId: userId } });
 
@@ -212,6 +205,9 @@ export default async function AlterLogPage() {
               </div>
             </div>
           )}
+
+          {/* 開発用：夜間バッチ手動実行ボタン */}
+          {process.env.NODE_ENV === "development" && <DevBatchButton />}
 
         </div>
       </div>

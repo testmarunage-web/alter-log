@@ -198,11 +198,12 @@ model AlterLog {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  date     DateTime
+  date     DateTime @db.Date // 日付のみ保持（日次ユニーク制約のため）
   type     String // "daily" または "weekly"
   insights Json // 分析データ（項目の増減に柔軟対応）
 
   createdAt DateTime @default(now())
 
+  @@unique([userId, date]) // 同一ユーザー・同一日付の重複生成を防止
   @@map("alter_logs")
 }
