@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { alterLogSchema } from "@/app/actions/alterLogSchema";
+import { generateMissingDailyLogs } from "@/app/actions/generateAlterLog";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ユーティリティ
@@ -56,6 +57,13 @@ export const dynamic = "force-dynamic";
 export default async function AlterLogPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
+
+  // 過去の未生成日をここで遅延生成（最大3件）
+  try {
+    await generateMissingDailyLogs(userId);
+  } catch (err) {
+    console.error("[AlterLogPage] generateMissingDailyLogs failed:", err);
+  }
 
   const user = await prisma.user.findUnique({ where: { clerkId: userId } });
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
 import { CheckoutButton } from "./_components/CheckoutButton";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -46,7 +47,8 @@ const features = [
 // ─────────────────────────────────────────────────────────────────────────────
 export default async function Home() {
   const { userId } = await auth();
-  const isLoggedIn = !!userId;
+  if (userId) redirect("/chat?mode=journal");
+  const isLoggedIn = false;
 
   return (
     <main className="min-h-screen bg-[#0B0E13] text-[#E8E3D8] flex flex-col">

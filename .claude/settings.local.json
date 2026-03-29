@@ -34,7 +34,14 @@
       "Bash(sed -n '185,202p' \"c:/Users/shiba/Desktop/hack-log/src/app/\\(app\\)/chat/_components/ChatInterface.tsx\")",
       "Bash(sed -n '258,270p' \"c:/Users/shiba/Desktop/hack-log/src/app/\\(app\\)/chat/_components/ChatInterface.tsx\")",
       "Bash(ls \"c:\\\\Users\\\\shiba\\\\Desktop\\\\hack-log\\\\src\\\\app\\\\\\(app\\)\\\\chat\"\")",
-      "Bash(ls 'c:\\\\Users\\\\shiba\\\\Desktop\\\\hack-log\\\\src\\\\app\\\\\\(app\\)\\\\chat')"
+      "Bash(ls 'c:\\\\Users\\\\shiba\\\\Desktop\\\\hack-log\\\\src\\\\app\\\\\\(app\\)\\\\chat')",
+      "Bash(ls 'c:\\\\Users\\\\shiba\\\\Desktop\\\\hack-log\\\\src\\\\app\\\\\\(app\\)\\\\dashboard')",
+      "Bash(ls 'c:\\\\Users\\\\shiba\\\\Desktop\\\\hack-log\\\\src\\\\app\\\\\\(app\\)\\\\archive')",
+      "Bash(ls 'c:\\\\Users\\\\shiba\\\\Desktop\\\\hack-log\\\\src\\\\app\\\\\\(app\\)\\\\alter-log')",
+      "Bash(echo 'UPDATE \"\"\"\"Session\"\"\"\" SET \"\"\"\"usedCount\"\"\"\" = 30 WHERE id = \\(SELECT id FROM \"\"\"\"Session\"\"\"\" ORDER BY \"\"\"\"createdAt\"\"\"\" DESC LIMIT 1\\);')",
+      "Bash(ls -la *.env* .env*)",
+      "Bash(find c:/Users/shiba/Desktop/hack-log/.next -name *.log)",
+      "Bash(DATABASE_URL=\"postgresql://postgres.trtxmjmlehclzojbkgja:Misaki0324%21%3F@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true\" npx tsx -e \":*)"
     ]
   }
 }
