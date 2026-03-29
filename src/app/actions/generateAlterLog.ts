@@ -138,10 +138,11 @@ ${context}`,
   });
   if (existing) return object;
 
-  // バッチ対象日（JST）の 21:00:00〜22:30:00 からランダムな時刻を生成
-  // 21:00 JST = 12:00 UTC、22:30 JST = 13:30 UTC（todayStart からのオフセット）
-  const spoofWindowStartMs = todayStart.getTime() + 12 * 60 * 60 * 1000;      // 12:00 UTC
-  const spoofWindowLengthMs = 90 * 60 * 1000;                                  // 90分
+  // createdAt を「バッチ対象日（UTC）の翌日 02:00〜04:00 JST」にランダム偽装
+  // 02:00 JST = todayStart + 17:00 UTC、04:00 JST = todayStart + 19:00 UTC
+  // 例: cron が March 30 17:00 UTC に実行 → createdAt は March 31 02:00〜04:00 JST
+  const spoofWindowStartMs = todayStart.getTime() + 17 * 60 * 60 * 1000;      // 17:00 UTC = 翌日 02:00 JST
+  const spoofWindowLengthMs = 2 * 60 * 60 * 1000;                              // 2時間（02:00〜04:00 JST）
   const spoofedCreatedAt = new Date(
     spoofWindowStartMs + Math.floor(Math.random() * spoofWindowLengthMs)
   );

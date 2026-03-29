@@ -143,7 +143,7 @@ export default async function AlterLogPage() {
                     PENDING
                   </p>
                   <p className="text-sm text-[#9A9488] text-center leading-relaxed max-w-xs">
-                    今日のジャーナルやセッションの結果を踏まえて、今夜Alterが観測日記を記すはずです。
+                    今日の記録を踏まえて、あなたが眠りにつき、明日目を覚ます頃には、Alterが密かに観測日記を記しているはずです。
                   </p>
                   <div
                     className="w-px h-10 mt-2"
