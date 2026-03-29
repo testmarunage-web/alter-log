@@ -415,9 +415,9 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
       {/* ── 初回ウェルカムモーダル ────────────────────────────────────────────── */}
       {showModal && (
         <div
-          className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0"
+          className="fixed inset-0 z-[200] flex items-center justify-center px-4"
           style={{
-            background: "rgba(11,14,19,0.65)",
+            background: "rgba(11,14,19,0.72)",
             backdropFilter: "blur(24px)",
             WebkitBackdropFilter: "blur(24px)",
             opacity: modalFading ? 0 : 1,
@@ -439,19 +439,17 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
               <AlterIcon size={26} />
               <div>
                 <p className="text-xs font-bold tracking-[0.15em] text-[#C4A35A] uppercase">Alter Log</p>
-                <p className="text-[10px] text-[#8A8276] mt-0.5">あなただけの思考の記録</p>
               </div>
             </div>
 
             {/* 本文 */}
             <div className="flex-1 overflow-y-auto px-5 pb-2">
               <p className="text-sm text-[#E8E3D8] leading-relaxed mb-5">
-                Alterは、あなたの言葉を蓄積しながら成長する<span className="text-[#C4A35A]">「もう一人の自分」</span>です。<br />
-                3つのコア機能で、思考を深めましょう。
+                日々の直感や思考を記録し、認知の癖を可視化するプロファイリングツールです。以下の3つのサイクルで思考を整理します。
               </p>
 
               <div className="space-y-2.5">
-                {/* Journal */}
+                {/* 1. ジャーナル */}
                 <div className="flex items-start gap-3.5 rounded-xl px-3.5 py-3"
                   style={{ background: "rgba(196,163,90,0.06)", border: "1px solid rgba(196,163,90,0.14)" }}>
                   <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
@@ -462,42 +460,38 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#C4A35A] tracking-wide mb-0.5">Journal</p>
-                    <p className="text-xs text-[#9A9488] leading-relaxed">日々の直感や思考を、音声やテキストで吐き出す。</p>
+                    <p className="text-xs font-bold text-[#C4A35A] tracking-wide mb-0.5">1. ジャーナル（点の記録）</p>
+                    <p className="text-xs text-[#9A9488] leading-relaxed">日々感じたことやタスクのモヤモヤを、ありのままテキストで吐き出します。すべての解析の起点となります。</p>
                   </div>
                 </div>
 
-                {/* Chat */}
+                {/* 2. ダッシュボード */}
                 <div className="flex items-start gap-3.5 rounded-xl px-3.5 py-3"
                   style={{ background: "rgba(139,168,158,0.06)", border: "1px solid rgba(139,168,158,0.14)" }}>
                   <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
                     style={{ background: "rgba(139,168,158,0.10)" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8BA89E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#8BA89E] tracking-wide mb-0.5">Chat（セッション）</p>
-                    <p className="text-xs text-[#9A9488] leading-relaxed">Alterに疑問や課題をぶつけ、思考を深掘りする。</p>
+                    <p className="text-xs font-bold text-[#8BA89E] tracking-wide mb-0.5">2. ダッシュボード（線の可視化）</p>
+                    <p className="text-xs text-[#9A9488] leading-relaxed">ジャーナルを元に、「事実と感情のバランス」や「認知バイアス」をスキャンし、客観的なデータとして確認できます。</p>
                   </div>
                 </div>
 
-                {/* Report */}
+                {/* 3. セッション */}
                 <div className="flex items-start gap-3.5 rounded-xl px-3.5 py-3"
                   style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
                   <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
                     style={{ background: "rgba(255,255,255,0.06)" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9A9488" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                      <polyline points="10 9 9 9 8 9" />
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#9A9488] tracking-wide mb-0.5">Report</p>
-                    <p className="text-xs text-[#9A9488] leading-relaxed">蓄積されたデータから、週末にあなただけの分析レポートを受け取る。</p>
+                    <p className="text-xs font-bold text-[#9A9488] tracking-wide mb-0.5">3. セッション（思考の深掘り）</p>
+                    <p className="text-xs text-[#9A9488] leading-relaxed">システムとの対話を通して、見えた課題の解像度を上げ、具体的なアクションへと落とし込みます。</p>
                   </div>
                 </div>
               </div>
