@@ -8,6 +8,35 @@ import { revalidatePath } from "next/cache";
 import { alterLogSchema, type AlterLogInsights } from "./alterLogSchema";
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 共通ユーティリティ
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** 現在時刻の JST 日付文字列を返す（例: "2026-03-29"） */
+function getJstDateStr(): string {
+  const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+/**
+ * 指定 JST 日付の「翌日 02:00〜04:00 JST」のランダムな Date を返す。
+ * Cron・手動バッチ両方で使用する createdAt 偽装ヘルパー。
+ * @param jstDateStr  "YYYY-MM-DD" 形式の JST 日付（対象日）
+ */
+function getSpoofedCreatedAt(jstDateStr: string): Date {
+  const todayJstMidnight = new Date(`${jstDateStr}T00:00:00+09:00`);
+  const tomorrowJstMidnight = new Date(todayJstMidnight.getTime() + 24 * 60 * 60 * 1000);
+  return new Date(
+    tomorrowJstMidnight.getTime() +
+    2 * 60 * 60 * 1000 +                              // 最低 02:00 JST
+    Math.floor(Math.random() * 2 * 60 * 60 * 1000)   // 0〜2時間のランダムオフセット（〜04:00 JST）
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // コアロジック：clerkId を受け取って AlterLog を生成・保存する
 // バッチ処理（Cron）とUIからの呼び出し双方で使用
 // ─────────────────────────────────────────────────────────────────────────────
@@ -126,46 +155,25 @@ ${context}`,
     };
   }
 
-  // 当日分がすでに存在する場合はスキップ（@@unique 制約の事前チェック）
-  const todayStart = new Date();
-  todayStart.setUTCHours(0, 0, 0, 0);
-  const todayEnd = new Date(todayStart);
-  todayEnd.setUTCHours(23, 59, 59, 999);
+  // JST の「今日」の日付文字列と DB 保存用 UTC midnight を算出
+  // date フィールドは "YYYY-MM-DDT00:00:00Z"（UTC midnight = PostgreSQL DATE "YYYY-MM-DD"）として保存
+  const jstDateStr = getJstDateStr();                        // 例: "2026-03-29"
+  const dateForDb  = new Date(`${jstDateStr}T00:00:00Z`);   // UTC midnight of JST date
 
+  // 当日分がすでに存在する場合はスキップ（@@unique 制約の事前チェック）
   const existing = await prisma.alterLog.findFirst({
-    where: { userId: user.id, date: { gte: todayStart, lte: todayEnd } },
+    where: { userId: user.id, date: dateForDb },
     select: { id: true },
   });
   if (existing) return object;
 
-  // JST の「今日」の年月日を取得し、date フィールドと createdAt を JST 基準で計算
-  const nowJst = new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" })
-  );
-  const jstY = nowJst.getFullYear();
-  const jstM = String(nowJst.getMonth() + 1).padStart(2, "0");
-  const jstD = String(nowJst.getDate()).padStart(2, "0");
-
-  // JST の今日の深夜0時（date フィールド用）
-  const todayJstMidnight = new Date(`${jstY}-${jstM}-${jstD}T00:00:00+09:00`);
-
-  // JST の翌日の深夜0時
-  const tomorrowJstMidnight = new Date(todayJstMidnight.getTime() + 24 * 60 * 60 * 1000);
-
-  // createdAt を翌日 02:00〜04:00 JST からランダム生成
-  const spoofedCreatedAt = new Date(
-    tomorrowJstMidnight.getTime() +
-    2 * 60 * 60 * 1000 +                              // 最低 02:00 JST
-    Math.floor(Math.random() * 2 * 60 * 60 * 1000)   // 0〜2時間のランダムオフセット
-  );
-
   await prisma.alterLog.create({
     data: {
       userId: user.id,
-      date: todayJstMidnight,
+      date: dateForDb,
       type: "daily",
       insights: object,
-      createdAt: spoofedCreatedAt,
+      createdAt: getSpoofedCreatedAt(jstDateStr),
     },
   });
 
@@ -303,24 +311,29 @@ ${context}`,
 // ─────────────────────────────────────────────────────────────────────────────
 // 指定日（内部 userId）の AlterLog を生成して保存。すでに存在する日はスキップ。
 async function generateForDate(userId: string, targetDate: Date): Promise<void> {
-  const dayStart = new Date(targetDate);
-  dayStart.setUTCHours(0, 0, 0, 0);
-  const dayEnd = new Date(targetDate);
-  dayEnd.setUTCHours(23, 59, 59, 999);
+  // targetDate は "YYYY-MM-DDT00:00:00Z"（UTC midnight = JST の対象日）として渡される
+  const dateForDb = new Date(targetDate);
+  dateForDb.setUTCHours(0, 0, 0, 0);
 
+  // 重複チェック（完全一致）
   const existing = await prisma.alterLog.findFirst({
-    where: { userId, date: { gte: dayStart, lte: dayEnd } },
+    where: { userId, date: dateForDb },
     select: { id: true },
   });
   if (existing) return;
 
+  // JST 日境界をUTCに変換してジャーナルを取得
+  // 例: JST "2026-03-29" → UTC 2026-03-28T15:00:00Z 〜 2026-03-29T14:59:59.999Z
+  const jstDayStartUtc = new Date(dateForDb.getTime() - 9 * 60 * 60 * 1000);
+  const jstDayEndUtc   = new Date(jstDayStartUtc.getTime() + 24 * 60 * 60 * 1000 - 1);
+
   const [journals, coachMsgs] = await Promise.all([
     prisma.journalEntry.findMany({
-      where: { userId, createdAt: { gte: dayStart, lte: dayEnd } },
+      where: { userId, createdAt: { gte: jstDayStartUtc, lte: jstDayEndUtc } },
       orderBy: { createdAt: "asc" },
     }),
     prisma.coachMessage.findMany({
-      where: { userId, createdAt: { gte: dayStart, lte: dayEnd } },
+      where: { userId, createdAt: { gte: jstDayStartUtc, lte: jstDayEndUtc } },
       orderBy: { createdAt: "asc" },
     }),
   ]);
@@ -345,12 +358,19 @@ async function generateForDate(userId: string, targetDate: Date): Promise<void> 
     });
     object = generated;
   } catch (err) {
-    console.error(`[generateForDate] failed for ${dayStart.toISOString()}:`, err);
+    console.error(`[generateForDate] failed for ${dateForDb.toISOString()}:`, err);
     object = FALLBACK_INSIGHTS;
   }
 
+  const jstDateStr = dateForDb.toISOString().split("T")[0]; // "YYYY-MM-DD"
   await prisma.alterLog.create({
-    data: { userId, date: dayStart, type: "daily", insights: object },
+    data: {
+      userId,
+      date: dateForDb,
+      type: "daily",
+      insights: object,
+      createdAt: getSpoofedCreatedAt(jstDateStr),
+    },
   });
 }
 
@@ -365,26 +385,34 @@ export async function generateMissingDailyLogs(clerkId: string): Promise<void> {
     update: {},
   });
 
-  const todayStart = new Date();
-  todayStart.setUTCHours(0, 0, 0, 0);
+  // JST 基準の「今日の00:00」を UTC に換算（= 前日 15:00 UTC）
+  // これを上限にすることで JST 09:00 以降のジャーナルも正しく「昨日以前」として取得できる
+  const todayJstStr = getJstDateStr();
+  const todayJstStartUtc = new Date(`${todayJstStr}T00:00:00+09:00`); // prev day 15:00 UTC
 
-  const thirtyDaysAgo = new Date(todayStart);
-  thirtyDaysAgo.setUTCDate(thirtyDaysAgo.getUTCDate() - 30);
+  const thirtyDaysAgo = new Date(todayJstStartUtc.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  // 過去30日（今日より前）のジャーナル日付を収集
+  // 過去30日（JST 今日より前）のジャーナル日付を収集
   const journals = await prisma.journalEntry.findMany({
-    where: { userId: user.id, createdAt: { gte: thirtyDaysAgo, lt: todayStart } },
+    where: { userId: user.id, createdAt: { gte: thirtyDaysAgo, lt: todayJstStartUtc } },
     select: { createdAt: true },
     orderBy: { createdAt: "asc" },
   });
   if (journals.length === 0) return;
 
+  // journalDateKeys は JST 日付文字列で構築（UTC 日付ではなく JST 日付で集約）
   const journalDateKeys = new Set<string>();
   for (const j of journals) {
-    journalDateKeys.add(j.createdAt.toISOString().split("T")[0]);
+    const jstDate = new Date(j.createdAt.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+    const key = [
+      jstDate.getFullYear(),
+      String(jstDate.getMonth() + 1).padStart(2, "0"),
+      String(jstDate.getDate()).padStart(2, "0"),
+    ].join("-");
+    journalDateKeys.add(key);
   }
 
-  // 既存の AlterLog 日付を収集
+  // 既存 AlterLog の日付を収集（date は "YYYY-MM-DDT00:00:00Z" で保存 → split で JST 日付と一致）
   const existing = await prisma.alterLog.findMany({
     where: { userId: user.id, date: { gte: thirtyDaysAgo } },
     select: { date: true },
@@ -396,7 +424,8 @@ export async function generateMissingDailyLogs(clerkId: string): Promise<void> {
   for (const key of [...journalDateKeys].sort()) {
     if (generated >= 3) break;
     if (!existingDateKeys.has(key)) {
-      await generateForDate(user.id, new Date(key));
+      // key = "YYYY-MM-DD" → UTC midnight として渡す
+      await generateForDate(user.id, new Date(`${key}T00:00:00Z`));
       generated++;
     }
   }
