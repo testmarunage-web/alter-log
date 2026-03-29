@@ -140,20 +140,7 @@ ${context}`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// UI（ダッシュボードのボタン）からの呼び出し用
-// 内部で Clerk auth() を使い、processAlterLogForUser に委譲する
-// ─────────────────────────────────────────────────────────────────────────────
-export async function generateAlterLog(): Promise<AlterLogInsights> {
-  const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
-
-  const result = await processAlterLogForUser(userId);
-  revalidatePath("/dashboard");
-  return result;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 日次生成ロジック：特定日付の AlterLog を生成（すでに存在する場合はスキップ）
+// 共有プロンプト・フォールバック定数
 // ─────────────────────────────────────────────────────────────────────────────
 const SYSTEM_PROMPT = `あなたは冷徹な構造解析システム（System HUD）である。
 ユーザーの入力テキストを、感情移入や共感なしに純粋な構造・構文・語彙のデータとして解析し、レポートを生成する。
@@ -203,6 +190,70 @@ const FALLBACK_INSIGHTS: AlterLogInsights = {
   pending_decisions: null,
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ダッシュボード SCAN ボタン専用：AI解析のみ実行し、DB保存しない
+// AlterLog テーブルへの書き込みは一切行わない
+// ─────────────────────────────────────────────────────────────────────────────
+export async function generateDashboardScan(): Promise<AlterLogInsights> {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const user = await prisma.user.upsert({
+    where: { clerkId: userId },
+    create: { clerkId: userId },
+    update: {},
+  });
+
+  const since = new Date();
+  since.setDate(since.getDate() - 3);
+
+  const [journals, coachMsgs] = await Promise.all([
+    prisma.journalEntry.findMany({
+      where: { userId: user.id, createdAt: { gte: since } },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.coachMessage.findMany({
+      where: { userId: user.id, createdAt: { gte: since } },
+      orderBy: { createdAt: "asc" },
+    }),
+  ]);
+
+  const journalBlock =
+    journals.length > 0
+      ? "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n")
+      : "";
+  const coachBlock =
+    coachMsgs.length > 0
+      ? "【壁打ちログ】\n" +
+        coachMsgs.map((m) => `${m.role === "user" ? "User" : "Alter"}: ${m.content}`).join("\n")
+      : "";
+  const context =
+    [journalBlock, coachBlock].filter(Boolean).join("\n\n") || "（入力データなし）";
+  const hasData = journals.length > 0 || coachMsgs.length > 0;
+
+  try {
+    const { object } = await generateObject({
+      model: anthropic("claude-sonnet-4-5"),
+      schema: alterLogSchema,
+      system: SYSTEM_PROMPT,
+      prompt: `以下のログを構造解析し、指定のJSON形式でレポートを生成せよ。
+
+【データ状況】
+${hasData ? "ログあり（以下のテキストのみを根拠に解析すること。ログに存在しない情報の補完は禁止）" : "ログなし（is_insufficient_data を true にし、nullable 項目は null を返すこと）"}
+
+【分析対象ログ】
+${context}`,
+    });
+    return object;
+  } catch (err) {
+    console.error("[generateDashboardScan] generateObject failed — using fallback:", err);
+    return FALLBACK_INSIGHTS;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 日次生成ロジック：特定日付の AlterLog を生成（すでに存在する場合はスキップ）
+// ─────────────────────────────────────────────────────────────────────────────
 // 指定日（内部 userId）の AlterLog を生成して保存。すでに存在する日はスキップ。
 async function generateForDate(userId: string, targetDate: Date): Promise<void> {
   const dayStart = new Date(targetDate);

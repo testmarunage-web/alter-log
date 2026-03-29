@@ -67,13 +67,18 @@ export default async function AlterLogPage() {
 
   const user = await prisma.user.findUnique({ where: { clerkId: userId } });
 
-  const rawLogs = user
-    ? await prisma.alterLog.findMany({
-        where: { userId: user.id },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      })
-    : [];
+  const [rawLogs, journalCount] = await Promise.all([
+    user
+      ? prisma.alterLog.findMany({
+          where: { userId: user.id },
+          orderBy: { createdAt: "desc" },
+          take: 20,
+        })
+      : Promise.resolve([]),
+    user
+      ? prisma.journalEntry.count({ where: { userId: user.id } })
+      : Promise.resolve(0),
+  ]);
 
   const entries: Entry[] = rawLogs.flatMap((log) => {
     try {
@@ -124,22 +129,42 @@ export default async function AlterLogPage() {
           </div>
 
           {entries.length === 0 ? (
-            /* Empty state */
-            <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <p className="text-sm text-[#8A8276] text-center">まだ記録がありません。</p>
-              <p className="text-xs text-[#8A8276]/60 text-center leading-relaxed">
-                まずはジャーナルから思考を吐き出してみましょう。
-              </p>
-              <Link
-                href="/chat?mode=journal"
-                className="mt-2 text-xs font-medium text-[#C4A35A]/70 hover:text-[#C4A35A] transition-colors flex items-center gap-1"
-              >
-                ジャーナルへ
-                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
-                </svg>
-              </Link>
-            </div>
+            journalCount > 0 ? (
+              /* 待機中：ジャーナルはあるがAlterLogがまだ生成されていない */
+              <div className="flex flex-col items-center justify-center py-24 gap-3">
+                <div
+                  className="w-px h-10 mb-2"
+                  style={{ background: "linear-gradient(to bottom, transparent, rgba(196,163,90,0.3))" }}
+                />
+                <p className="font-mono text-[11px] text-[#8A8276]/60 tracking-widest uppercase text-center">
+                  PENDING
+                </p>
+                <p className="text-sm text-[#9A9488] text-center leading-relaxed max-w-xs">
+                  今日のジャーナルやセッションの結果を踏まえて、今夜Alterが観測日記を記すはずです。
+                </p>
+                <div
+                  className="w-px h-10 mt-2"
+                  style={{ background: "linear-gradient(to bottom, rgba(196,163,90,0.3), transparent)" }}
+                />
+              </div>
+            ) : (
+              /* 初回：ジャーナルがまだない */
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <p className="text-sm text-[#8A8276] text-center">まだ記録がありません。</p>
+                <p className="text-xs text-[#8A8276]/60 text-center leading-relaxed">
+                  まずはジャーナルから思考を吐き出してみましょう。
+                </p>
+                <Link
+                  href="/chat?mode=journal"
+                  className="mt-2 text-xs font-medium text-[#C4A35A]/70 hover:text-[#C4A35A] transition-colors flex items-center gap-1"
+                >
+                  ジャーナルへ
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
+                  </svg>
+                </Link>
+              </div>
+            )
           ) : (
             /* タイムライン */
             <div className="relative">

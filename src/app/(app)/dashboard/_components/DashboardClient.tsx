@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef, useCallback, useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { generateAlterLog } from "@/app/actions/generateAlterLog";
+import { generateDashboardScan } from "@/app/actions/generateAlterLog";
 import type { AlterLogInsights } from "@/app/actions/alterLogSchema";
 import { AlterIcon } from "../../_components/AlterIcon";
 
@@ -188,7 +188,7 @@ export function DashboardClient({ initialAlterLog, buttonState }: Props) {
     setIsGenerating(true);
     startTransition(async () => {
       try {
-        const result = await generateAlterLog();
+        const result = await generateDashboardScan();
         setLog(result);
         router.refresh();
       } catch (e) {
