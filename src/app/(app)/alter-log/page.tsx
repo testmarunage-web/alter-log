@@ -6,21 +6,6 @@ import { alterLogSchema } from "@/app/actions/alterLogSchema";
 import { DevBatchButton } from "./_components/DevBatchButton";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ユーティリティ
-// ─────────────────────────────────────────────────────────────────────────────
-function formatRelativeTime(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffDays === 0 && diffHours === 0) return "たった今";
-  if (diffDays === 0) return `${diffHours}時間前`;
-  if (diffDays === 1) return "昨日";
-  return `${diffDays}日前`;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // コンパスアイコン（SVG）
 // ─────────────────────────────────────────────────────────────────────────────
 function IcCompass() {
@@ -43,9 +28,7 @@ function IcCompass() {
 
 type Entry = {
   id: string;
-  date: string;
-  time: string;
-  ago: string;
+  jst: string;
   logEntry: string | null;
 };
 
@@ -73,26 +56,34 @@ export default async function AlterLogPage() {
       : Promise.resolve(0),
   ]);
 
+  const todayJst = new Date().toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" });
+  const hasTodayLog = rawLogs.some((l) => {
+    const logDateJst = new Date(l.date).toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" });
+    return logDateJst === todayJst;
+  });
+
   const entries: Entry[] = rawLogs.flatMap((log) => {
     try {
       const insights = alterLogSchema.partial().parse(log.insights);
-      const dateStr = log.date.toISOString().split("T")[0];
-      const timeStr = log.createdAt.toISOString().split("T")[1].split(".")[0];
       const logEntry =
         insights.observed_loops ??
         insights.cognitive_bias_detected?.description ??
         insights.passive_voice_status ??
         null;
       if (!logEntry) return [];
-      return [
-        {
-          id: log.id,
-          date: dateStr,
-          time: timeStr,
-          ago: formatRelativeTime(log.createdAt),
-          logEntry,
-        },
-      ];
+      const jst = log.createdAt
+        .toLocaleString("ja-JP", {
+          timeZone: "Asia/Tokyo",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+        .replace(/\//g, ".")
+        .replace(",", "");
+      return [{ id: log.id, jst, logEntry }];
     } catch {
       return [];
     }
@@ -121,44 +112,7 @@ export default async function AlterLogPage() {
             <div className="mt-3 h-px bg-gradient-to-r from-[#C4A35A]/30 via-[#C4A35A]/10 to-transparent" />
           </div>
 
-          {entries.length === 0 ? (
-            journalCount > 0 ? (
-              /* 待機中：ジャーナルはあるがAlterLogがまだ生成されていない */
-              <div className="flex flex-col items-center justify-center py-24 gap-3">
-                <div
-                  className="w-px h-10 mb-2"
-                  style={{ background: "linear-gradient(to bottom, transparent, rgba(196,163,90,0.3))" }}
-                />
-                <p className="font-mono text-[11px] text-[#8A8276]/60 tracking-widest uppercase text-center">
-                  PENDING
-                </p>
-                <p className="text-sm text-[#9A9488] text-center leading-relaxed max-w-xs">
-                  今日のジャーナルやセッションの結果を踏まえて、今夜Alterが観測日記を記すはずです。
-                </p>
-                <div
-                  className="w-px h-10 mt-2"
-                  style={{ background: "linear-gradient(to bottom, rgba(196,163,90,0.3), transparent)" }}
-                />
-              </div>
-            ) : (
-              /* 初回：ジャーナルがまだない */
-              <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <p className="text-sm text-[#8A8276] text-center">まだ記録がありません。</p>
-                <p className="text-xs text-[#8A8276]/60 text-center leading-relaxed">
-                  まずはジャーナルから思考を吐き出してみましょう。
-                </p>
-                <Link
-                  href="/chat?mode=journal"
-                  className="mt-2 text-xs font-medium text-[#C4A35A]/70 hover:text-[#C4A35A] transition-colors flex items-center gap-1"
-                >
-                  ジャーナルへ
-                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
-                  </svg>
-                </Link>
-              </div>
-            )
-          ) : (
+          {entries.length > 0 ? (
             /* タイムライン */
             <div className="relative">
               {/* 縦線 */}
@@ -185,10 +139,7 @@ export default async function AlterLogPage() {
                           <IcCompass />
                         </span>
                         <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums">
-                          {entry.date} {entry.time}
-                        </span>
-                        <span className="font-mono text-[10px] text-[#9A9488]/50">
-                          ({entry.ago})
+                          {entry.jst}
                         </span>
                       </div>
 
@@ -203,6 +154,41 @@ export default async function AlterLogPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          ) : !hasTodayLog && journalCount > 0 ? (
+            /* 待機中：ジャーナルはあるがAlterLogがまだ生成されていない */
+            <div className="flex flex-col items-center justify-center py-24 gap-3">
+              <div
+                className="w-px h-10 mb-2"
+                style={{ background: "linear-gradient(to bottom, transparent, rgba(196,163,90,0.3))" }}
+              />
+              <p className="font-mono text-[11px] text-[#8A8276]/60 tracking-widest uppercase text-center">
+                PENDING
+              </p>
+              <p className="text-sm text-[#9A9488] text-center leading-relaxed max-w-xs">
+                今日のジャーナルやセッションの結果を踏まえて、今夜Alterが観測日記を記すはずです。
+              </p>
+              <div
+                className="w-px h-10 mt-2"
+                style={{ background: "linear-gradient(to bottom, rgba(196,163,90,0.3), transparent)" }}
+              />
+            </div>
+          ) : (
+            /* 初回：ジャーナルがまだない */
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <p className="text-sm text-[#8A8276] text-center">まだ記録がありません。</p>
+              <p className="text-xs text-[#8A8276]/60 text-center leading-relaxed">
+                まずはジャーナルから思考を吐き出してみましょう。
+              </p>
+              <Link
+                href="/chat?mode=journal"
+                className="mt-2 text-xs font-medium text-[#C4A35A]/70 hover:text-[#C4A35A] transition-colors flex items-center gap-1"
+              >
+                ジャーナルへ
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
+                </svg>
+              </Link>
             </div>
           )}
 
