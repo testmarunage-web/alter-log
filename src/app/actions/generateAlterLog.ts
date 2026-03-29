@@ -12,7 +12,7 @@ import { alterLogSchema, type AlterLogInsights } from "./alterLogSchema";
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** 現在時刻の JST 日付文字列を返す（例: "2026-03-29"） */
-function getJstDateStr(): string {
+export function getJstDateStr(): string {
   const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
   return [
     d.getFullYear(),
@@ -310,7 +310,7 @@ ${context}`,
 // 日次生成ロジック：特定日付の AlterLog を生成（すでに存在する場合はスキップ）
 // ─────────────────────────────────────────────────────────────────────────────
 // 指定日（内部 userId）の AlterLog を生成して保存。すでに存在する日はスキップ。
-async function generateForDate(userId: string, targetDate: Date): Promise<void> {
+export async function generateForDate(userId: string, targetDate: Date): Promise<void> {
   // targetDate は "YYYY-MM-DDT00:00:00Z"（UTC midnight = JST の対象日）として渡される
   const dateForDb = new Date(targetDate);
   dateForDb.setUTCHours(0, 0, 0, 0);
