@@ -12,7 +12,7 @@ import { alterLogSchema, type AlterLogInsights } from "./alterLogSchema";
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** 現在時刻の JST 日付文字列を返す（例: "2026-03-29"） */
-export function getJstDateStr(): string {
+function getJstDateStr(): string {
   const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
   return [
     d.getFullYear(),
