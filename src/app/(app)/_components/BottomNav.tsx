@@ -35,7 +35,7 @@ export function BottomNav() {
             >
               <NavIconSvg icon={icon} size={22} />
               <span
-                className={`text-[9px] leading-none ${
+                className={`text-[8px] leading-none whitespace-nowrap ${
                   active ? "font-bold" : "font-medium"
                 }`}
               >

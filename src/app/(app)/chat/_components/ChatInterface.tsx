@@ -327,7 +327,7 @@ export function ChatInterface({
       {/* ── ウェルカムモーダル（ジャーナルモード・初回のみ） ── */}
       {isJournal && showWelcome && (
         <div
-          className="fixed inset-0 z-[200] flex items-end justify-center px-4 pb-6 sm:items-center sm:pb-0"
+          className="fixed inset-0 z-[200] flex items-center justify-center px-4"
           style={{
             background: "rgba(11,14,19,0.75)",
             backdropFilter: "blur(24px)",
