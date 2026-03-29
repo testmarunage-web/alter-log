@@ -138,19 +138,31 @@ ${context}`,
   });
   if (existing) return object;
 
-  // createdAt を「バッチ対象日（UTC）の翌日 02:00〜04:00 JST」にランダム偽装
-  // 02:00 JST = todayStart + 17:00 UTC、04:00 JST = todayStart + 19:00 UTC
-  // 例: cron が March 30 17:00 UTC に実行 → createdAt は March 31 02:00〜04:00 JST
-  const spoofWindowStartMs = todayStart.getTime() + 17 * 60 * 60 * 1000;      // 17:00 UTC = 翌日 02:00 JST
-  const spoofWindowLengthMs = 2 * 60 * 60 * 1000;                              // 2時間（02:00〜04:00 JST）
+  // JST の「今日」の年月日を取得し、date フィールドと createdAt を JST 基準で計算
+  const nowJst = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" })
+  );
+  const jstY = nowJst.getFullYear();
+  const jstM = String(nowJst.getMonth() + 1).padStart(2, "0");
+  const jstD = String(nowJst.getDate()).padStart(2, "0");
+
+  // JST の今日の深夜0時（date フィールド用）
+  const todayJstMidnight = new Date(`${jstY}-${jstM}-${jstD}T00:00:00+09:00`);
+
+  // JST の翌日の深夜0時
+  const tomorrowJstMidnight = new Date(todayJstMidnight.getTime() + 24 * 60 * 60 * 1000);
+
+  // createdAt を翌日 02:00〜04:00 JST からランダム生成
   const spoofedCreatedAt = new Date(
-    spoofWindowStartMs + Math.floor(Math.random() * spoofWindowLengthMs)
+    tomorrowJstMidnight.getTime() +
+    2 * 60 * 60 * 1000 +                              // 最低 02:00 JST
+    Math.floor(Math.random() * 2 * 60 * 60 * 1000)   // 0〜2時間のランダムオフセット
   );
 
   await prisma.alterLog.create({
     data: {
       userId: user.id,
-      date: todayStart,
+      date: todayJstMidnight,
       type: "daily",
       insights: object,
       createdAt: spoofedCreatedAt,
