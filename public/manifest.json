@@ -2,7 +2,7 @@
   "name": "Alter Log",
   "short_name": "Alter Log",
   "description": "もう一人の自分が記録する、究極の内省アプリ",
-  "start_url": "/dashboard",
+  "start_url": "/chat?mode=journal",
   "display": "standalone",
   "background_color": "#0B0E13",
   "theme_color": "#0B0E13",

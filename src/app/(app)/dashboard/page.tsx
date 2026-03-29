@@ -18,12 +18,9 @@ export default async function DashboardPage() {
   const user = await prisma.user.findUnique({ where: { clerkId: userId } });
 
   let buttonState: ButtonState = "A";
-  let isFirstVisit = false;
 
   if (user) {
     const totalJournalCount = await prisma.journalEntry.count({ where: { userId: user.id } });
-
-    isFirstVisit = totalJournalCount === 0;
 
     if (totalJournalCount === 0) {
       // 状態A: ジャーナルが1件もない → 非活性
@@ -74,7 +71,6 @@ export default async function DashboardPage() {
   return (
     <DashboardClient
       initialAlterLog={initialAlterLog}
-      isFirstVisit={isFirstVisit}
       buttonState={buttonState}
     />
   );

@@ -146,7 +146,6 @@ type ButtonState = "A" | "B" | "C" | "D";
 
 interface Props {
   initialAlterLog: AlterLogInsights | null;
-  isFirstVisit: boolean;
   buttonState: ButtonState;
 }
 
@@ -157,35 +156,13 @@ const LOADING_MESSAGES = [
   "レポートを生成中...",
 ];
 
-export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: Props) {
+export function DashboardClient({ initialAlterLog, buttonState }: Props) {
   const [log, setLog] = useState<AlterLogInsights | null>(initialAlterLog);
   const [isPending, startTransition] = useTransition();
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [modalFading, setModalFading] = useState(false);
   const router = useRouter();
-
-  // 初回訪問かつlocalStorageに記録がない場合のみモーダルを表示
-  useEffect(() => {
-    if (!isFirstVisit) return;
-    try {
-      if (!localStorage.getItem("alter-log-welcomed")) {
-        setShowModal(true);
-      }
-    } catch { /* localStorage unavailable */ }
-  }, [isFirstVisit]);
-
-  function handleModalClose() {
-    setModalFading(true);
-    try { localStorage.setItem("alter-log-welcomed", "1"); } catch { /* noop */ }
-    setTimeout(() => {
-      setShowModal(false);
-      setModalFading(false);
-      router.push("/chat?mode=journal");
-    }, 420);
-  }
 
   // ローディングメッセージ切り替え（4秒ごと）
   useEffect(() => {
@@ -409,121 +386,6 @@ export function DashboardClient({ initialAlterLog, isFirstVisit, buttonState }: 
         </div>
       </div>
 
-      {/* ── 初回ウェルカムモーダル ────────────────────────────────────────────── */}
-      {showModal && (
-        <div
-          className="fixed inset-0 z-[200] flex items-center justify-center px-4"
-          style={{
-            background: "rgba(11,14,19,0.72)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-            opacity: modalFading ? 0 : 1,
-            transition: "opacity 0.42s ease-out",
-            pointerEvents: modalFading ? "none" : "auto",
-          }}
-        >
-          <div
-            className="w-full max-w-sm rounded-2xl overflow-hidden flex flex-col"
-            style={{
-              background: "linear-gradient(160deg, rgba(26,33,42,0.98) 0%, rgba(16,21,28,0.98) 100%)",
-              border: "1px solid rgba(196,163,90,0.22)",
-              boxShadow: "0 0 80px rgba(196,163,90,0.10), 0 32px 64px rgba(0,0,0,0.80), inset 0 1px 0 rgba(255,255,255,0.05)",
-              maxHeight: "90dvh",
-            }}
-          >
-            {/* ヘッダー */}
-            <div className="flex items-center gap-3 px-5 pt-5 pb-4 flex-shrink-0">
-              <AlterIcon size={26} />
-              <div>
-                <p className="text-xs font-bold tracking-[0.15em] text-[#C4A35A] uppercase">Alter Log</p>
-              </div>
-            </div>
-
-            {/* 本文 */}
-            <div className="flex-1 overflow-y-auto px-5 pb-2">
-              <p className="text-sm text-[#E8E3D8] leading-relaxed mb-5">
-                こんにちは、私はAlter（オルター）です。これは単なる記録ツールではなく、思考の癖を映し出し、変化していくための<span className="text-[#C4A35A]">「鏡」</span>となる存在です。以下のサイクルで思考を整理しましょう。
-              </p>
-
-              <div className="space-y-2.5">
-                {/* 1. ジャーナル */}
-                <div className="flex items-center gap-3.5 rounded-xl px-3.5 py-3"
-                  style={{ background: "rgba(196,163,90,0.06)", border: "1px solid rgba(196,163,90,0.14)" }}>
-                  <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: "rgba(196,163,90,0.12)" }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C4A35A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#C4A35A] tracking-wide mb-0.5">1. ジャーナル（点の記録）</p>
-                    <p className="text-xs text-[#9A9488] leading-relaxed">日々感じたことやモヤモヤを、ありのままテキストで吐き出します。すべての起点となります。</p>
-                  </div>
-                </div>
-
-                {/* 2. ダッシュボード */}
-                <div className="flex items-center gap-3.5 rounded-xl px-3.5 py-3"
-                  style={{ background: "rgba(139,168,158,0.06)", border: "1px solid rgba(139,168,158,0.14)" }}>
-                  <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: "rgba(139,168,158,0.10)" }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8BA89E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#8BA89E] tracking-wide mb-0.5">2. ダッシュボード（線の可視化）</p>
-                    <p className="text-xs text-[#9A9488] leading-relaxed">ジャーナルを元に、事実と感情のバランスや認知バイアスをスキャンし、客観的なデータとして確認できます。</p>
-                  </div>
-                </div>
-
-                {/* 3. セッション */}
-                <div className="flex items-center gap-3.5 rounded-xl px-3.5 py-3"
-                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                  <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: "rgba(255,255,255,0.06)" }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9A9488" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#9A9488] tracking-wide mb-0.5">3. セッション（思考の深掘り）</p>
-                    <p className="text-xs text-[#9A9488] leading-relaxed">Alterとの対話を通して、見えた課題の解像度を上げ、具体的なアクションへと落とし込みます。</p>
-                  </div>
-                </div>
-
-                {/* 4. Alter Log */}
-                <div className="flex items-center gap-3.5 rounded-xl px-3.5 py-3"
-                  style={{ background: "rgba(196,163,90,0.03)", border: "1px solid rgba(196,163,90,0.08)" }}>
-                  <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: "rgba(196,163,90,0.06)" }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C4A35A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10" />
-                      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#C4A35A]/60 tracking-wide mb-0.5">4. Alter Log（裏の記録）</p>
-                    <p className="text-xs text-[#9A9488]/70 leading-relaxed">これは私（Alter）が密かにつけている、あなたの観察日記です。本来お見せするものではありませんので、閲覧は自己責任でお願いします。</p>
-                  </div>
-                </div>
-              </div>
-              <div className="h-5" />
-            </div>
-
-            {/* フッター：CTA */}
-            <div className="flex-shrink-0 px-5 pb-5 pt-4" style={{ borderTop: "1px solid rgba(196,163,90,0.10)" }}>
-              <button
-                type="button"
-                onClick={handleModalClose}
-                className="w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide text-[#0B0E13] bg-[#C4A35A] hover:bg-[#D4B36A] hover:shadow-[0_0_24px_rgba(196,163,90,0.40)] active:scale-[0.98] transition-all duration-150"
-              >
-                ジャーナルから始める
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
