@@ -18,6 +18,8 @@ model User {
   id      String @id @default(cuid())
   clerkId String @unique // ClerkのユーザーID（webhook経由で同期）
 
+  lastDashboardScanAt DateTime? // SCANボタン最終実行日時
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
