@@ -112,68 +112,8 @@ export default async function AlterLogPage() {
             <div className="mt-3 h-px bg-gradient-to-r from-[#C4A35A]/30 via-[#C4A35A]/10 to-transparent" />
           </div>
 
-          {entries.length > 0 ? (
-            /* タイムライン */
-            <div className="relative">
-              {/* 縦線 */}
-              <div className="absolute left-[5px] top-2 bottom-0 w-px bg-gradient-to-b from-[#C4A35A]/25 via-[#C4A35A]/10 to-transparent" />
-
-              <div className="space-y-8">
-                {entries.map((entry, i) => (
-                  <div key={entry.id} className="relative pl-9">
-                    {/* パルスドット */}
-                    <span
-                      className="absolute left-0 top-[18px] w-[11px] h-[11px] rounded-full"
-                      style={{
-                        background: "radial-gradient(circle at 38% 38%, #E8D5A0, #C4A35A 60%)",
-                        animation: `dot-pulse ${2 + i * 0.3}s ease-in-out infinite`,
-                      }}
-                    />
-
-                    {/* カード */}
-                    <div className="bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl p-5 mb-1">
-
-                      {/* タイムスタンプ */}
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className="text-[#C4A35A]/60" aria-hidden="true">
-                          <IcCompass />
-                        </span>
-                        <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums">
-                          {entry.jst}
-                        </span>
-                      </div>
-
-                      {/* 観察日記 本文 */}
-                      {entry.logEntry && (
-                        <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">
-                          {entry.logEntry}
-                        </p>
-                      )}
-
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : !hasTodayLog && journalCount > 0 ? (
-            /* 待機中：ジャーナルはあるがAlterLogがまだ生成されていない */
-            <div className="flex flex-col items-center justify-center py-24 gap-3">
-              <div
-                className="w-px h-10 mb-2"
-                style={{ background: "linear-gradient(to bottom, transparent, rgba(196,163,90,0.3))" }}
-              />
-              <p className="font-mono text-[11px] text-[#8A8276]/60 tracking-widest uppercase text-center">
-                PENDING
-              </p>
-              <p className="text-sm text-[#9A9488] text-center leading-relaxed max-w-xs">
-                今日のジャーナルやセッションの結果を踏まえて、今夜Alterが観測日記を記すはずです。
-              </p>
-              <div
-                className="w-px h-10 mt-2"
-                style={{ background: "linear-gradient(to bottom, rgba(196,163,90,0.3), transparent)" }}
-              />
-            </div>
-          ) : (
+          {/* 分岐ロジックの修正：全くの初回か、そうでないかで分ける */}
+          {entries.length === 0 && journalCount === 0 ? (
             /* 初回：ジャーナルがまだない */
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <p className="text-sm text-[#8A8276] text-center">まだ記録がありません。</p>
@@ -190,6 +130,71 @@ export default async function AlterLogPage() {
                 </svg>
               </Link>
             </div>
+          ) : (
+            <>
+              {/* 待機中：今日のAlterLogがまだない場合（過去ログの上に表示） */}
+              {!hasTodayLog && journalCount > 0 && (
+                <div className="flex flex-col items-center justify-center py-12 mb-8 gap-3">
+                  <div
+                    className="w-px h-10 mb-2"
+                    style={{ background: "linear-gradient(to bottom, transparent, rgba(196,163,90,0.3))" }}
+                  />
+                  <p className="font-mono text-[11px] text-[#8A8276]/60 tracking-widest uppercase text-center">
+                    PENDING
+                  </p>
+                  <p className="text-sm text-[#9A9488] text-center leading-relaxed max-w-xs">
+                    今日のジャーナルやセッションの結果を踏まえて、今夜Alterが観測日記を記すはずです。
+                  </p>
+                  <div
+                    className="w-px h-10 mt-2"
+                    style={{ background: "linear-gradient(to bottom, rgba(196,163,90,0.3), transparent)" }}
+                  />
+                </div>
+              )}
+
+              {/* タイムライン：過去のログがある場合（待機メッセージの下に表示） */}
+              {entries.length > 0 && (
+                <div className="relative">
+                  {/* 縦線 */}
+                  <div className="absolute left-[5px] top-2 bottom-0 w-px bg-gradient-to-b from-[#C4A35A]/25 via-[#C4A35A]/10 to-transparent" />
+
+                  <div className="space-y-8">
+                    {entries.map((entry, i) => (
+                      <div key={entry.id} className="relative pl-9">
+                        {/* パルスドット */}
+                        <span
+                          className="absolute left-0 top-[18px] w-[11px] h-[11px] rounded-full"
+                          style={{
+                            background: "radial-gradient(circle at 38% 38%, #E8D5A0, #C4A35A 60%)",
+                            animation: `dot-pulse ${2 + i * 0.3}s ease-in-out infinite`,
+                          }}
+                        />
+
+                        {/* カード */}
+                        <div className="bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl p-5 mb-1">
+                          {/* タイムスタンプ */}
+                          <div className="flex items-center gap-2 mb-4">
+                            <span className="text-[#C4A35A]/60" aria-hidden="true">
+                              <IcCompass />
+                            </span>
+                            <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums">
+                              {entry.jst}
+                            </span>
+                          </div>
+
+                          {/* 観察日記 本文 */}
+                          {entry.logEntry && (
+                            <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">
+                              {entry.logEntry}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* 開発用：夜間バッチ手動実行ボタン */}

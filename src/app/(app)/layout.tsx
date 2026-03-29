@@ -30,8 +30,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // currentPeriodEndはStripe dahlia APIで取得値が不安定なため判定から除外。
   // サブスクリプションのライフサイクル管理はStripe側のstatusに完全に委任する。
   const isActive =
-    !!sub?.stripeSubscriptionId &&
-    (sub.status === "ACTIVE" || sub.status === "PAST_DUE");
+    process.env.NODE_ENV === "development" ||
+    (!!sub?.stripeSubscriptionId &&
+      (sub.status === "ACTIVE" || sub.status === "PAST_DUE"));
 
   if (!isActive) {
     redirect("/subscribe");

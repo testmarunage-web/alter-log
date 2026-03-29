@@ -41,7 +41,14 @@
       "Bash(echo 'UPDATE \"\"\"\"Session\"\"\"\" SET \"\"\"\"usedCount\"\"\"\" = 30 WHERE id = \\(SELECT id FROM \"\"\"\"Session\"\"\"\" ORDER BY \"\"\"\"createdAt\"\"\"\" DESC LIMIT 1\\);')",
       "Bash(ls -la *.env* .env*)",
       "Bash(find c:/Users/shiba/Desktop/hack-log/.next -name *.log)",
-      "Bash(DATABASE_URL=\"postgresql://postgres.trtxmjmlehclzojbkgja:Misaki0324%21%3F@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true\" npx tsx -e \":*)"
+      "Bash(DATABASE_URL=\"postgresql://postgres.trtxmjmlehclzojbkgja:Misaki0324%21%3F@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true\" npx tsx -e \":*)",
+      "Bash(taskkill /PID 42544 /F)",
+      "Bash(cmd.exe /c \"taskkill /PID 42544 /F\")",
+      "Bash(cmd.exe /c \"netstat -ano | findstr :3000\")",
+      "Bash(cmd.exe /c \"netstat -ano | findstr :3000 | findstr LISTENING\")",
+      "Bash(cmd.exe /c \"for /f \"\"tokens=5\"\" %a in \\(''netstat -ano ^| findstr :3000 ^| findstr LISTENING''\\) do echo %a\")",
+      "Bash(powershell -Command \"Get-Process -Name node -ErrorAction SilentlyContinue | Select-Object Id, CPU, WorkingSet, StartTime | Format-Table\")",
+      "Bash(cmd.exe /c \"wmic process where name=''node.exe'' get processid,commandline 2>nul\")"
     ]
   }
 }

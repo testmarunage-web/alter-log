@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/generate-alter-logs",
-      "schedule": "0 4 * * *"
+      "schedule": "0 14 * * *"
     }
   ]
 }

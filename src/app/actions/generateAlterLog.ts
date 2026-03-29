@@ -138,12 +138,21 @@ ${context}`,
   });
   if (existing) return object;
 
+  // バッチ対象日（JST）の 21:00:00〜22:30:00 からランダムな時刻を生成
+  // 21:00 JST = 12:00 UTC、22:30 JST = 13:30 UTC（todayStart からのオフセット）
+  const spoofWindowStartMs = todayStart.getTime() + 12 * 60 * 60 * 1000;      // 12:00 UTC
+  const spoofWindowLengthMs = 90 * 60 * 1000;                                  // 90分
+  const spoofedCreatedAt = new Date(
+    spoofWindowStartMs + Math.floor(Math.random() * spoofWindowLengthMs)
+  );
+
   await prisma.alterLog.create({
     data: {
       userId: user.id,
       date: todayStart,
       type: "daily",
       insights: object,
+      createdAt: spoofedCreatedAt,
     },
   });
 
