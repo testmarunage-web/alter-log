@@ -4,8 +4,14 @@ import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveChatMessage, resetSession } from "@/app/actions/chat";
+import { classifyJournalMood, type JournalMood } from "@/app/actions/classifyJournal";
 import { AlterIcon } from "../../_components/AlterIcon";
 import { Sparkles } from "lucide-react";
+
+const COACH_SUGGESTION_MAP: Record<Exclude<JournalMood, "neutral">, string> = {
+  negative: "Alterに続きを聞いてもらう",
+  uncertain: "Alterともう少し話してみる",
+};
 
 // メッセージ時刻フォーマット（壁打ちモード用）
 function formatTime(date?: Date): string {
@@ -88,6 +94,7 @@ export function ChatInterface({
   const [isSaving, setIsSaving]               = useState(false);
   const [showWelcome, setShowWelcome]         = useState(false);
   const [welcomeFading, setWelcomeFading]     = useState(false);
+  const [coachSuggestionText, setCoachSuggestionText] = useState<string | null>(null);
 
   // ジャーナルモードの初回のみウェルカムモーダルを表示
   useEffect(() => {
@@ -157,11 +164,18 @@ export function ChatInterface({
     const content = journalInput.trim();
     if (!content || isSaving) return;
     setIsSaving(true);
+    setCoachSuggestionText(null);
     const now = new Date();
     setJournalMessages((prev) => [...prev, { id: `j-${Date.now()}`, content, createdAt: now }]);
     setJournalInput("");
     try {
-      await saveChatMessage("journal", content);
+      const [, mood] = await Promise.all([
+        saveChatMessage("journal", content),
+        classifyJournalMood(content),
+      ]);
+      if (mood !== "neutral") {
+        setCoachSuggestionText(COACH_SUGGESTION_MAP[mood]);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -294,6 +308,23 @@ export function ChatInterface({
               </div>
             )}
           </div>
+
+          {/* 壁打ち導線（感情分類でnegative/uncertainの場合のみ表示） */}
+          {coachSuggestionText && (
+            <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
+              <button
+                type="button"
+                onClick={() => router.push("/chat?mode=coach")}
+                className="flex items-center gap-2 text-xs text-[#C4A35A]/70 hover:text-[#C4A35A] transition-colors"
+              >
+                <AlterIcon size={12} />
+                <span>{coachSuggestionText}</span>
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
+                </svg>
+              </button>
+            </div>
+          )}
 
           {/* 3. 過去のジャーナルログ（タイムライン・flex-1 スクロール可能） */}
           {journalMessages.length > 0 && (

@@ -1,4 +1,4 @@
-import { BarChart2, Mic, MessagesSquare } from "lucide-react";
+import { BarChart2, Mic } from "lucide-react";
 import type { NavIcon } from "./NavItems";
 import { AlterIcon } from "./AlterIcon";
 
@@ -10,8 +10,6 @@ export function NavIconSvg({ icon, size = 20 }: { icon: NavIcon; size?: number }
       return <BarChart2 {...lucideProps} />;
     case "journal":
       return <Mic {...lucideProps} />;
-    case "coach":
-      return <MessagesSquare {...lucideProps} />;
     case "log":
       return <AlterIcon size={size} />;
   }
