@@ -19,9 +19,8 @@ export async function classifyJournalMood(content: string): Promise<JournalMood>
     });
 
     const result = text.trim().toLowerCase();
-    if (result === "negative" || result === "uncertain" || result === "neutral") {
-      return result;
-    }
+    if (result.includes("negative")) return "negative";
+    if (result.includes("uncertain")) return "uncertain";
     return "neutral";
   } catch (err) {
     console.error("[classifyJournalMood] failed:", err);
