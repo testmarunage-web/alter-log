@@ -112,7 +112,7 @@ export default async function Home() {
                 <span className="inline-block">言葉にならないモヤモヤも、</span><br className="hidden md:block" />
                 <span className="inline-block">そのまま受け止める。</span>
               </h3>
-              <p className="text-sm text-[#8A8276] leading-relaxed max-w-md mx-auto md:mx-0">
+              <p className="text-sm text-[#8A8276] leading-relaxed max-w-xl mx-auto md:mx-0">
                 綺麗な文章を書く必要はありません。思い浮かんだ感情やまとまらない思考、誰かへの不満を、あなたが一番気楽に本音を出せる方法で打ち明けてください。Alterはあなたを許容し、すべてを静かに聞き入れます。
               </p>
             </div>
@@ -130,7 +130,7 @@ export default async function Home() {
                 <span className="inline-block">忖度ゼロの「鏡」が、</span><br className="hidden md:block" />
                 <span className="inline-block">ハッとする気づきをくれる。</span>
               </h3>
-              <p className="text-sm text-[#8A8276] leading-relaxed max-w-md mx-auto md:mx-0">
+              <p className="text-sm text-[#8A8276] leading-relaxed max-w-xl mx-auto md:mx-0">
                 人間相手のコーチングでは、どうしても遠慮や同調が生まれてしまいます。Alterにはそれがありません。あなたの何気ない言葉から「よく使う口癖」や「無意識のバイアス」を抽出し、あなた自身すら気づいていない「ハッとする真実」を突きつけます。
               </p>
             </div>
@@ -148,7 +148,7 @@ export default async function Home() {
                 <span className="inline-block">あなたが眠る間に書き上げられる</span><br className="hidden md:block" />
                 <span className="inline-block">「あなたの観察日記」</span>
               </h3>
-              <p className="text-sm text-[#8A8276] leading-relaxed max-w-md mx-auto md:mx-0">
+              <p className="text-sm text-[#8A8276] leading-relaxed max-w-xl mx-auto md:mx-0">
                 深夜、Alterはあなたとの対話をもとに、密かに「あなたについての観察日記」を書き上げます。翌朝その日記を覗き見ることで、自分の脳内をまるで他人のもののように客観視する、かつてない未知の体験が待っています。
               </p>
             </div>
@@ -217,7 +217,7 @@ export default async function Home() {
               </svg>
               <span className="text-base text-[#E8D5A0] font-black tracking-tight">7日間全額返金保証</span>
             </div>
-            <p className="mt-5 text-sm text-[#8A8276] leading-relaxed max-w-lg mx-auto">
+            <p className="mt-5 text-sm text-[#8A8276] leading-relaxed max-w-2xl mx-auto">
               Alter Logは、使えば価値が伝わるサービスだと確信しています。<br className="hidden sm:block" />
               お申し込みから7日以内にご満足いただけなければ、理由を問わず全額返金いたします。
             </p>
@@ -243,7 +243,7 @@ export default async function Home() {
           あなたを最も理解するAlterが、ここで待っています。
         </p>
 
-        <div className="relative flex justify-center">
+        <div className="relative flex flex-col items-center">
           <Link href="/sign-up" className="inline-flex flex-col items-center justify-center px-10 py-3.5 rounded-full bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_32px_rgba(196,163,90,0.4)] active:scale-[0.98] transition-all duration-300">
             <span className="font-bold text-sm sm:text-base tracking-wide">Alter Logを始める</span>
             <span className="text-[10px] sm:text-xs font-semibold mt-0.5 opacity-80">初月2,682円（10%OFF）</span>
