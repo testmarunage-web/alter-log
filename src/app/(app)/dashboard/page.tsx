@@ -45,10 +45,19 @@ export default async function DashboardPage() {
     }
   }
 
+  const latestAlterLogRecord = user
+    ? await prisma.alterLog.findFirst({
+        where: { userId: user.id },
+        orderBy: { createdAt: "desc" },
+        select: { createdAt: true },
+      })
+    : null;
+
   return (
     <DashboardClient
       initialAlterLog={initialAlterLog}
       buttonState={buttonState}
+      lastScanAt={latestAlterLogRecord?.createdAt ?? null}
     />
   );
 }

@@ -147,6 +147,16 @@ type ButtonState = "A" | "B" | "C" | "D";
 interface Props {
   initialAlterLog: AlterLogInsights | null;
   buttonState: ButtonState;
+  lastScanAt: Date | null;
+}
+
+function formatLastScan(date: Date): string {
+  const d = new Date(date.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+  const mm  = String(d.getMonth() + 1).padStart(2, "0");
+  const dd  = String(d.getDate()).padStart(2, "0");
+  const hh  = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${mm}.${dd} ${hh}:${min}`;
 }
 
 const LOADING_MESSAGES = [
@@ -156,8 +166,9 @@ const LOADING_MESSAGES = [
   "レポートを生成中...",
 ];
 
-export function DashboardClient({ initialAlterLog, buttonState }: Props) {
+export function DashboardClient({ initialAlterLog, buttonState, lastScanAt }: Props) {
   const [log, setLog] = useState<AlterLogInsights | null>(initialAlterLog);
+  const [localLastScanAt, setLocalLastScanAt] = useState<Date | null>(lastScanAt);
   const [isPending, startTransition] = useTransition();
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
@@ -190,6 +201,7 @@ export function DashboardClient({ initialAlterLog, buttonState }: Props) {
       try {
         const result = await generateDashboardScan();
         setLog(result);
+        setLocalLastScanAt(new Date());
         router.refresh();
       } catch (e) {
         setError(String(e));
@@ -295,8 +307,10 @@ export function DashboardClient({ initialAlterLog, buttonState }: Props) {
           <div className="hl-enter hl-d2 flex items-center gap-3 pt-2">
             <span className="font-mono text-[9px] tracking-[0.25em] text-white/25 uppercase">① Snapshot</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
-            {log && !isInsufficient && (
-              <span className="font-mono text-[9px] text-white/15 tracking-widest">LAST SCAN</span>
+            {localLastScanAt && (
+              <span className="font-mono text-[9px] text-white/15 tracking-widest">
+                LAST SCAN {formatLastScan(localLastScanAt)}
+              </span>
             )}
           </div>
 
