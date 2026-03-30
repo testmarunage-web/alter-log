@@ -129,6 +129,8 @@ export function ChatInterface({
   useEffect(() => {
     if (defaultMode !== "coach") return;
     setIsNavigating(false); // ソフトナビゲーション完了時にスピナーをリセット
+    // 遷移直後に最下部へスクロールしてTypingIndicatorを見せる
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
     try {
       const context = sessionStorage.getItem("alter-coach-context");
       if (!context) return;
@@ -595,8 +597,8 @@ export function ChatInterface({
                 ))}
 
                 {isLoading &&
-                  visibleMessages.length > 0 &&
-                  visibleMessages[visibleMessages.length - 1]?.role === "user" && (
+                  messages.length > 0 &&
+                  messages[messages.length - 1]?.role === "user" && (
                     <TypingIndicator />
                   )}
 
