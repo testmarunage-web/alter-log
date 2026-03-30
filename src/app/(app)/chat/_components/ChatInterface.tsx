@@ -9,7 +9,7 @@ import { AlterIcon } from "../../_components/AlterIcon";
 import { Sparkles } from "lucide-react";
 
 const COACH_SUGGESTION_MAP: Record<Exclude<JournalMood, "neutral">, string> = {
-  negative: "Alterに続きを聞いてもらう",
+  negative: "Alterに話を聞いてもらう",
   uncertain: "Alterともう少し話してみる",
 };
 
