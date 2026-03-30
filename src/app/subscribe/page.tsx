@@ -32,14 +32,23 @@ export default async function SubscribePage() {
           <h1 className="text-xl font-black text-[#F0EAD8] tracking-tight mb-3 leading-snug">
             アカウント登録が完了しました。
           </h1>
-          <p className="text-sm text-[#8A8276] leading-relaxed">
-            Alter Logを利用開始するには、サブスクリプション（月額2,980円）の登録を完了させてください。
+          <p className="text-sm text-[#8A8276] leading-relaxed mb-4">
+            Alter Logを利用開始するには、サブスクリプションの登録を完了させてください。
           </p>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="text-xs text-[#8A8276]/50 line-through">月額 2,980円</span>
+            <span className="text-sm font-bold text-[#C4A35A]">初月 2,682円（10%OFF）</span>
+          </div>
+          <p className="text-xs text-[#8A8276]/60">翌月以降 月額2,980円（税込）</p>
         </div>
 
-        <CheckoutButton label="2,980円で決済を完了する" />
+        <CheckoutButton label="2,682円で始める（初月10%OFF）" />
 
-        <p className="mt-4 text-xs text-[#8A8276]/40">いつでもキャンセル可能</p>
+        <div className="mt-4 space-y-1.5">
+          <p className="text-xs text-[#C4A35A]/60 font-medium">7日間返金保証付き</p>
+          <p className="text-xs text-[#8A8276]/40">ご満足いただけない場合、7日以内であれば全額返金いたします</p>
+          <p className="text-xs text-[#8A8276]/40">いつでもキャンセル可能</p>
+        </div>
 
         {/* ログアウト */}
         <div className="mt-12">
