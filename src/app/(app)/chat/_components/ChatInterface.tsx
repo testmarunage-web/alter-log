@@ -124,6 +124,7 @@ export function ChatInterface({
     });
 
   // 壁打ちモード初期化：sessionStorageにジャーナルコンテキストがあれば自動で第一声をトリガー
+  // deps=[defaultMode]: ソフトナビゲーションでpropsが変わった場合も再実行するため
   useEffect(() => {
     if (defaultMode !== "coach") return;
     if (initialMessages.length > 0) return; // 既に履歴がある場合はスキップ
@@ -137,7 +138,7 @@ export function ChatInterface({
       );
     } catch { /* sessionStorage unavailable */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [defaultMode]);
 
   async function handleReset() {
     if (isResetting || isLoading) return;
