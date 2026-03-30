@@ -1,8 +1,7 @@
 export const navItems = [
-  { href: "/chat?mode=journal", label: "ジャーナル",  shortLabel: "ジャーナル",  icon: "journal" },
-  { href: "/dashboard",         label: "ダッシュボード", shortLabel: "ダッシュボード", icon: "home" },
-  { href: "/chat?mode=coach",   label: "セッション",  shortLabel: "セッション",  icon: "coach"   },
-  { href: "/alter-log",         label: "Alter Log",   shortLabel: "Alter Log",   icon: "log"     },
+  { href: "/chat?mode=journal", label: "JOURNAL",    shortLabel: "JOURNAL",    icon: "journal" },
+  { href: "/dashboard",         label: "SCAN",       shortLabel: "SCAN",       icon: "home"    },
+  { href: "/alter-log",         label: "Alter Log",  shortLabel: "Alter Log",  icon: "log"     },
 ] as const;
 
 export type NavIcon = (typeof navItems)[number]["icon"];

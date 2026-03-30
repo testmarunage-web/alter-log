@@ -65,7 +65,11 @@ export default async function AlterLogPage() {
   const entries: Entry[] = rawLogs.flatMap((log) => {
     try {
       const insights = alterLogSchema.partial().parse(log.insights);
+      // daily_note を優先表示。古いデータ（daily_note未生成）はフォールバック
       const logEntry =
+        (insights.daily_note && insights.daily_note !== "INSUFFICIENT_DATA"
+          ? insights.daily_note
+          : null) ??
         insights.observed_loops ??
         insights.cognitive_bias_detected?.description ??
         insights.passive_voice_status ??

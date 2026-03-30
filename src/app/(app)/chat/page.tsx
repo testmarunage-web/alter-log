@@ -3,8 +3,6 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ChatInterface } from "./_components/ChatInterface";
 
-// キャッシュを無効化し、毎回サーバーでレンダリングさせることで
-// loading.tsx（Suspense境界）が確実にトリガーされるようにする
 export const dynamic = "force-dynamic";
 
 export default async function ChatPage({
@@ -25,16 +23,13 @@ export default async function ChatPage({
     update: {},
     include: { profile: true },
   });
-  // プロフィールがなければ自動生成（オンボーディング質問フロー廃止に伴う）
+
+  // プロフィールがなければ自動生成（オンボーディング廃止に伴う）
   if (!user.profile) {
     await prisma.userProfile.create({
       data: {
         userId: user.id,
-        goal: "",
-        industry: "",
-        coachStyle: "",
-        mainChallenge: "",
-        aiPersonaPrompt: "",
+        goal: "", industry: "", coachStyle: "", mainChallenge: "", aiPersonaPrompt: "",
       },
     });
   }
@@ -42,15 +37,21 @@ export default async function ChatPage({
   const clerkUser = await currentUser();
   const userName = clerkUser?.firstName ?? "You";
 
-  // ─── 今日のジャーナル有無を判定 ─────────────────────────────────────────
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  // 今日のジャーナル有無（JST 基準で判定）
+  const nowJst = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+  const todayJstStr = [
+    nowJst.getFullYear(),
+    String(nowJst.getMonth() + 1).padStart(2, "0"),
+    String(nowJst.getDate()).padStart(2, "0"),
+  ].join("-");
+  const todayStartJstUtc = new Date(`${todayJstStr}T00:00:00+09:00`); // JST 00:00 → UTC
+
   const todayJournalCount = await prisma.journalEntry.count({
-    where: { userId: user.id, createdAt: { gte: todayStart } },
+    where: { userId: user.id, createdAt: { gte: todayStartJstUtc } },
   });
   const hasTodayJournal = todayJournalCount > 0;
 
-  // ─── ジャーナル履歴を取得 ───────────────────────────────────────────────
+  // ジャーナル履歴（全件、昇順）
   const journalEntries = await prisma.journalEntry.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "asc" },
@@ -61,10 +62,9 @@ export default async function ChatPage({
     createdAt: e.createdAt,
   }));
 
-  // ─── 壁打ちセッション（日次）を取得または作成 ────────────────────────────
+  // 壁打ちセッション（日次 upsert）
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
   const session = await prisma.session.upsert({
     where: { userId_date: { userId: user.id, date: today } },
     create: { userId: user.id, date: today },
@@ -75,7 +75,6 @@ export default async function ChatPage({
     where: { sessionId: session.id },
     orderBy: { createdAt: "asc" },
   });
-
   const initialMessages = dbMessages.map((m) => ({
     id: m.id,
     role: m.role.toLowerCase() as "user" | "assistant",

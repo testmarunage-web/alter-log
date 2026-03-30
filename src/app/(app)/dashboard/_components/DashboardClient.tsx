@@ -17,7 +17,7 @@ const IcPen = () => (
   </svg>
 );
 const IcCompass = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" />
     <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
   </svg>
@@ -179,7 +179,7 @@ export function DashboardClient({ initialAlterLog, buttonState }: Props) {
     "SCAN  —  解析済み（最新状態）";
   const helperText =
     buttonState === "A" ? "解析を開始するには、まずジャーナルを入力してください。" :
-    buttonState === "D" ? "新しいジャーナルを入力するか、セッションを3回以上重ねると解析をアップデートできます" :
+    buttonState === "D" ? "新しいジャーナルを入力すると解析をアップデートできます" :
     null;
 
   function handleGenerate() {
@@ -267,8 +267,8 @@ export function DashboardClient({ initialAlterLog, buttonState }: Props) {
             )}
           </div>
 
-          {/* ── ナビゲーションボタン ─────────────────────────────────────────── */}
-          <div className="hl-enter hl-d1 grid grid-cols-2 gap-3">
+          {/* ── ジャーナルへの導線（メイン） ─────────────────────────────────── */}
+          <div className="hl-enter hl-d1">
             <RippleLink href="/chat?mode=journal"
               className="rounded-xl p-4
                 border border-t-[rgba(255,255,255,0.12)] border-x-[rgba(255,255,255,0.05)] border-b-transparent
@@ -278,34 +278,29 @@ export function DashboardClient({ initialAlterLog, buttonState }: Props) {
                 transition-all duration-100 ease-out"
               style={{ background: "linear-gradient(160deg, #3A2910 0%, #1A1408 60%)" }}
             >
-              <div className="mb-3" style={{ color: "#C4A35A" }}><IcPen /></div>
-              <p className="text-xl font-black tracking-tight leading-tight mb-1" style={{ color: "#E8D5A0" }}>ジャーナル</p>
-              <p className="text-xs font-medium mb-4" style={{ color: "#C4A35A" }}>気持ちを吐き出す</p>
-              <div className="flex justify-end">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="mb-3" style={{ color: "#C4A35A" }}><IcPen /></div>
+                  <p className="text-xl font-black tracking-tight leading-tight mb-1" style={{ color: "#E8D5A0" }}>JOURNAL</p>
+                  <p className="text-xs font-medium" style={{ color: "#C4A35A" }}>気持ちを吐き出す</p>
+                </div>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(196,163,90,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
                 </svg>
               </div>
             </RippleLink>
 
-            <RippleLink href="/chat?mode=coach"
-              className="rounded-xl p-4
-                border border-t-[rgba(255,255,255,0.08)] border-x-[rgba(255,255,255,0.03)] border-b-transparent
-                shadow-[0_8px_0_rgba(0,0,0,0.75),inset_0_1px_0_rgba(180,210,190,0.08)]
-                hover:shadow-[0_10px_0_rgba(0,0,0,0.85),0_0_22px_rgba(80,130,100,0.18),inset_0_1px_0_rgba(180,210,190,0.12)]
-                hover:-translate-y-0.5 active:translate-y-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]
-                transition-all duration-100 ease-out"
-              style={{ background: "linear-gradient(160deg, #1C3028 0%, #0D1A16 60%)" }}
+            {/* 壁打ちへの補助リンク */}
+            <Link
+              href="/chat?mode=coach"
+              className="mt-2 flex items-center justify-center gap-1.5 py-2 text-[11px] font-mono text-[#8A8276]/50 hover:text-[#8A8276] transition-colors"
             >
-              <div className="mb-3" style={{ color: "#8BA89E" }}><IcCompass /></div>
-              <p className="text-xl font-black tracking-tight leading-tight mb-1" style={{ color: "#D0D5D2" }}>セッション</p>
-              <p className="text-xs font-medium mb-4" style={{ color: "#8BA89E" }}>思考を整理する</p>
-              <div className="flex justify-end">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(139,168,158,0.70)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-                </svg>
-              </div>
-            </RippleLink>
+              <IcCompass />
+              <span>もっと深掘りしたい？ Alterに壁打ちする</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
           </div>
 
           {/* ─── ① SNAPSHOT セクションヘッダー ─────────────────────────────── */}

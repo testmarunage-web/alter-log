@@ -4,7 +4,6 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
-// ユーザーを取得または作成（外部キーエラー防止）
 async function getOrCreateUser() {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -15,7 +14,6 @@ async function getOrCreateUser() {
   });
 }
 
-// チャット履歴を取得
 export async function getChatHistory(mode: "journal" | "coach") {
   const user = await getOrCreateUser();
 
@@ -44,7 +42,6 @@ export async function getChatHistory(mode: "journal" | "coach") {
   }
 }
 
-// 壁打ちセッションのメッセージ履歴を全削除してリセット
 export async function resetSession(sessionId: string) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -52,7 +49,6 @@ export async function resetSession(sessionId: string) {
   const user = await prisma.user.findUnique({ where: { clerkId: userId } });
   if (!user) throw new Error("User not found");
 
-  // 所有者チェック
   const session = await prisma.session.findUnique({ where: { id: sessionId } });
   if (!session || session.userId !== user.id) throw new Error("Invalid session");
 
@@ -62,7 +58,6 @@ export async function resetSession(sessionId: string) {
   ]);
 }
 
-// メッセージを保存
 export async function saveChatMessage(
   mode: "journal" | "coach",
   content: string,
@@ -79,8 +74,10 @@ export async function saveChatMessage(
     revalidatePath("/");
     return entry;
   } else {
-    return prisma.coachMessage.create({
+    const msg = await prisma.coachMessage.create({
       data: { userId: user.id, role, content },
     });
+    revalidatePath("/dashboard");
+    return msg;
   }
 }
