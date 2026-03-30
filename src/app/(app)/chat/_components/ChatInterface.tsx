@@ -128,7 +128,6 @@ export function ChatInterface({
   // deps=[defaultMode]: ソフトナビゲーションでpropsが変わった場合も再実行するため
   useEffect(() => {
     if (defaultMode !== "coach") return;
-    if (initialMessages.length > 0) return; // 既に履歴がある場合はスキップ
     try {
       const context = sessionStorage.getItem("alter-coach-context");
       if (!context) return;
