@@ -370,9 +370,9 @@ export function DashboardClient({ initialAlterLog, buttonState }: Props) {
           <div className="hl-enter hl-d6 flex justify-center pt-4 pb-8">
             <Link
               href="/chat?mode=coach"
-              className="flex items-center gap-2 text-[11px] font-mono text-white/15 hover:text-white/30 transition-colors"
+              className="flex items-center gap-2 text-[11px] font-mono text-white/25 hover:text-white/45 transition-colors"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C4A35A]/30" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#C4A35A]/50" />
               <span>Alterは対話可能な状態です</span>
             </Link>
           </div>

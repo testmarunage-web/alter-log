@@ -257,6 +257,21 @@ ${context}`,
   }
 
   if (scanSucceeded) {
+    const jstDateStr = getJstDateStr();
+    const dateForDb  = new Date(`${jstDateStr}T00:00:00Z`);
+
+    // 当日のAlterLogを削除してから新規作成（upsertはcreatedAt上書き不可のためdelete→create）
+    await prisma.alterLog.deleteMany({ where: { userId: user.id, date: dateForDb } });
+    await prisma.alterLog.create({
+      data: {
+        userId:   user.id,
+        date:     dateForDb,
+        type:     "daily",
+        insights: result,
+        createdAt: new Date(), // SCANは即時実行なので偽装不要
+      },
+    });
+
     await prisma.user.update({
       where: { id: user.id },
       data: { lastDashboardScanAt: new Date() },

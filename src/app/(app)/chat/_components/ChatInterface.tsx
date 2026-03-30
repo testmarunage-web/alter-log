@@ -95,6 +95,7 @@ export function ChatInterface({
   const [showWelcome, setShowWelcome]         = useState(false);
   const [welcomeFading, setWelcomeFading]     = useState(false);
   const [coachSuggestionText, setCoachSuggestionText] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating]               = useState(false);
 
   // ジャーナルモードの初回のみウェルカムモーダルを表示
   useEffect(() => {
@@ -338,7 +339,9 @@ export function ChatInterface({
             <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
               <button
                 type="button"
+                disabled={isNavigating}
                 onClick={() => {
+                  setIsNavigating(true);
                   try {
                     const lastJournal = journalMessages[journalMessages.length - 1];
                     if (lastJournal) {
@@ -347,13 +350,22 @@ export function ChatInterface({
                   } catch { /* noop */ }
                   router.push("/chat?mode=coach");
                 }}
-                className="flex items-center gap-2 text-xs text-[#C4A35A]/70 hover:text-[#C4A35A] transition-colors"
+                className="flex items-center gap-2 text-xs text-[#C4A35A]/70 hover:text-[#C4A35A] transition-colors disabled:opacity-60"
               >
-                <AlterIcon size={12} />
-                <span>{coachSuggestionText}</span>
-                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
-                </svg>
+                {isNavigating ? (
+                  <>
+                    <span className="w-2.5 h-2.5 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin" />
+                    <span>Alterに接続中...</span>
+                  </>
+                ) : (
+                  <>
+                    <AlterIcon size={12} />
+                    <span>{coachSuggestionText}</span>
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
+                    </svg>
+                  </>
+                )}
               </button>
             </div>
           )}
