@@ -64,8 +64,9 @@ export default async function Home() {
         <div className="mt-10">
           <Link href="/sign-up" className="inline-flex flex-col items-center justify-center px-10 py-3.5 rounded-full bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_32px_rgba(196,163,90,0.4)] active:scale-[0.98] transition-all duration-300">
             <span className="font-bold text-sm sm:text-base tracking-wide">Alter Logを始める</span>
-            <span className="text-[10px] sm:text-xs font-semibold mt-0.5 opacity-80">（月額2,980円）</span>
+            <span className="text-[10px] sm:text-xs font-semibold mt-0.5 opacity-80">初月2,682円（10%OFF）</span>
           </Link>
+          <p className="mt-3 text-xs text-[#8A8276]/60">お申し込みから7日以内にご満足いただけなければ、全額返金いたします。</p>
         </div>
 
         <div className="relative mt-16 w-full max-w-4xl aspect-video bg-[#12161E] border border-white/[0.08] rounded-2xl sm:rounded-3xl overflow-hidden flex items-center justify-center shadow-2xl shadow-black/50 mx-auto">
@@ -208,6 +209,19 @@ export default async function Home() {
               </tbody>
             </table>
           </div>
+
+          <div className="text-center mt-16">
+            <div className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full border border-[#C4A35A]/25 bg-[#C4A35A]/5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C4A35A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              <span className="text-base text-[#E8D5A0] font-black tracking-tight">7日間全額返金保証</span>
+            </div>
+            <p className="mt-5 text-sm text-[#8A8276] leading-relaxed max-w-lg mx-auto">
+              Alter Logは、使えば価値が伝わるサービスだと確信しています。<br className="hidden sm:block" />
+              お申し込みから7日以内にご満足いただけなければ、理由を問わず全額返金いたします。
+            </p>
+          </div>
         </div>
       </section>
 
@@ -232,8 +246,9 @@ export default async function Home() {
         <div className="relative flex justify-center">
           <Link href="/sign-up" className="inline-flex flex-col items-center justify-center px-10 py-3.5 rounded-full bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_32px_rgba(196,163,90,0.4)] active:scale-[0.98] transition-all duration-300">
             <span className="font-bold text-sm sm:text-base tracking-wide">Alter Logを始める</span>
-            <span className="text-[10px] sm:text-xs font-semibold mt-0.5 opacity-80">（月額2,980円）</span>
+            <span className="text-[10px] sm:text-xs font-semibold mt-0.5 opacity-80">初月2,682円（10%OFF）</span>
           </Link>
+          <p className="mt-3 text-xs text-[#8A8276]/60">お申し込みから7日以内にご満足いただけなければ、全額返金いたします。</p>
         </div>
       </section>
 
