@@ -128,6 +128,7 @@ export function ChatInterface({
   // deps=[defaultMode]: ソフトナビゲーションでpropsが変わった場合も再実行するため
   useEffect(() => {
     if (defaultMode !== "coach") return;
+    setIsNavigating(false); // ソフトナビゲーション完了時にスピナーをリセット
     try {
       const context = sessionStorage.getItem("alter-coach-context");
       if (!context) return;
