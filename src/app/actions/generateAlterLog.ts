@@ -27,11 +27,10 @@ function getJstDateStr(): string {
  * @param jstDateStr  "YYYY-MM-DD" 形式の JST 日付（対象日）
  */
 function getSpoofedCreatedAt(jstDateStr: string): Date {
-  const todayJstMidnight = new Date(`${jstDateStr}T00:00:00+09:00`);
-  const tomorrowJstMidnight = new Date(todayJstMidnight.getTime() + 24 * 60 * 60 * 1000);
+  const jstMidnight = new Date(`${jstDateStr}T00:00:00+09:00`);
   return new Date(
-    tomorrowJstMidnight.getTime() +
-    2 * 60 * 60 * 1000 +                              // 最低 02:00 JST
+    jstMidnight.getTime() +
+    2 * 60 * 60 * 1000 +                              // 最低 02:00 JST（当日）
     Math.floor(Math.random() * 2 * 60 * 60 * 1000)   // 0〜2時間のランダムオフセット（〜04:00 JST）
   );
 }
