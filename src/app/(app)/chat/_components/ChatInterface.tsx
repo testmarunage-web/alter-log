@@ -115,13 +115,29 @@ export function ChatInterface({
     }, 420);
   }
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } =
+  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages, append } =
     useChat({
       api: "/api/chat",
       initialMessages,
       body: { sessionId },
       onFinish: () => setLocalUsedCount((c) => c + 1),
     });
+
+  // 壁打ちモード初期化：sessionStorageにジャーナルコンテキストがあれば自動で第一声をトリガー
+  useEffect(() => {
+    if (defaultMode !== "coach") return;
+    if (initialMessages.length > 0) return; // 既に履歴がある場合はスキップ
+    try {
+      const context = sessionStorage.getItem("alter-coach-context");
+      if (!context) return;
+      sessionStorage.removeItem("alter-coach-context");
+      append(
+        { role: "user", content: "__OPEN__" },
+        { body: { sessionId, journalContext: context } }
+      );
+    } catch { /* sessionStorage unavailable */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleReset() {
     if (isResetting || isLoading) return;
@@ -185,6 +201,13 @@ export function ChatInterface({
   const visibleMessages = messages.filter((m) => m.content !== "__OPEN__");
   const initial         = userName.slice(0, 1).toUpperCase();
   const headerCls       = "bg-[#0B0E13]/95 border-[#C4A35A]/10 backdrop-blur-md";
+
+  const todayJst = new Date().toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" });
+  const hasTodayJournalEntry =
+    hasTodayJournal ||
+    journalMessages.some(
+      (m) => m.createdAt.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" }) === todayJst
+    );
 
   return (
     // h-full: AppLayoutのmain(flex-1)を埋める / overflow-hidden: 自身をはみ出させない
@@ -281,8 +304,8 @@ export function ChatInterface({
             </form>
           </div>
 
-          {/* 2. ヒントアコーディオン（flex-none・送信ボタン下） */}
-          <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
+          {/* 2. ヒントアコーディオン（今日の投稿が0件のときのみ表示） */}
+          {!hasTodayJournalEntry && <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
             <button
               type="button"
               onClick={() => setHintOpen((v) => !v)}
@@ -307,14 +330,22 @@ export function ChatInterface({
                 </p>
               </div>
             )}
-          </div>
+          </div>}
 
           {/* 壁打ち導線（感情分類でnegative/uncertainの場合のみ表示） */}
           {coachSuggestionText && (
             <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
               <button
                 type="button"
-                onClick={() => router.push("/chat?mode=coach")}
+                onClick={() => {
+                  try {
+                    const lastJournal = journalMessages[journalMessages.length - 1];
+                    if (lastJournal) {
+                      sessionStorage.setItem("alter-coach-context", lastJournal.content);
+                    }
+                  } catch { /* noop */ }
+                  router.push("/chat?mode=coach");
+                }}
                 className="flex items-center gap-2 text-xs text-[#C4A35A]/70 hover:text-[#C4A35A] transition-colors"
               >
                 <AlterIcon size={12} />

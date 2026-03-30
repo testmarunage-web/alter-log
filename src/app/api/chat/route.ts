@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { messages, sessionId } = await req.json();
+    const { messages, sessionId, journalContext } = await req.json();
 
     // ユーザー＆プロフィール取得（Webhook未設定でも動くよう upsert）
     const user = await prisma.user.upsert({
@@ -60,7 +60,11 @@ export async function POST(req: Request) {
           "\n---\n上記の文脈を踏まえ、今日の対話をより深く温かく受け止めてください。"
         : "";
 
-    const systemPrompt = basePersona + memoryBlock;
+    const journalContextBlock = journalContext
+      ? `\n\n---\n【直前のジャーナル内容】\nユーザーは直前にジャーナルで以下の内容を書いています。この内容を踏まえ、あなたから自然に会話を始めてください。ジャーナルの内容を直接引用せず、ユーザーの気持ちに寄り添った短い問いかけを1〜2文で投げかけてください。\n\n${journalContext}\n---`
+      : "";
+
+    const systemPrompt = basePersona + memoryBlock + journalContextBlock;
 
     // 最後のユーザーメッセージ内容を保持（onFinishで使用）
     const lastUserMsg = [...messages].reverse().find((m: CoreMessage) => m.role === "user");
@@ -79,18 +83,24 @@ export async function POST(req: Request) {
       maxTokens: 1024,
       onFinish: async ({ text }) => {
         try {
-          await prisma.message.createMany({
-            data: [
-              { sessionId, role: "USER", content: lastUserContent },
-              { sessionId, role: "ASSISTANT", content: text },
-            ],
-          });
-          await prisma.coachMessage.createMany({
-            data: [
-              { userId: user.id, role: "user", content: lastUserContent },
-              { userId: user.id, role: "ai", content: text },
-            ],
-          });
+          if (lastUserContent === "__OPEN__") {
+            // ジャーナルコンテキストによる自動第一声: assistant側のみ保存
+            await prisma.message.create({ data: { sessionId, role: "ASSISTANT", content: text } });
+            await prisma.coachMessage.create({ data: { userId: user.id, role: "ai", content: text } });
+          } else {
+            await prisma.message.createMany({
+              data: [
+                { sessionId, role: "USER", content: lastUserContent },
+                { sessionId, role: "ASSISTANT", content: text },
+              ],
+            });
+            await prisma.coachMessage.createMany({
+              data: [
+                { userId: user.id, role: "user", content: lastUserContent },
+                { userId: user.id, role: "ai", content: text },
+              ],
+            });
+          }
           await prisma.session.update({
             where: { id: sessionId },
             data: { usedCount: { increment: 1 } },
