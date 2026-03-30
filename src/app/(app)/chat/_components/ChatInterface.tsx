@@ -597,6 +597,7 @@ export function ChatInterface({
                 ))}
 
                 {isLoading &&
+                  visibleMessages.length > 0 &&
                   messages.length > 0 &&
                   messages[messages.length - 1]?.role === "user" && (
                     <TypingIndicator />
