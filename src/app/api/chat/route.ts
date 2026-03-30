@@ -71,10 +71,14 @@ export async function POST(req: Request) {
     const lastUserContent: string =
       typeof lastUserMsg?.content === "string" ? lastUserMsg.content : "";
 
-    const coreMessages: CoreMessage[] = messages.map((m: { role: string; content: string }) => ({
-      role: m.role as "user" | "assistant",
-      content: m.content,
-    }));
+    // journalContextがある場合（ジャーナルからの直接遷移）は __OPEN__ の1件のみ送る
+    // 過去の会話履歴をcoreMessagesに含めると、systemPromptでpastMessagesを消しても文脈が混入するため
+    const coreMessages: CoreMessage[] = journalContext
+      ? [{ role: "user", content: "__OPEN__" }]
+      : messages.map((m: { role: string; content: string }) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        }));
 
     const result = streamText({
       model: anthropic("claude-haiku-4-5"),
