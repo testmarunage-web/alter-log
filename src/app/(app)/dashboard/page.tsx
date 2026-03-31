@@ -49,7 +49,7 @@ export default async function DashboardPage() {
     ? await prisma.alterLog.findFirst({
         where: { userId: user.id },
         orderBy: { createdAt: "desc" },
-        select: { createdAt: true },
+        select: { createdAt: true, thoughtProfile: true },
       })
     : null;
 
@@ -58,6 +58,7 @@ export default async function DashboardPage() {
       initialAlterLog={initialAlterLog}
       buttonState={buttonState}
       lastScanAt={latestAlterLogRecord?.createdAt ?? null}
+      initialThoughtProfile={latestAlterLogRecord?.thoughtProfile ?? null}
     />
   );
 }

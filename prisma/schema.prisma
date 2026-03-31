@@ -201,6 +201,7 @@ model AlterLog {
   date     DateTime @db.Date // 日付のみ保持（日次ユニーク制約のため）
   type     String // "daily" または "weekly"
   insights Json // 分析データ（項目の増減に柔軟対応）
+  thoughtProfile String? // 思考プロファイル（例: 「慎重すぎる参謀型マーケター」）
 
   createdAt DateTime @default(now())
 

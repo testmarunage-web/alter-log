@@ -148,6 +148,7 @@ interface Props {
   initialAlterLog: AlterLogInsights | null;
   buttonState: ButtonState;
   lastScanAt: Date | null;
+  initialThoughtProfile: string | null;
 }
 
 function formatLastScan(date: Date): string {
@@ -166,9 +167,10 @@ const LOADING_MESSAGES = [
   "レポートを生成中...",
 ];
 
-export function DashboardClient({ initialAlterLog, buttonState, lastScanAt }: Props) {
+export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, initialThoughtProfile }: Props) {
   const [log, setLog] = useState<AlterLogInsights | null>(initialAlterLog);
   const [localLastScanAt, setLocalLastScanAt] = useState<Date | null>(lastScanAt);
+  const [thoughtProfile, setThoughtProfile] = useState<string | null>(initialThoughtProfile);
   const [isPending, startTransition] = useTransition();
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
@@ -199,9 +201,10 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt }: Pr
     setIsGenerating(true);
     startTransition(async () => {
       try {
-        const result = await generateDashboardScan();
-        setLog(result);
+        const { insights, thoughtProfile: newProfile } = await generateDashboardScan();
+        setLog(insights);
         setLocalLastScanAt(new Date());
+        setThoughtProfile(newProfile);
         router.refresh();
       } catch (e) {
         setError(String(e));
@@ -302,6 +305,14 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt }: Pr
               </div>
             </RippleLink>
           </div>
+
+          {/* ─── 思考プロファイル ─────────────────────────────────────────────── */}
+          {thoughtProfile && (
+            <div className="hl-enter hl-d2 border border-[#C4A35A]/20 rounded-lg px-4 py-3" style={{ background: "rgba(196,163,90,0.04)" }}>
+              <p className="font-mono text-[10px] tracking-[0.2em] text-[#8A8276] uppercase mb-1.5">Thought Profile</p>
+              <p className="text-lg font-bold text-[#E8D5A0] leading-snug">{thoughtProfile}</p>
+            </div>
+          )}
 
           {/* ─── ① SNAPSHOT セクションヘッダー ─────────────────────────────── */}
           <div className="hl-enter hl-d2 flex items-center gap-3 pt-2">

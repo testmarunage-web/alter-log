@@ -2,7 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { anthropic } from "@ai-sdk/anthropic";
-import { generateObject } from "ai";
+import { generateObject, generateText } from "ai";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { alterLogSchema, type AlterLogInsights } from "./alterLogSchema";
@@ -197,7 +197,7 @@ ${context}`,
 // ─────────────────────────────────────────────────────────────────────────────
 // ダッシュボード SCAN ボタン専用：AI解析のみ実行し、DB保存しない
 // ─────────────────────────────────────────────────────────────────────────────
-export async function generateDashboardScan(): Promise<AlterLogInsights> {
+export async function generateDashboardScan(): Promise<{ insights: AlterLogInsights; thoughtProfile: string | null }> {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
@@ -256,18 +256,36 @@ ${context}`,
     result = FALLBACK_INSIGHTS;
   }
 
+  let thoughtProfile: string | null = null;
+
   if (scanSucceeded) {
     const jstDateStr = getJstDateStr();
     const dateForDb  = new Date(`${jstDateStr}T00:00:00Z`);
+
+    // 思考プロファイルを生成（データ不足の場合はスキップ）
+    if (!result.is_insufficient_data) {
+      try {
+        const { text } = await generateText({
+          model: anthropic("claude-sonnet-4-5"),
+          system: `以下のSCAN分析結果をもとに、この対象者の思考パターンをビジネスパーソン文脈で一言で表現してください。「〇〇な〇〇型〇〇」のような形式で、具体的なビジネス職種や役割を含めてください。例：「慎重すぎる参謀型マーケター」「焦りを燃料にする突破型リーダー」「理詰めで逃げる完璧主義アナリスト」結果のみを出力し、それ以外は一切出力しないでください。`,
+          prompt: JSON.stringify(result),
+          maxTokens: 50,
+        });
+        thoughtProfile = text.trim() || null;
+      } catch (err) {
+        console.error("[generateDashboardScan] thoughtProfile generation failed:", err);
+      }
+    }
 
     // 当日のAlterLogを削除してから新規作成（upsertはcreatedAt上書き不可のためdelete→create）
     await prisma.alterLog.deleteMany({ where: { userId: user.id, date: dateForDb } });
     await prisma.alterLog.create({
       data: {
-        userId:   user.id,
-        date:     dateForDb,
-        type:     "daily",
-        insights: result,
+        userId:        user.id,
+        date:          dateForDb,
+        type:          "daily",
+        insights:      result,
+        thoughtProfile,
         createdAt: new Date(), // SCANは即時実行なので偽装不要
       },
     });
@@ -279,7 +297,7 @@ ${context}`,
     revalidatePath("/dashboard");
   }
 
-  return result;
+  return { insights: result, thoughtProfile: scanSucceeded ? (thoughtProfile ?? null) : null };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
