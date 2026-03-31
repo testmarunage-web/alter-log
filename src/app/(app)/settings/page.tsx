@@ -22,48 +22,51 @@ export default async function SettingsPage() {
       <div className="max-w-lg mx-auto px-5 pt-10">
 
         {/* タイトル */}
-        <h1 className="text-lg font-bold text-[#E8E3D8] mb-8 tracking-tight">SETTINGS</h1>
+        <h1 className="text-lg font-bold text-[#E8E3D8] mb-8 tracking-tight">設定</h1>
 
         {/* メインメニュー */}
         <div className="border border-white/[0.07] rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.018)" }}>
 
           {/* メールアドレス */}
-          <div className="px-4 py-4 flex items-center justify-between border-b border-white/[0.05]">
-            <span className="text-sm text-white/45">メールアドレス</span>
+          <div className="px-4 py-4 flex items-center justify-between border-b border-white/[0.06]">
+            <span className="text-sm text-white/40">メールアドレス</span>
             <span className="text-xs text-white/50 truncate max-w-[55%] text-right">{email ?? "—"}</span>
           </div>
 
-          {/* プラン・お支払い */}
-          <div className="border-b border-white/[0.05]">
+          {/* お支払い管理 */}
+          <div className="border-b border-white/[0.06]">
             <a
               href="https://billing.stripe.com/p/login/placeholder"
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 pt-4 pb-1.5 flex items-center justify-between hover:bg-white/[0.03] transition-colors"
             >
-              <span className="text-sm text-white/75">プラン・お支払い管理</span>
+              <span className="text-sm text-white/75">お支払い管理</span>
               <Chevron />
             </a>
-            <p className="px-4 pb-3 text-[10px] text-white/30">プランの変更・解約もこちらから</p>
+            <p className="px-4 pb-3 text-[11px] text-white/25">サービスの解約はこちら</p>
           </div>
 
-          {/* Discord */}
-          <a
-            href="https://discord.gg/placeholder"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-4 flex items-center justify-between hover:bg-white/[0.03] transition-colors border-b border-white/[0.05]"
-          >
-            <span className="text-sm text-white/75">コミュニティに参加</span>
-            <Chevron />
-          </a>
+          {/* コミュニティに参加 */}
+          <div className="border-b border-white/[0.06]">
+            <a
+              href="https://discord.gg/placeholder"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 pt-4 pb-1.5 flex items-center justify-between hover:bg-white/[0.03] transition-colors"
+            >
+              <span className="text-sm text-white/75">コミュニティに参加</span>
+              <Chevron />
+            </a>
+            <p className="px-4 pb-3 text-[11px] text-white/25">Discordが開きます</p>
+          </div>
 
-          {/* ヘルプ */}
+          {/* お問い合わせ */}
           <a
             href="mailto:support@alter-log.com"
             className="px-4 py-4 flex items-center justify-between hover:bg-white/[0.03] transition-colors"
           >
-            <span className="text-sm text-white/75">ヘルプ・お問い合わせ</span>
+            <span className="text-sm text-white/75">お問い合わせ</span>
             <Chevron />
           </a>
         </div>
@@ -73,7 +76,7 @@ export default async function SettingsPage() {
           <SignOutButton redirectUrl="/">
             <button
               type="button"
-              className="w-full px-4 py-4 text-left text-sm text-red-400/55 hover:text-red-400/75 hover:bg-white/[0.02] transition-colors"
+              className="w-full px-4 py-4 text-center text-sm text-red-400/55 hover:text-red-400/75 hover:bg-white/[0.02] transition-colors"
             >
               ログアウト
             </button>

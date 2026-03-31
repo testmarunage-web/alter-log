@@ -160,6 +160,8 @@ export function ChatInterface({
   const [welcomeFading, setWelcomeFading]     = useState(false);
   const [coachSuggestionText, setCoachSuggestionText] = useState<string | null>(null);
   const [isNavigating, setIsNavigating]               = useState(false);
+  const [showVoiceHint, setShowVoiceHint]             = useState(false);
+  const [voiceHintFading, setVoiceHintFading]         = useState(false);
 
   // ジャーナルモードの初回のみウェルカムモーダルを表示
   useEffect(() => {
@@ -170,6 +172,25 @@ export function ChatInterface({
       }
     } catch { /* localStorage unavailable */ }
   }, [isJournal]);
+
+  // 音声入力ヒント（初回のみ）
+  useEffect(() => {
+    if (!isJournal) return;
+    try {
+      if (!localStorage.getItem("alter-log-voice-hint-dismissed")) {
+        setShowVoiceHint(true);
+      }
+    } catch { /* localStorage unavailable */ }
+  }, [isJournal]);
+
+  function handleVoiceHintDismiss() {
+    setVoiceHintFading(true);
+    try { localStorage.setItem("alter-log-voice-hint-dismissed", "1"); } catch { /* noop */ }
+    setTimeout(() => {
+      setShowVoiceHint(false);
+      setVoiceHintFading(false);
+    }, 300);
+  }
 
   function handleWelcomeClose() {
     setWelcomeFading(true);
@@ -340,7 +361,7 @@ export function ChatInterface({
                   ref={textareaRef}
                   value={journalInput}
                   onChange={handleJournalInputChange}
-                  placeholder="ここをタップして、マイクで思考を話すかテキストで入力してください。日記や愚痴、感情の吐き出しなど何でも構いません。"
+                  placeholder="今日あったこと、感じたこと、モヤモヤ…なんでも書いてください。"
                   className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
                   style={{ height: "140px" }}
                 />
@@ -370,6 +391,36 @@ export function ChatInterface({
                 {isSaving ? "保存中..." : "ジャーナルを記録する"}
               </button>
             </form>
+
+            {/* 音声入力ヒント（初回のみ・dismissable） */}
+            {showVoiceHint && (
+              <div
+                className="mt-2 rounded-xl px-4 py-2.5 bg-white/[0.02] border border-white/[0.06] flex items-start gap-2.5"
+                style={{ opacity: voiceHintFading ? 0 : 1, transition: "opacity 0.3s ease-out" }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-[#C4A35A]/60 flex-shrink-0 mt-0.5">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="23" />
+                  <line x1="8" y1="23" x2="16" y2="23" />
+                </svg>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] text-white/50 font-medium leading-snug">音声でも入力できます</p>
+                  <p className="text-[11px] text-white/30 leading-relaxed mt-0.5">キーボード右下の 🎙 をタップすると、話した内容がそのまま文字になります。</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleVoiceHintDismiss}
+                  className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0 mt-0.5"
+                  aria-label="閉じる"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* 2. ヒントアコーディオン（今日の投稿が0件のときのみ表示） */}
