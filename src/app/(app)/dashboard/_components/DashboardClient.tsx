@@ -223,12 +223,12 @@ function ProfileCard({ label, value }: { label: string; value: string | null }) 
 // ─────────────────────────────────────────────────────────────────────────────
 function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayCount: number }) {
   const [selectedDay, setSelectedDay] = useState<WeatherDay | null>(null);
-  const isLocked = journalDayCount < 3;
-  const daysNeeded = Math.max(0, 3 - journalDayCount);
+  const isLocked = journalDayCount < 1;
+  const daysNeeded = Math.max(0, 1 - journalDayCount);
 
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
-      <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase block mb-3">感情の天気図</span>
+      <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase block mb-3">ムードマップ</span>
       <div className="relative">
         {/* コンテンツ（ロック時はぼかし） */}
         <div className={isLocked ? "opacity-20 pointer-events-none" : ""}>
@@ -292,8 +292,8 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
 // ワードクラウド
 // ─────────────────────────────────────────────────────────────────────────────
 function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayCount: number }) {
-  const isLocked = journalDayCount < 3;
-  const daysNeeded = Math.max(0, 3 - journalDayCount);
+  const isLocked = journalDayCount < 1;
+  const daysNeeded = Math.max(0, 1 - journalDayCount);
 
   const dummyWords: WordEntry[] = [
     { word: "???", count: 8 }, { word: "???", count: 5 }, { word: "??", count: 7 },
@@ -307,7 +307,7 @@ function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayC
 
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
-      <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase block mb-3">頻出キーワード</span>
+      <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase block mb-3">ワードクラウド</span>
       <div className="relative">
         <div className={isLocked ? "opacity-20 pointer-events-none" : ""}>
           {displayWords.length === 0 ? (
@@ -358,7 +358,7 @@ function ObserverCounter({ observerDays, totalJournalCount, totalScanCount, tota
 }) {
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
-      <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase block mb-3">観察カウンター</span>
+      <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase block mb-3">観測ログ</span>
       <p className="text-sm text-white/55 mb-2.5 leading-relaxed">
         Alterは<span className="text-[#C4A35A] font-bold text-base">{observerDays}</span>日間あなたと共にいます
       </p>
@@ -551,7 +551,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
           {/* ─── 思考プロファイル ─────────────────────────────────────────────── */}
           {thoughtProfile && (
             <div className="hl-enter hl-d2 border border-[#C4A35A]/20 rounded-lg px-4 py-3" style={{ background: "rgba(196,163,90,0.04)" }}>
-              <p className="font-mono text-[10px] tracking-[0.2em] text-[#8A8276] uppercase mb-1.5">Thought Profile</p>
+              <p className="font-mono text-[10px] tracking-[0.2em] text-[#8A8276] uppercase mb-1.5">思考プロファイル</p>
               <p className="text-lg font-bold text-[#E8D5A0] leading-snug">{thoughtProfile}</p>
             </div>
           )}
@@ -639,24 +639,24 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
-          {/* ── 観察カウンター（常に表示） ───────────────────────────────────── */}
+          {/* ── 内面マップ（ムードマップ） ───────────────────────────────────── */}
           <div className="hl-enter hl-d7">
+            <WeatherMap days={timelineData.weatherDays} journalDayCount={timelineData.journalDayCount} />
+          </div>
+
+          {/* ── ワードクラウド ───────────────────────────────────────────────── */}
+          <div className="hl-enter hl-d8">
+            <WordCloud words={timelineData.wordCloudWords} journalDayCount={timelineData.journalDayCount} />
+          </div>
+
+          {/* ── 観測ログ（常に表示） ─────────────────────────────────────────── */}
+          <div className="hl-enter hl-d9">
             <ObserverCounter
               observerDays={timelineData.observerDays}
               totalJournalCount={timelineData.totalJournalCount}
               totalScanCount={timelineData.totalScanCount}
               totalCoachCount={timelineData.totalCoachCount}
             />
-          </div>
-
-          {/* ── 感情の天気図 ─────────────────────────────────────────────────── */}
-          <div className="hl-enter hl-d8">
-            <WeatherMap days={timelineData.weatherDays} journalDayCount={timelineData.journalDayCount} />
-          </div>
-
-          {/* ── 頻出キーワード ───────────────────────────────────────────────── */}
-          <div className="hl-enter hl-d9">
-            <WordCloud words={timelineData.wordCloudWords} journalDayCount={timelineData.journalDayCount} />
           </div>
 
           {/* ── Alterステータス（壁打ちへの控えめな導線） ── */}
