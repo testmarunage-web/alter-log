@@ -262,9 +262,9 @@ export default async function Home() {
           </div>
 
           <div className="flex flex-wrap justify-center gap-6 text-xs text-[#8A8276]/60 font-medium">
-            <span className="hover:text-[#E8E3D8] transition cursor-pointer">利用規約</span>
-            <span className="hover:text-[#E8E3D8] transition cursor-pointer">プライバシーポリシー</span>
-            <span className="hover:text-[#E8E3D8] transition cursor-pointer">特定商取引法に基づく表記</span>
+            <Link href="/terms" className="hover:text-[#E8E3D8] transition">利用規約</Link>
+            <Link href="/privacy" className="hover:text-[#E8E3D8] transition">プライバシーポリシー</Link>
+            <Link href="/tokushoho" className="hover:text-[#E8E3D8] transition">特定商取引法に基づく表記</Link>
           </div>
           <p className="text-xs text-[#8A8276]/30">© 2026 Alter Log. All Rights Reserved.</p>
         </div>
