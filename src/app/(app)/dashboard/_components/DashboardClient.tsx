@@ -271,8 +271,8 @@ function ThoughtProfileCard({ profile }: { profile: string }) {
 function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayCount: number }) {
   const [selectedDay, setSelectedDay] = useState<WeatherDay | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
-  const isLocked = journalDayCount < 1;
-  const daysNeeded = Math.max(0, 1 - journalDayCount);
+  const isLocked = journalDayCount < 3;
+  const daysNeeded = Math.max(0, 3 - journalDayCount);
 
   const dummyDays = Array.from({ length: 30 }, (_, i) => ({
     dateStr: `dummy-${i}`,
@@ -402,13 +402,6 @@ function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayC
       {/* ヘッダー */}
       <div className="flex items-center mb-1">
         <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase">ワードクラウド</span>
-        <button
-          type="button"
-          onClick={() => setInfoOpen((v) => !v)}
-          className="text-white/20 hover:text-white/40 transition-colors ml-1"
-        >
-          <IcInfo />
-        </button>
       </div>
       {infoOpen && (
         <p className="text-[10px] text-white/25 leading-relaxed mb-2">
@@ -684,7 +677,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
             <span className="font-mono text-[9px] tracking-[0.25em] text-white/25 uppercase">① Snapshot</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
             {localLastScanAt && (
-              <span className="font-mono text-[9px] text-white/15 tracking-widest">
+              <span className="font-mono text-[10px] text-white/30 tracking-widest">
                 LAST SCAN {formatLastScan(localLastScanAt)}
               </span>
             )}

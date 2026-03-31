@@ -83,7 +83,7 @@ export default async function ChatPage({
 
   // ── 「あの時のあなた」カード用：1日以上前のジャーナルからランダム1件（確認用・本番は30日）
   const thirtyDaysAgoForPast = new Date();
-  thirtyDaysAgoForPast.setDate(thirtyDaysAgoForPast.getDate() - 1);
+  thirtyDaysAgoForPast.setDate(thirtyDaysAgoForPast.getDate() - 30);
 
   const pastJournalCount = await prisma.journalEntry.count({
     where: { userId: user.id, createdAt: { lt: thirtyDaysAgoForPast } },
