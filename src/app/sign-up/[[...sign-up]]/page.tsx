@@ -3,7 +3,7 @@ import { SignUp } from "@clerk/nextjs";
 export default function SignUpPage() {
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-      <SignUp fallbackRedirectUrl="/chat?mode=journal" />
+      <SignUp forceRedirectUrl="/chat?mode=journal" />
     </div>
   );
 }

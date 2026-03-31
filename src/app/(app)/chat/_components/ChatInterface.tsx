@@ -617,7 +617,7 @@ export function ChatInterface({
                   }}
                 >
                   <p className="text-sm text-[#E8E3D8] leading-relaxed">
-                    こんにちは、私はAlter（オルター）です。思考の癖を映し出し、変化を促す<span className="text-[#C4A35A]">「鏡」</span>となる存在です。
+                    こんにちは、私はAlter（オルター）です。あなたの思考の癖を映し出し、変化を促す<span className="text-[#C4A35A]">「鏡」</span>となる存在です。
                   </p>
                 </div>
               </div>
@@ -683,8 +683,8 @@ export function ChatInterface({
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#C4A35A]/60 tracking-wide mb-0.5">4. Alter Log（究極の客観視）</p>
-                    <p className="text-xs text-[#9A9488]/70 leading-relaxed">これは私（Alter）が毎晩深夜に密かにつけている、あなたの観察日記です。お見せする前提で書いていないので、閲覧は自己責任で。</p>
+                    <p className="text-xs font-bold text-[#C4A35A]/80 tracking-wide mb-0.5">4. Alter Log（究極の客観視）</p>
+                    <p className="text-xs text-[#9A9488]/90 leading-relaxed">これは私（Alter）が毎晩深夜に密かにつけている、あなたの観察日記です。お見せする前提で書いていないので、閲覧は自己責任で。</p>
                   </div>
                 </div>
               </div>
