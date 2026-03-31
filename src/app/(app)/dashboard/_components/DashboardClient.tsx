@@ -11,11 +11,11 @@ import { AlterIcon } from "../../_components/AlterIcon";
 // 型定義（dashboard/page.tsx からも import）
 // ─────────────────────────────────────────────────────────────────────────────
 export interface WeatherDay {
-  dateStr: string;       // YYYY-MM-DD (JST)
+  dateStr: string;
   day: number;
   month: number;
-  factPct: number | null; // null = AlterLog なし
-  journalSnippet: string | null; // null = その日のジャーナルなし
+  factPct: number | null;
+  journalEntries: { content: string; timeStr: string }[] | null;
 }
 
 export interface WordEntry {
@@ -26,7 +26,7 @@ export interface WordEntry {
 export interface TimelineData {
   weatherDays: WeatherDay[];
   wordCloudWords: WordEntry[];
-  journalDayCount: number;  // 直近30日でジャーナルがある日数
+  journalDayCount: number;
   observerDays: number;
   totalJournalCount: number;
   totalScanCount: number;
@@ -42,25 +42,26 @@ const IcPen = () => (
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
   </svg>
 );
-const IcCompass = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-  </svg>
-);
 const IcLock = () => (
   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
   </svg>
 );
+const IcInfo = () => (
+  <svg width="10" height="10" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <circle cx="10" cy="10" r="8.5" />
+    <line x1="10" y1="9" x2="10" y2="14" />
+    <circle cx="10" cy="6.5" r="0.7" fill="currentColor" stroke="none" />
+  </svg>
+);
 
-// 感情天気図アイコン（SVG）
-function WeatherIcon({ factPct }: { factPct: number }) {
-  if (factPct >= 60) {
-    // 晴れ：円 + 放射線
+// 感情天気図アイコン（SVG / 18px）
+function WeatherIcon({ factPct }: { factPct: number | null }) {
+  const pct = factPct ?? 32; // null → 曇り
+  if (pct >= 60) {
     return (
-      <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
         <circle cx="10" cy="10" r="3.5" fill="#C4A35A" />
         <line x1="10" y1="1.5" x2="10" y2="4" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" />
         <line x1="10" y1="16" x2="10" y2="18.5" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" />
@@ -72,25 +73,22 @@ function WeatherIcon({ factPct }: { factPct: number }) {
         <line x1="14.3" y1="5.7" x2="16.1" y2="3.9" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     );
-  } else if (factPct >= 45) {
-    // 晴れ時々曇り
+  } else if (pct >= 45) {
     return (
-      <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
         <circle cx="8" cy="9" r="3.5" fill="#A89050" />
         <path d="M11 14 Q11 12 13 12 Q15 12 15 14 Q16.5 14 16.5 15.5 Q16.5 17 15 17 H11.5 Q10 17 10 15.5 Q10 14 11 14Z" fill="#7A7265" />
       </svg>
     );
-  } else if (factPct >= 30) {
-    // 曇り
+  } else if (pct >= 30) {
     return (
-      <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
         <path d="M5 13 Q4 11 6 10 Q7 7 10 8 Q12 6 14 8 Q16.5 8 16.5 10.5 Q17.5 10.5 17.5 12.5 Q17.5 14.5 15.5 14.5 H7 Q5 14.5 5 13Z" fill="#6A6358" />
       </svg>
     );
-  } else if (factPct >= 15) {
-    // 雨
+  } else if (pct >= 15) {
     return (
-      <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
         <path d="M4.5 11 Q3.5 9 5.5 8 Q6.5 5.5 9.5 6.5 Q11.5 4.5 13.5 6.5 Q16 6.5 16 9 Q17 9 17 11 Q17 13 15 13 H6.5 Q4.5 13 4.5 11Z" fill="#526070" />
         <line x1="7" y1="14.5" x2="6" y2="17" stroke="#6090A8" strokeWidth="1.5" strokeLinecap="round" />
         <line x1="10" y1="14.5" x2="9" y2="17" stroke="#6090A8" strokeWidth="1.5" strokeLinecap="round" />
@@ -98,9 +96,8 @@ function WeatherIcon({ factPct }: { factPct: number }) {
       </svg>
     );
   } else {
-    // 雷雨（嵐）
     return (
-      <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
         <path d="M4 10 Q3 8 5 7 Q6 4.5 9 5.5 Q11 3.5 13 5.5 Q15.5 5.5 15.5 8 Q16.5 8 16.5 10 Q16.5 12 14.5 12 H5.5 Q4 12 4 10Z" fill="#404858" />
         <polyline points="9.5,13.5 7.5,17.5 10.5,15.5 8.5,20" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </svg>
@@ -148,19 +145,32 @@ function RippleLink({ href, children, className = "", style }: {
 // ─────────────────────────────────────────────────────────────────────────────
 // HUD カード（即時スナップショット層）
 // ─────────────────────────────────────────────────────────────────────────────
-function HudCard({ label, tag, children }: {
-  label: string; tag?: string; children: React.ReactNode;
+function HudCard({ label, tag, description, children }: {
+  label: string; tag?: string; description?: string; children: React.ReactNode;
 }) {
+  const [infoOpen, setInfoOpen] = useState(false);
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase">{label}</span>
+        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase flex-1">{label}</span>
         {tag && (
           <span className="font-mono text-[9px] tracking-widest text-[#C4A35A]/60 border border-[#C4A35A]/25 rounded px-1.5 py-0.5 leading-none">
             {tag}
           </span>
         )}
+        {description && (
+          <button
+            type="button"
+            onClick={() => setInfoOpen((v) => !v)}
+            className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0"
+          >
+            <IcInfo />
+          </button>
+        )}
       </div>
+      {infoOpen && description && (
+        <p className="text-[10px] text-white/25 leading-relaxed -mt-1 mb-3">{description}</p>
+      )}
       {children}
     </div>
   );
@@ -173,14 +183,8 @@ function FactEmotionBar({ factPct, emotionPct }: { factPct: number; emotionPct: 
   return (
     <div>
       <div className="flex gap-px mb-2 h-[6px] rounded-sm overflow-hidden">
-        <div
-          className="transition-all duration-700"
-          style={{ width: `${factPct}%`, background: "rgba(196,163,90,0.60)" }}
-        />
-        <div
-          className="transition-all duration-700"
-          style={{ width: `${emotionPct}%`, background: "rgba(255,255,255,0.10)" }}
-        />
+        <div className="transition-all duration-700" style={{ width: `${factPct}%`, background: "rgba(196,163,90,0.60)" }} />
+        <div className="transition-all duration-700" style={{ width: `${emotionPct}%`, background: "rgba(255,255,255,0.10)" }} />
       </div>
       <div className="flex justify-between">
         <span className="font-mono text-[9px] text-[#C4A35A]/70 tracking-widest">FACT {factPct}%</span>
@@ -193,7 +197,8 @@ function FactEmotionBar({ factPct, emotionPct }: { factPct: number; emotionPct: 
 // ─────────────────────────────────────────────────────────────────────────────
 // プロファイルカード（蓄積層）
 // ─────────────────────────────────────────────────────────────────────────────
-function ProfileCard({ label, value }: { label: string; value: string | null }) {
+function ProfileCard({ label, value, description }: { label: string; value: string | null; description?: string }) {
+  const [infoOpen, setInfoOpen] = useState(false);
   const isLocked = value === null;
   return (
     <div
@@ -203,7 +208,21 @@ function ProfileCard({ label, value }: { label: string; value: string | null }) 
         borderColor: isLocked ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.08)",
       }}
     >
-      <span className="font-mono text-[9px] tracking-[0.22em] text-white/25 uppercase block mb-2">{label}</span>
+      <div className="flex items-center mb-2">
+        <span className="font-mono text-[9px] tracking-[0.22em] text-white/25 uppercase flex-1">{label}</span>
+        {description && (
+          <button
+            type="button"
+            onClick={() => setInfoOpen((v) => !v)}
+            className="text-white/18 hover:text-white/35 transition-colors flex-shrink-0"
+          >
+            <IcInfo />
+          </button>
+        )}
+      </div>
+      {infoOpen && description && (
+        <p className="text-[10px] text-white/22 leading-relaxed mb-2">{description}</p>
+      )}
       {isLocked ? (
         <div className="flex items-start gap-2 py-0.5">
           <span className="text-white/18 mt-0.5 flex-shrink-0"><IcLock /></span>
@@ -219,59 +238,134 @@ function ProfileCard({ label, value }: { label: string; value: string | null }) 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 感情の天気図
+// 思考プロファイルカード
+// ─────────────────────────────────────────────────────────────────────────────
+function ThoughtProfileCard({ profile }: { profile: string }) {
+  const [infoOpen, setInfoOpen] = useState(false);
+  return (
+    <div className="border border-[#C4A35A]/20 rounded-lg px-4 py-3" style={{ background: "rgba(196,163,90,0.04)" }}>
+      <div className="flex items-center mb-1.5">
+        <p className="font-mono text-[10px] tracking-[0.2em] text-[#8A8276] uppercase flex-1">思考プロファイル</p>
+        <button
+          type="button"
+          onClick={() => setInfoOpen((v) => !v)}
+          className="text-[#8A8276]/50 hover:text-[#8A8276] transition-colors"
+        >
+          <IcInfo />
+        </button>
+      </div>
+      {infoOpen && (
+        <p className="text-[10px] text-white/25 leading-relaxed mb-2">
+          あなたの思考パターンをAlterが一言で表現したものです。SCANのたびに更新されます。
+        </p>
+      )}
+      <p className="text-lg font-bold text-[#E8D5A0] leading-snug">{profile}</p>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ムードマップ（感情天気図）
 // ─────────────────────────────────────────────────────────────────────────────
 function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayCount: number }) {
   const [selectedDay, setSelectedDay] = useState<WeatherDay | null>(null);
+  const [infoOpen, setInfoOpen] = useState(false);
   const isLocked = journalDayCount < 1;
   const daysNeeded = Math.max(0, 1 - journalDayCount);
 
+  const dummyDays = Array.from({ length: 30 }, (_, i) => ({
+    dateStr: `dummy-${i}`,
+    day: i + 1,
+    month: 3,
+    factPct: [70, 50, 35, 20, 10, 60, 45][i % 7] as number | null,
+    journalEntries: i % 3 !== 0 ? [{ content: "dummy", timeStr: "09:00" }] : null,
+  }));
+
+  const displayDays = isLocked ? dummyDays : days;
+
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
-      <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase block mb-3">ムードマップ</span>
+      {/* ヘッダー */}
+      <div className="flex items-center mb-1">
+        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase flex-1">ムードマップ</span>
+        <button
+          type="button"
+          onClick={() => setInfoOpen((v) => !v)}
+          className="text-white/20 hover:text-white/40 transition-colors"
+        >
+          <IcInfo />
+        </button>
+      </div>
+      {infoOpen && (
+        <p className="text-[10px] text-white/25 leading-relaxed mb-2">
+          ジャーナルの感情傾向を天気で可視化。日付タップでその日の内容を確認できます。
+        </p>
+      )}
+      <p className="text-[10px] text-white/20 leading-relaxed mb-3">
+        日付をタップすると、その日のジャーナル内容を確認できます
+      </p>
+
       <div className="relative">
-        {/* コンテンツ（ロック時はぼかし） */}
         <div className={isLocked ? "opacity-20 pointer-events-none" : ""}>
           <div className="grid grid-cols-7 gap-1">
-            {(isLocked ? Array.from({ length: 30 }, (_, i) => ({
-              dateStr: `dummy-${i}`,
-              day: i + 1,
-              month: 3,
-              factPct: [70, 50, 35, 20, 10, 60, 45][i % 7],
-              journalSnippet: i % 3 !== 0 ? "dummy" : null,
-            })) : days).map((day) => (
-              <button
-                key={day.dateStr}
-                type="button"
-                onClick={() => {
-                  if (!day.journalSnippet) return;
-                  setSelectedDay(selectedDay?.dateStr === day.dateStr ? null : day as WeatherDay);
-                }}
-                className={`flex flex-col items-center py-1.5 rounded transition-colors ${
-                  day.journalSnippet ? "hover:bg-white/[0.04] cursor-pointer" : "cursor-default"
-                } ${selectedDay?.dateStr === day.dateStr ? "bg-white/[0.06]" : ""}`}
-              >
-                <span className="text-[8px] text-white/20 mb-0.5 font-mono">{day.day}</span>
-                {day.journalSnippet ? (
-                  <WeatherIcon factPct={day.factPct ?? 50} />
-                ) : (
-                  <div className="w-1.5 h-px bg-white/10 mt-1" />
-                )}
-              </button>
-            ))}
+            {displayDays.map((day, idx) => {
+              const prevDay = idx > 0 ? displayDays[idx - 1] : null;
+              const showMonth = !prevDay || day.month !== prevDay.month;
+              const hasJournal = !!(day.journalEntries && day.journalEntries.length > 0);
+              const isSelected = selectedDay?.dateStr === day.dateStr;
+
+              return (
+                <button
+                  key={day.dateStr}
+                  type="button"
+                  onClick={() => {
+                    if (!hasJournal) return;
+                    setSelectedDay(isSelected ? null : day as WeatherDay);
+                  }}
+                  className={`flex flex-col items-center py-2.5 rounded transition-colors ${
+                    hasJournal ? "hover:bg-white/[0.04] cursor-pointer" : "cursor-default"
+                  } ${isSelected ? "bg-white/[0.06]" : ""}`}
+                >
+                  {showMonth ? (
+                    <span className="text-[7px] text-[#C4A35A]/40 font-mono leading-none mb-px">{day.month}/</span>
+                  ) : (
+                    <span className="text-[7px] leading-none mb-px opacity-0">·</span>
+                  )}
+                  <span className="text-[11px] text-white/25 mb-1 font-mono leading-none">{day.day}</span>
+                  {hasJournal ? (
+                    <WeatherIcon factPct={day.factPct} />
+                  ) : (
+                    <div className="w-2 h-px bg-white/10 mt-1" />
+                  )}
+                </button>
+              );
+            })}
           </div>
-          {selectedDay && !isLocked && (
+
+          {/* 選択日のジャーナル展開 */}
+          {selectedDay && !isLocked && selectedDay.journalEntries && (
             <div className="mt-3 pt-3 border-t border-white/[0.06]">
-              <p className="font-mono text-[9px] text-white/25 mb-1.5">
+              <p className="font-mono text-[9px] text-white/25 mb-2">
                 {selectedDay.month}/{selectedDay.day}
                 {selectedDay.factPct !== null && (
                   <span className="ml-2 text-[#C4A35A]/50">FACT {selectedDay.factPct}%</span>
                 )}
               </p>
-              <p className="text-[11.5px] text-white/50 leading-relaxed">{selectedDay.journalSnippet}</p>
+              <div className="space-y-3">
+                {selectedDay.journalEntries.map((entry, i) => (
+                  <div key={i}>
+                    {i > 0 && <div className="border-t border-white/[0.05] mb-3" />}
+                    {selectedDay.journalEntries!.length > 1 && (
+                      <p className="font-mono text-[8px] text-white/20 mb-1">{entry.timeStr}</p>
+                    )}
+                    <p className="text-[11.5px] text-white/50 leading-relaxed">{entry.content.slice(0, 200)}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
+
         {/* ロックオーバーレイ */}
         {isLocked && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -292,6 +386,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
 // ワードクラウド
 // ─────────────────────────────────────────────────────────────────────────────
 function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayCount: number }) {
+  const [infoOpen, setInfoOpen] = useState(false);
   const isLocked = journalDayCount < 1;
   const daysNeeded = Math.max(0, 1 - journalDayCount);
 
@@ -307,23 +402,46 @@ function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayC
 
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
-      <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase block mb-3">ワードクラウド</span>
+      {/* ヘッダー */}
+      <div className="flex items-center mb-1">
+        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase flex-1">ワードクラウド</span>
+        <button
+          type="button"
+          onClick={() => setInfoOpen((v) => !v)}
+          className="text-white/20 hover:text-white/40 transition-colors"
+        >
+          <IcInfo />
+        </button>
+      </div>
+      {infoOpen && (
+        <p className="text-[10px] text-white/25 leading-relaxed mb-2">
+          直近30日間のジャーナルから、よく使う言葉を抽出しています。
+        </p>
+      )}
+      <p className="text-[10px] text-white/20 leading-relaxed mb-3">
+        直近30日間のジャーナルから抽出された、あなたの思考の中心にある言葉
+      </p>
+
       <div className="relative">
         <div className={isLocked ? "opacity-20 pointer-events-none" : ""}>
           {displayWords.length === 0 ? (
             <p className="font-mono text-[10px] text-white/20">キーワードを抽出中...</p>
           ) : (
-            <div className="flex flex-wrap gap-x-3 gap-y-2 items-baseline">
-              {displayWords.map(({ word, count }) => {
+            <div className="flex flex-wrap gap-x-3 items-baseline">
+              {displayWords.map(({ word, count }, idx) => {
                 const ratio = maxCount === minCount ? 0.5 : (count - minCount) / (maxCount - minCount);
                 const fontSize = 11 + Math.round(ratio * 9);
                 const opacity = 0.35 + ratio * 0.65;
                 const color = ratio > 0.5 ? "#C4A35A" : "#8A8276";
+                // 文字コードベースの疑似ランダムで有機的なオフセット（ハイドレーション安全）
+                const charCode = word.charCodeAt(0) + word.length * 7;
+                const mt = (charCode % 5) * 2;       // 0, 2, 4, 6, 8 px
+                const mb = ((charCode * 3 + idx) % 4) * 2; // 0, 2, 4, 6 px
                 return (
                   <span
                     key={word}
                     className="font-mono"
-                    style={{ fontSize, color, opacity }}
+                    style={{ fontSize, color, opacity, marginTop: mt, marginBottom: mb }}
                   >
                     {word}
                   </span>
@@ -348,7 +466,7 @@ function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayC
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 観察カウンター
+// 観測カウンター
 // ─────────────────────────────────────────────────────────────────────────────
 function ObserverCounter({ observerDays, totalJournalCount, totalScanCount, totalCoachCount }: {
   observerDays: number;
@@ -356,9 +474,24 @@ function ObserverCounter({ observerDays, totalJournalCount, totalScanCount, tota
   totalScanCount: number;
   totalCoachCount: number;
 }) {
+  const [infoOpen, setInfoOpen] = useState(false);
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
-      <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase block mb-3">観測ログ</span>
+      <div className="flex items-center mb-3">
+        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase flex-1">観測カウンター</span>
+        <button
+          type="button"
+          onClick={() => setInfoOpen((v) => !v)}
+          className="text-white/20 hover:text-white/40 transition-colors"
+        >
+          <IcInfo />
+        </button>
+      </div>
+      {infoOpen && (
+        <p className="text-[10px] text-white/25 leading-relaxed mb-3">
+          Alterがあなたを観察している期間と、各機能の利用回数です。
+        </p>
+      )}
       <p className="text-sm text-white/55 mb-2.5 leading-relaxed">
         Alterは<span className="text-[#C4A35A] font-bold text-base">{observerDays}</span>日間あなたと共にいます
       </p>
@@ -416,7 +549,6 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // ローディングメッセージ切り替え（4秒ごと）
   useEffect(() => {
     if (!isGenerating) { setLoadingMsgIdx(0); return; }
     const id = setInterval(() => setLoadingMsgIdx((i) => (i + 1) % LOADING_MESSAGES.length), 4000);
@@ -454,16 +586,12 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
   }
 
   const isInsufficient = log?.is_insufficient_data === true;
-
-  // ① 即時スナップショット
   const factPct         = log?.fact_emotion_ratio?.fact_percentage    ?? 0;
   const emotionPct      = log?.fact_emotion_ratio?.emotion_percentage  ?? 0;
   const ratioAnalysis   = log?.fact_emotion_ratio?.analysis            ?? null;
   const biasName        = log?.cognitive_bias_detected?.bias_name      ?? null;
   const biasDescription = log?.cognitive_bias_detected?.description    ?? null;
   const passiveStatus   = log?.passive_voice_status                    ?? null;
-
-  // ② 蓄積プロファイル（null = ロック表示）
   const observedLoops    = log?.observed_loops     ?? null;
   const blindSpots       = log?.blind_spots        ?? null;
   const pendingDecisions = log?.pending_decisions  ?? null;
@@ -494,7 +622,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
       <div className="bg-[#0B0E13] px-4 py-6 pb-32 md:px-6">
         <div className="max-w-2xl mx-auto space-y-3">
 
-          {/* ── SCAN ボタン ────────────────────────────────────────────────── */}
+          {/* ── SCAN ボタン ── */}
           <div className="hl-enter">
             <button
               type="button"
@@ -515,7 +643,6 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                 <span className="text-[13px] font-mono tracking-[0.14em]">{buttonLabel}</span>
               )}
             </button>
-
             {helperText && !isGenerating && !isPending && (
               <p className="mt-1.5 text-[10px] font-mono text-white/20 text-center tracking-wide">{helperText}</p>
             )}
@@ -524,7 +651,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
             )}
           </div>
 
-          {/* ── ジャーナルへの導線（メイン） ─────────────────────────────────── */}
+          {/* ── ジャーナルへの導線 ── */}
           <div className="hl-enter hl-d1">
             <RippleLink href="/chat?mode=journal"
               className="rounded-xl p-4
@@ -548,15 +675,14 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
             </RippleLink>
           </div>
 
-          {/* ─── 思考プロファイル ─────────────────────────────────────────────── */}
+          {/* ── 思考プロファイル ── */}
           {thoughtProfile && (
-            <div className="hl-enter hl-d2 border border-[#C4A35A]/20 rounded-lg px-4 py-3" style={{ background: "rgba(196,163,90,0.04)" }}>
-              <p className="font-mono text-[10px] tracking-[0.2em] text-[#8A8276] uppercase mb-1.5">思考プロファイル</p>
-              <p className="text-lg font-bold text-[#E8D5A0] leading-snug">{thoughtProfile}</p>
+            <div className="hl-enter hl-d2">
+              <ThoughtProfileCard profile={thoughtProfile} />
             </div>
           )}
 
-          {/* ─── ① SNAPSHOT セクションヘッダー ─────────────────────────────── */}
+          {/* ─── ① SNAPSHOT ── */}
           <div className="hl-enter hl-d2 flex items-center gap-3 pt-2">
             <span className="font-mono text-[9px] tracking-[0.25em] text-white/25 uppercase">① Snapshot</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
@@ -567,9 +693,11 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
             )}
           </div>
 
-          {/* ── 1. 事実・感情バランス ─────────────────────────────────────────── */}
           <div className="hl-enter hl-d3">
-            <HudCard label="事実・感情バランス">
+            <HudCard
+              label="事実・感情バランス"
+              description="ジャーナルの内容が事実ベースか感情ベースかの比率です。"
+            >
               {!log || isInsufficient ? (
                 <p className="font-mono text-[11px] text-white/18">
                   {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
@@ -577,17 +705,17 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               ) : (
                 <>
                   <FactEmotionBar factPct={factPct} emotionPct={emotionPct} />
-                  {ratioAnalysis && (
-                    <p className="mt-3 text-[12.5px] text-white/55 leading-relaxed">{ratioAnalysis}</p>
-                  )}
+                  {ratioAnalysis && <p className="mt-3 text-[12.5px] text-white/55 leading-relaxed">{ratioAnalysis}</p>}
                 </>
               )}
             </HudCard>
           </div>
 
-          {/* ── 2. 認知バイアス検知 ───────────────────────────────────────────── */}
           <div className="hl-enter hl-d4">
-            <HudCard label="認知バイアス検知">
+            <HudCard
+              label="認知バイアス検知"
+              description="ジャーナルから検出された認知の偏りパターンです。"
+            >
               {!log || isInsufficient ? (
                 <p className="font-mono text-[11px] text-white/18">
                   {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
@@ -596,20 +724,18 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                 <p className="font-mono text-[11px] text-white/30">偏りなし</p>
               ) : (
                 <>
-                  <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">
-                    「{biasName}」
-                  </p>
-                  {biasDescription && (
-                    <p className="text-[12.5px] text-white/50 leading-relaxed">{biasDescription}</p>
-                  )}
+                  <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{biasName}」</p>
+                  {biasDescription && <p className="text-[12.5px] text-white/50 leading-relaxed">{biasDescription}</p>}
                 </>
               )}
             </HudCard>
           </div>
 
-          {/* ── 3. 意思決定の主体性 ───────────────────────────────────────────── */}
           <div className="hl-enter hl-d5">
-            <HudCard label="意思決定の主体性">
+            <HudCard
+              label="意思決定の主体性"
+              description="文章の能動態・受動態の比率から、意思決定の主体性を分析しています。"
+            >
               {!log || isInsufficient ? (
                 <p className="font-mono text-[11px] text-white/18">
                   {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
@@ -620,36 +746,32 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
             </HudCard>
           </div>
 
-          {/* ─── ② PROFILE セクションヘッダー ──────────────────────────────── */}
+          {/* ─── ② PROFILE ── */}
           <div className="hl-enter hl-d6 flex items-center gap-3 pt-2">
             <span className="font-mono text-[9px] tracking-[0.25em] text-white/25 uppercase">② Profile</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
-          {/* ── 蓄積プロファイル層（nullの場合はロック表示） ──────────────────── */}
           <div className="hl-enter hl-d6 space-y-2">
-            <ProfileCard label="思考ループ観測" value={observedLoops} />
-            <ProfileCard label="盲点エリア"     value={blindSpots} />
-            <ProfileCard label="保留リスト"     value={pendingDecisions} />
+            <ProfileCard label="思考ループ観測" value={observedLoops} description="繰り返し出現する思考パターンをAlterが検出しています。" />
+            <ProfileCard label="盲点エリア"     value={blindSpots}   description="あなたが気づいていない可能性のある視点をAlterが指摘しています。" />
+            <ProfileCard label="保留リスト"     value={pendingDecisions} description="判断を先送りにしている事項をAlterが記録しています。" />
           </div>
 
-          {/* ─── ③ TIMELINE セクションヘッダー ──────────────────────────────── */}
+          {/* ─── ③ TIMELINE ── */}
           <div className="hl-enter hl-d7 flex items-center gap-3 pt-2">
             <span className="font-mono text-[9px] tracking-[0.25em] text-white/25 uppercase">③ Timeline</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
-          {/* ── 内面マップ（ムードマップ） ───────────────────────────────────── */}
           <div className="hl-enter hl-d7">
             <WeatherMap days={timelineData.weatherDays} journalDayCount={timelineData.journalDayCount} />
           </div>
 
-          {/* ── ワードクラウド ───────────────────────────────────────────────── */}
           <div className="hl-enter hl-d8">
             <WordCloud words={timelineData.wordCloudWords} journalDayCount={timelineData.journalDayCount} />
           </div>
 
-          {/* ── 観測ログ（常に表示） ─────────────────────────────────────────── */}
           <div className="hl-enter hl-d9">
             <ObserverCounter
               observerDays={timelineData.observerDays}
@@ -659,7 +781,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
             />
           </div>
 
-          {/* ── Alterステータス（壁打ちへの控えめな導線） ── */}
+          {/* ── Alterステータス ── */}
           <div className="hl-enter hl-d9 flex justify-center pt-4 pb-8">
             <Link
               href="/chat?mode=coach"
@@ -672,7 +794,6 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
 
         </div>
       </div>
-
     </>
   );
 }

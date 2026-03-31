@@ -89,7 +89,7 @@ export default async function ChatPage({
     where: { userId: user.id, createdAt: { lt: thirtyDaysAgoForPast } },
   });
 
-  let pastJournal: { content: string; createdAt: string; dailyNote: string | null } | null = null;
+  let pastJournal: { content: string; createdAt: string; dailyNote: string | null; entries: { content: string; timeStr: string }[] } | null = null;
 
   if (pastJournalCount > 0) {
     const skip = Math.floor(Math.random() * pastJournalCount);
@@ -99,19 +99,37 @@ export default async function ChatPage({
       orderBy: { createdAt: "asc" },
     });
     if (pastEntry) {
-      // その日のAlterLogを取得（daily_note用）
       const entryJst = new Date(pastEntry.createdAt.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
       const dateStr = `${entryJst.getFullYear()}-${String(entryJst.getMonth() + 1).padStart(2, "0")}-${String(entryJst.getDate()).padStart(2, "0")}`;
       const dateOnlyUtc = new Date(`${dateStr}T00:00:00.000Z`);
-      const alterLog = await prisma.alterLog.findFirst({
-        where: { userId: user.id, date: dateOnlyUtc },
-        select: { insights: true },
-      });
+
+      // 同日の全ジャーナルとAlterLogを並列取得
+      const dayStart = new Date(`${dateStr}T00:00:00+09:00`);
+      const dayEnd   = new Date(`${dateStr}T23:59:59+09:00`);
+      const [sameDayJournals, alterLog] = await Promise.all([
+        prisma.journalEntry.findMany({
+          where: { userId: user.id, createdAt: { gte: dayStart, lte: dayEnd } },
+          orderBy: { createdAt: "asc" },
+          select: { content: true, createdAt: true },
+        }),
+        prisma.alterLog.findFirst({
+          where: { userId: user.id, date: dateOnlyUtc },
+          select: { insights: true },
+        }),
+      ]);
+
       const insights = alterLog?.insights as { daily_note?: string } | null;
       pastJournal = {
         content: pastEntry.content,
         createdAt: pastEntry.createdAt.toISOString(),
         dailyNote: insights?.daily_note ?? null,
+        entries: sameDayJournals.map((j) => {
+          const t = new Date(j.createdAt.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+          return {
+            content: j.content,
+            timeStr: `${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`,
+          };
+        }),
       };
     }
   }

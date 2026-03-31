@@ -122,13 +122,14 @@ export default async function DashboardPage() {
       }
     }
 
-    // ── ジャーナル日付 → スニペットマップ ────────────────────────────────────
-    const journalsByDay: Record<string, string[]> = {};
+    // ── ジャーナル日付 → エントリ（内容+時刻）マップ ──────────────────────
+    const journalsByDay: Record<string, { content: string; timeStr: string }[]> = {};
     for (const j of recentJournals) {
       const d = new Date(j.createdAt.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
       const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const timeStr = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
       if (!journalsByDay[ds]) journalsByDay[ds] = [];
-      journalsByDay[ds].push(j.content);
+      journalsByDay[ds].push({ content: j.content, timeStr });
     }
 
     // ── 30日分の weatherDays を構築 ────────────────────────────────────────
@@ -138,13 +139,13 @@ export default async function DashboardPage() {
       const d = new Date(nowJst);
       d.setDate(nowJst.getDate() - i);
       const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const dayJournals = journalsByDay[ds] ?? [];
+      const dayEntries = journalsByDay[ds] ?? [];
       weatherDays.push({
         dateStr: ds,
         day: d.getDate(),
         month: d.getMonth() + 1,
         factPct: alterLogMap[ds] ?? null,
-        journalSnippet: dayJournals.length > 0 ? dayJournals.join("\n").slice(0, 150) : null,
+        journalEntries: dayEntries.length > 0 ? dayEntries : null,
       });
     }
 

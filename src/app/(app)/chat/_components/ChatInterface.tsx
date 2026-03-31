@@ -53,6 +53,7 @@ interface PastJournalEntry {
   content: string;
   createdAt: string; // ISO string
   dailyNote: string | null;
+  entries: { content: string; timeStr: string }[];
 }
 
 interface Props {
@@ -68,14 +69,15 @@ interface Props {
 }
 
 // ── 「あの時のあなた」カード ────────────────────────────────────────────────
-function PastJournalCard({ dateStr, content, dailyNote }: {
+function PastJournalCard({ dateStr, entries, dailyNote }: {
   dateStr: string;
-  content: string;
+  entries: { content: string; timeStr: string }[];
   dailyNote: string | null;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const preview = content.slice(0, 100);
-  const hasMore = content.length > 100;
+  const firstEntry = entries[0];
+  const preview = firstEntry?.content.slice(0, 100) ?? "";
+  const hasMore = (firstEntry?.content.length ?? 0) > 100 || entries.length > 1;
 
   return (
     <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
@@ -92,14 +94,28 @@ function PastJournalCard({ dateStr, content, dailyNote }: {
           <p className="font-mono text-[9px] tracking-[0.2em] text-white/30 uppercase mb-1.5">
             あの時のあなた — {dateStr}
           </p>
-          <p className="text-[11.5px] text-white/55 leading-relaxed">
-            {expanded ? content : preview}
-            {!expanded && hasMore && <span className="text-white/25">...</span>}
-          </p>
-          {expanded && dailyNote && (
-            <p className="mt-2 pt-2 border-t border-white/[0.05] text-[10.5px] text-[#C4A35A]/45 leading-relaxed italic">
-              {dailyNote.slice(0, 120)}
+          {!expanded ? (
+            <p className="text-[11.5px] text-white/55 leading-relaxed">
+              {preview}
+              {hasMore && <span className="text-white/25">...</span>}
             </p>
+          ) : (
+            <div className="space-y-3">
+              {entries.map((entry, i) => (
+                <div key={i}>
+                  {i > 0 && <div className="border-t border-white/[0.05] pt-3" />}
+                  {entries.length > 1 && (
+                    <p className="font-mono text-[8px] text-white/20 mb-1">{entry.timeStr}</p>
+                  )}
+                  <p className="text-[11.5px] text-white/55 leading-relaxed">{entry.content}</p>
+                </div>
+              ))}
+              {dailyNote && (
+                <p className="mt-1 pt-2 border-t border-white/[0.05] text-[10.5px] text-[#C4A35A]/45 leading-relaxed italic">
+                  {dailyNote.slice(0, 120)}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </button>
@@ -435,7 +451,7 @@ export function ChatInterface({
             const pastDateStr = pastDate.toLocaleDateString("ja-JP", {
               timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
             });
-            return <PastJournalCard dateStr={pastDateStr} content={pastJournal.content} dailyNote={pastJournal.dailyNote} />;
+            return <PastJournalCard dateStr={pastDateStr} entries={pastJournal.entries} dailyNote={pastJournal.dailyNote} />;
           })()}
 
           {/* 3. 過去のジャーナルログ（タイムライン・flex-1 スクロール可能） */}
