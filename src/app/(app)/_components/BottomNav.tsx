@@ -89,7 +89,7 @@ export function BottomNav() {
             className={`leading-none ${settingsActive ? "font-bold" : "font-medium"}`}
             style={{ fontSize: "7.5px", letterSpacing: "-0.03em", whiteSpace: "nowrap" }}
           >
-            設定
+            SETTINGS
           </span>
           {settingsActive && (
             <span

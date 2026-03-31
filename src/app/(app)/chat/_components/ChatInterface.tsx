@@ -581,7 +581,7 @@ export function ChatInterface({
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#8BA89E] tracking-wide mb-0.5">2. ダッシュボード（線の可視化）</p>
+                    <p className="text-xs font-bold text-[#8BA89E] tracking-wide mb-0.5">2. SCAN（思考の構造解析）</p>
                     <p className="text-xs text-[#9A9488] leading-relaxed">ジャーナルを元に、事実と感情のバランスや認知バイアスをスキャンし、客観的なデータとして確認できます。</p>
                   </div>
                 </div>
