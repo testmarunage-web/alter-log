@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlterIcon } from "@/app/page";
+import { AlterIcon } from "@/app/(app)/_components/AlterIcon";
 
 export default function TermsPage() {
   return (
