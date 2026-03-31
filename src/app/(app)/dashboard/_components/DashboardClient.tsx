@@ -385,7 +385,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
 // ─────────────────────────────────────────────────────────────────────────────
 function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayCount: number }) {
   const [infoOpen, setInfoOpen] = useState(false);
-  const isLocked = words.length < 3;
+  const isLocked = words.length < 5;
 
   const dummyWords: WordEntry[] = [
     { word: "???", count: 8 }, { word: "???", count: 5 }, { word: "??", count: 7 },

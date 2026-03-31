@@ -57,7 +57,8 @@
       "Bash(ls c:UsersshibaDesktophack-log.env*)",
       "Bash(ls /c/Users/shiba/Desktop/hack-log/.env*)",
       "Read(//mnt/user-data/outputs/**)",
-      "Bash(gh run:*)"
+      "Bash(gh run:*)",
+      "Bash(ls \"c:\\\\Users\\\\shiba\\\\Desktop\\\\hack-log\\\\src\\\\app\\\\\\(app\\)\")"
     ]
   }
 }
