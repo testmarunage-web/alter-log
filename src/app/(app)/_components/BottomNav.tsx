@@ -77,18 +77,24 @@ export function BottomNav() {
           );
         })}
 
-        {/* 設定アイコン（ラベルなし・控えめ） */}
+        {/* 設定（4等分・他と同じウェイト） */}
         <Link
           href="/settings"
-          className={`w-12 flex flex-col items-center justify-center py-2.5 pb-safe transition-colors relative ${
-            settingsActive ? "text-[#C4A35A]/70" : "text-[#8A8276]/50"
+          className={`flex-1 flex flex-col items-center gap-1 py-2.5 pb-safe transition-colors relative ${
+            settingsActive ? "text-[#C4A35A]" : "text-[#8A8276]"
           }`}
         >
-          <NavIconSvg icon="settings" size={18} />
+          <NavIconSvg icon="settings" size={22} />
+          <span
+            className={`leading-none ${settingsActive ? "font-bold" : "font-medium"}`}
+            style={{ fontSize: "7.5px", letterSpacing: "-0.03em", whiteSpace: "nowrap" }}
+          >
+            設定
+          </span>
           {settingsActive && (
             <span
-              className="absolute top-0 inset-x-0 mx-auto w-6 h-0.5 bg-[#C4A35A]/60 rounded-full"
-              style={{ boxShadow: "0 0 6px rgba(196,163,90,0.3)" }}
+              className="absolute top-0 inset-x-0 mx-auto w-8 h-0.5 bg-[#C4A35A] rounded-full"
+              style={{ boxShadow: "0 0 8px rgba(196,163,90,0.5)" }}
             />
           )}
         </Link>
