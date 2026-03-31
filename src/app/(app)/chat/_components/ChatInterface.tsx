@@ -361,7 +361,7 @@ export function ChatInterface({
                   ref={textareaRef}
                   value={journalInput}
                   onChange={handleJournalInputChange}
-                  placeholder="今日あったこと、感じたこと、モヤモヤ…なんでも書いてください。"
+                  placeholder="今日あったこと、感じたこと、モヤモヤ…なんでもどうぞ。"
                   className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
                   style={{ height: "140px" }}
                 />
@@ -395,7 +395,7 @@ export function ChatInterface({
             {/* 音声入力ヒント（初回のみ・dismissable） */}
             {showVoiceHint && (
               <div
-                className="mt-2 rounded-xl px-4 py-2.5 bg-white/[0.02] border border-white/[0.06] flex items-start gap-2.5"
+                className="mt-2 rounded-xl px-4 py-2.5 bg-white/[0.02] border border-white/[0.06] flex items-center gap-2.5"
                 style={{ opacity: voiceHintFading ? 0 : 1, transition: "opacity 0.3s ease-out" }}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-[#C4A35A]/60 flex-shrink-0 mt-0.5">
@@ -406,7 +406,7 @@ export function ChatInterface({
                 </svg>
                 <div className="flex-1 min-w-0">
                   <p className="text-[12px] text-white/50 font-medium leading-snug">音声でも入力できます</p>
-                  <p className="text-[11px] text-white/30 leading-relaxed mt-0.5">キーボード右下の 🎙 をタップすると、話した内容がそのまま文字になります。</p>
+                  <p className="text-[11px] text-white/30 leading-relaxed mt-0.5">キーボードの 🎙 マイクボタンをタップすると、話した内容がそのまま文字になります。</p>
                 </div>
                 <button
                   type="button"

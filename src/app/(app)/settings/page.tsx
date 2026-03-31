@@ -58,7 +58,7 @@ export default async function SettingsPage() {
               <span className="text-sm text-white/75">コミュニティに参加</span>
               <Chevron />
             </a>
-            <p className="px-4 pb-3 text-[11px] text-white/25">Discordが開きます</p>
+            <p className="px-4 pb-3 text-[11px] text-white/25">Discordコミュニティへのリンクが開きます</p>
           </div>
 
           {/* お問い合わせ */}
