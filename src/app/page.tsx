@@ -24,7 +24,6 @@ export function AlterIcon({ size = 20 }: { size?: number }) {
 // ─────────────────────────────────────────────────────────────────────────────
 export default async function Home() {
   const { userId } = await auth();
-  // ログイン済みの場合はジャーナル画面へリダイレクト
   if (userId) redirect("/chat?mode=journal");
 
   return (
@@ -70,9 +69,9 @@ export default async function Home() {
         </div>
 
         <div className="relative mt-16 w-full max-w-4xl aspect-video bg-[#12161E] border border-white/[0.08] rounded-2xl sm:rounded-3xl overflow-hidden flex items-center justify-center shadow-2xl shadow-black/50 mx-auto">
-          <div className="text-center">
-            <p className="text-[#C4A35A] font-bold mb-2">🎬 [メインデモ映像が入ります]</p>
-            <p className="text-xs text-[#8A8276]">テキストや音声を入力すると、即座にAlterが脳内を分析・可視化するUIのGIF</p>
+          <div className="text-center px-4">
+            <p className="text-[#C4A35A]/60 text-xs font-mono tracking-wider mb-1">[スクリーンショット: アプリ全体イメージ]</p>
+            <p className="text-xs text-[#8A8276]/50">ジャーナル入力〜AI分析〜観察日記の流れを示すスクリーンショット</p>
           </div>
         </div>
       </section>
@@ -83,7 +82,7 @@ export default async function Home() {
           <h2 className="text-2xl sm:text-3xl font-black text-[#F0EAD8] mb-8 tracking-tight">
             「自分の思考」という密室から、抜け出そう。
           </h2>
-          
+
           <div className="space-y-6 text-sm sm:text-base text-[#8A8276] leading-relaxed text-center max-w-2xl px-2">
             <p>
               <span className="inline-block">思考を整理するために</span><span className="inline-block">日記やジャーナリングを試しても、</span><span className="inline-block">結局自分の枠を出られない。</span>
@@ -94,7 +93,7 @@ export default async function Home() {
             <p>
               <span className="inline-block">かといって、</span><span className="inline-block">プロのコーチングを受けるのは</span><span className="inline-block">ハードルが高い。</span>
             </p>
-            
+
             <p className="text-[#E8D5A0] font-bold mt-12 text-xl sm:text-2xl tracking-tight">
               Alter Log ── それは「ジャーナリング2.0」。
             </p>
@@ -105,9 +104,11 @@ export default async function Home() {
       {/* ── 3. Features ── */}
       <section className="py-24 px-6">
         <div className="max-w-5xl mx-auto space-y-32">
-          
+
+          {/* 01 */}
           <div className="flex flex-col md:flex-row items-center gap-12">
-            <div className="w-full md:w-1/2 space-y-6 text-center md:text-left">
+            <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
+              <span className="font-mono text-sm text-[#C4A35A]/40 tracking-widest">01</span>
               <h3 className="text-2xl sm:text-3xl font-black text-[#F0EAD8] leading-tight">
                 <span className="inline-block">言葉にならないモヤモヤも、</span><br className="hidden md:block" />
                 <span className="inline-block">そのまま受け止める。</span>
@@ -118,14 +119,16 @@ export default async function Home() {
             </div>
             <div className="w-full md:w-1/2 aspect-[4/3] bg-white/[0.02] border border-white/[0.08] rounded-2xl flex items-center justify-center">
               <div className="text-center px-4">
-                <p className="text-[#C4A35A] text-sm font-bold mb-1">🎬 [デモ映像: 01]</p>
-                <p className="text-xs text-[#8A8276]">テキストや音声で、まとまらない思考をラフに入力しているGIF</p>
+                <p className="text-[#C4A35A]/60 text-xs font-mono tracking-wider mb-1">[スクリーンショット: ジャーナル入力画面]</p>
+                <p className="text-xs text-[#8A8276]/50">テキストや音声で、まとまらない思考をラフに入力している画面</p>
               </div>
             </div>
           </div>
 
+          {/* 02 */}
           <div className="flex flex-col md:flex-row-reverse items-center gap-12">
-            <div className="w-full md:w-1/2 space-y-6 text-center md:text-left">
+            <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
+              <span className="font-mono text-sm text-[#C4A35A]/40 tracking-widest">02</span>
               <h3 className="text-2xl sm:text-3xl font-black text-[#F0EAD8] leading-tight">
                 <span className="inline-block">忖度ゼロの「鏡」が、</span><br className="hidden md:block" />
                 <span className="inline-block">ハッとする気づきをくれる。</span>
@@ -136,14 +139,16 @@ export default async function Home() {
             </div>
             <div className="w-full md:w-1/2 aspect-[4/3] bg-white/[0.02] border border-white/[0.08] rounded-2xl flex items-center justify-center">
               <div className="text-center px-4">
-                <p className="text-[#C4A35A] text-sm font-bold mb-1">🎬 [デモ映像: 02]</p>
-                <p className="text-xs text-[#8A8276]">Alterが「最近〇〇という言葉が増えていますね」とハッとする指摘をするGIF</p>
+                <p className="text-[#C4A35A]/60 text-xs font-mono tracking-wider mb-1">[スクリーンショット: SCAN分析結果]</p>
+                <p className="text-xs text-[#8A8276]/50">Alterがハッとする指摘をする分析結果の画面</p>
               </div>
             </div>
           </div>
 
+          {/* 03 */}
           <div className="flex flex-col md:flex-row items-center gap-12">
-            <div className="w-full md:w-1/2 space-y-6 text-center md:text-left">
+            <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
+              <span className="font-mono text-sm text-[#C4A35A]/40 tracking-widest">03</span>
               <h3 className="text-2xl sm:text-3xl font-black text-[#F0EAD8] leading-tight">
                 <span className="inline-block">あなたが眠る間に書き上げられる</span><br className="hidden md:block" />
                 <span className="inline-block">「あなたの観察日記」</span>
@@ -154,8 +159,28 @@ export default async function Home() {
             </div>
             <div className="w-full md:w-1/2 aspect-[4/3] bg-white/[0.02] border border-white/[0.08] rounded-2xl flex items-center justify-center">
               <div className="text-center px-4">
-                <p className="text-[#C4A35A] text-sm font-bold mb-1">🎬 [デモ映像: 03]</p>
-                <p className="text-xs text-[#8A8276]">朝起きると、Alterが書いたエモい観察日記が届いている画面のGIF</p>
+                <p className="text-[#C4A35A]/60 text-xs font-mono tracking-wider mb-1">[スクリーンショット: Alter Log画面]</p>
+                <p className="text-xs text-[#8A8276]/50">朝起きると、Alterが書いた観察日記が届いている画面</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 04 */}
+          <div className="flex flex-col md:flex-row-reverse items-center gap-12">
+            <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
+              <span className="font-mono text-sm text-[#C4A35A]/40 tracking-widest">04</span>
+              <h3 className="text-2xl sm:text-3xl font-black text-[#F0EAD8] leading-tight">
+                <span className="inline-block">仲間と気づきを、</span><br className="hidden md:block" />
+                <span className="inline-block">分かち合う。</span>
+              </h3>
+              <p className="text-sm text-[#8A8276] leading-relaxed max-w-xl mx-auto md:mx-0">
+                Alter Logで得た気づきや思考プロファイルを、コミュニティで共有できます。共有する内容は自分で選べるので、プライバシーを守りながら、同じように自分と向き合う仲間とつながれます。参加は任意です。
+              </p>
+            </div>
+            <div className="w-full md:w-1/2 aspect-[4/3] bg-white/[0.02] border border-white/[0.08] rounded-2xl flex items-center justify-center">
+              <div className="text-center px-4">
+                <p className="text-[#C4A35A]/60 text-xs font-mono tracking-wider mb-1">[スクリーンショット: コミュニティイメージ]</p>
+                <p className="text-xs text-[#8A8276]/50">気づきを共有するコミュニティの画面イメージ</p>
               </div>
             </div>
           </div>
@@ -170,7 +195,7 @@ export default async function Home() {
             自分と向き合うための、<br className="hidden sm:block" />
             新しい選択肢。
           </h2>
-          
+
           <div className="overflow-x-auto pb-4">
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
@@ -225,10 +250,65 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* ── 5. 3ステップ ── */}
+      <section className="py-24 px-6 bg-gradient-to-b from-[#0B0E13] to-[#12161E]">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#F0EAD8] mb-4 tracking-tight">
+              始めるのは簡単。気づきは、すぐに。
+            </h2>
+            <p className="text-sm text-[#8A8276] max-w-lg mx-auto leading-relaxed">
+              登録からわずか数日で、変化を実感できます。
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Step 1 */}
+            <div className="bg-white/[0.02] border border-white/[0.08] rounded-2xl p-8 flex flex-col gap-5">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#C4A35A]/10 border border-[#C4A35A]/20 flex items-center justify-center flex-shrink-0">
+                  <span className="font-mono text-xs text-[#C4A35A]/70 font-bold">1</span>
+                </div>
+                <h3 className="text-base font-black text-[#F0EAD8] leading-tight">思考を吐き出す</h3>
+              </div>
+              <p className="text-sm text-[#8A8276] leading-relaxed">
+                頭の中のモヤモヤを、テキストでも音声でも、そのままジャーナルに。整える必要はありません。Alterが全てを静かに受け止めます。
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="bg-white/[0.02] border border-white/[0.08] rounded-2xl p-8 flex flex-col gap-5">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#C4A35A]/10 border border-[#C4A35A]/20 flex items-center justify-center flex-shrink-0">
+                  <span className="font-mono text-xs text-[#C4A35A]/70 font-bold">2</span>
+                </div>
+                <h3 className="text-base font-black text-[#F0EAD8] leading-tight">究極の客観視を手に入れる</h3>
+              </div>
+              <p className="text-sm text-[#8A8276] leading-relaxed">
+                Alterがジャーナルを読み解き、思考の構造を分析。あなた専用の「観察日記」と「思考プロファイル」で、自分を他人のように見つめる体験が始まります。
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="bg-white/[0.02] border border-white/[0.08] rounded-2xl p-8 flex flex-col gap-5">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#C4A35A]/10 border border-[#C4A35A]/20 flex items-center justify-center flex-shrink-0">
+                  <span className="font-mono text-xs text-[#C4A35A]/70 font-bold">3</span>
+                </div>
+                <h3 className="text-base font-black text-[#F0EAD8] leading-tight">続けるほど、変化が見える</h3>
+              </div>
+              <p className="text-sm text-[#8A8276] leading-relaxed">
+                ムードマップやワードクラウドで、過去の自分と今の自分を比較。1週間前には見えなかった自分の変化に気づく瞬間が訪れます。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── 区切り線 ── */}
       <div className="w-full border-t border-white/[0.04]" />
 
-      {/* ── 5. Final CTA ── */}
+      {/* ── 6. Final CTA ── */}
       <section className="relative py-32 px-6 text-center overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full blur-[120px]"
@@ -255,7 +335,7 @@ export default async function Home() {
       {/* ── Footer ── */}
       <footer className="border-t border-white/[0.04] py-12 px-6 bg-[#0B0E13]">
         <div className="max-w-5xl mx-auto flex flex-col items-center gap-6 text-center">
-          
+
           <div className="flex items-center gap-2 justify-center">
             <AlterIcon size={16} />
             <p className="text-base font-black text-[#C4A35A]/70 tracking-tight">Alter Log</p>
