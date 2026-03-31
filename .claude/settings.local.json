@@ -48,7 +48,16 @@
       "Bash(cmd.exe /c \"netstat -ano | findstr :3000 | findstr LISTENING\")",
       "Bash(cmd.exe /c \"for /f \"\"tokens=5\"\" %a in \\(''netstat -ano ^| findstr :3000 ^| findstr LISTENING''\\) do echo %a\")",
       "Bash(powershell -Command \"Get-Process -Name node -ErrorAction SilentlyContinue | Select-Object Id, CPU, WorkingSet, StartTime | Format-Table\")",
-      "Bash(cmd.exe /c \"wmic process where name=''node.exe'' get processid,commandline 2>nul\")"
+      "Bash(cmd.exe /c \"wmic process where name=''node.exe'' get processid,commandline 2>nul\")",
+      "Bash(DATABASE_URL=\"postgresql://postgres.trtxmjmlehclzojbkgja:Misaki0324%21%3F@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true\" node -e \":*)",
+      "Bash(ls \"c:/Users/shiba/Desktop/hack-log/src/app/\\(app\\)/_components/\")",
+      "Bash(cat \"c:/Users/shiba/Desktop/hack-log/src/app/\\(app\\)/_components/AlterIcon.tsx\")",
+      "Bash(ls \"c:\\\\Users\\\\shiba\\\\Desktop\\\\hack-log\\\\node_modules\\\\.prisma\\\\client\"\" 2>&1 | head -5 && cat \"c:UsersshibaDesktophack-logprisma/schema.prisma\" | grep \"output)",
+      "Bash(provider \")",
+      "Bash(ls c:UsersshibaDesktophack-log.env*)",
+      "Bash(ls /c/Users/shiba/Desktop/hack-log/.env*)",
+      "Read(//mnt/user-data/outputs/**)",
+      "Bash(gh run:*)"
     ]
   }
 }
