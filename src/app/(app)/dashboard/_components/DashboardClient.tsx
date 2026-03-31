@@ -152,20 +152,21 @@ function HudCard({ label, tag, description, children }: {
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase flex-1">{label}</span>
-        {tag && (
-          <span className="font-mono text-[9px] tracking-widest text-[#C4A35A]/60 border border-[#C4A35A]/25 rounded px-1.5 py-0.5 leading-none">
-            {tag}
-          </span>
-        )}
+        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase">{label}</span>
         {description && (
           <button
             type="button"
             onClick={() => setInfoOpen((v) => !v)}
-            className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0"
+            className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0 ml-1"
           >
             <IcInfo />
           </button>
+        )}
+        <span className="flex-1" />
+        {tag && (
+          <span className="font-mono text-[9px] tracking-widest text-[#C4A35A]/60 border border-[#C4A35A]/25 rounded px-1.5 py-0.5 leading-none">
+            {tag}
+          </span>
         )}
       </div>
       {infoOpen && description && (
@@ -209,12 +210,12 @@ function ProfileCard({ label, value, description }: { label: string; value: stri
       }}
     >
       <div className="flex items-center mb-2">
-        <span className="font-mono text-[9px] tracking-[0.22em] text-white/25 uppercase flex-1">{label}</span>
+        <span className="font-mono text-[9px] tracking-[0.22em] text-white/25 uppercase">{label}</span>
         {description && (
           <button
             type="button"
             onClick={() => setInfoOpen((v) => !v)}
-            className="text-white/18 hover:text-white/35 transition-colors flex-shrink-0"
+            className="text-white/18 hover:text-white/35 transition-colors flex-shrink-0 ml-1"
           >
             <IcInfo />
           </button>
@@ -245,11 +246,11 @@ function ThoughtProfileCard({ profile }: { profile: string }) {
   return (
     <div className="border border-[#C4A35A]/20 rounded-lg px-4 py-3" style={{ background: "rgba(196,163,90,0.04)" }}>
       <div className="flex items-center mb-1.5">
-        <p className="font-mono text-[10px] tracking-[0.2em] text-[#8A8276] uppercase flex-1">思考プロファイル</p>
+        <p className="font-mono text-[10px] tracking-[0.2em] text-[#8A8276] uppercase">思考プロファイル</p>
         <button
           type="button"
           onClick={() => setInfoOpen((v) => !v)}
-          className="text-[#8A8276]/50 hover:text-[#8A8276] transition-colors"
+          className="text-[#8A8276]/50 hover:text-[#8A8276] transition-colors ml-1"
         >
           <IcInfo />
         </button>
@@ -287,11 +288,11 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       {/* ヘッダー */}
       <div className="flex items-center mb-1">
-        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase flex-1">ムードマップ</span>
+        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase">ムードマップ</span>
         <button
           type="button"
           onClick={() => setInfoOpen((v) => !v)}
-          className="text-white/20 hover:text-white/40 transition-colors"
+          className="text-white/20 hover:text-white/40 transition-colors ml-1"
         >
           <IcInfo />
         </button>
@@ -326,12 +327,9 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
                     hasJournal ? "hover:bg-white/[0.04] cursor-pointer" : "cursor-default"
                   } ${isSelected ? "bg-white/[0.06]" : ""}`}
                 >
-                  {showMonth ? (
-                    <span className="text-[7px] text-[#C4A35A]/40 font-mono leading-none mb-px">{day.month}/</span>
-                  ) : (
-                    <span className="text-[7px] leading-none mb-px opacity-0">·</span>
-                  )}
-                  <span className="text-[11px] text-white/25 mb-1 font-mono leading-none">{day.day}</span>
+                  <span className={`text-[11px] mb-1 font-mono leading-none ${showMonth ? "text-[#C4A35A]/60" : "text-white/25"}`}>
+                    {showMonth ? `${day.month}/${day.day}` : day.day}
+                  </span>
                   {hasJournal ? (
                     <WeatherIcon factPct={day.factPct} />
                   ) : (
@@ -387,8 +385,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
 // ─────────────────────────────────────────────────────────────────────────────
 function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayCount: number }) {
   const [infoOpen, setInfoOpen] = useState(false);
-  const isLocked = journalDayCount < 1;
-  const daysNeeded = Math.max(0, 1 - journalDayCount);
+  const isLocked = words.length < 3;
 
   const dummyWords: WordEntry[] = [
     { word: "???", count: 8 }, { word: "???", count: 5 }, { word: "??", count: 7 },
@@ -404,11 +401,11 @@ function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayC
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       {/* ヘッダー */}
       <div className="flex items-center mb-1">
-        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase flex-1">ワードクラウド</span>
+        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase">ワードクラウド</span>
         <button
           type="button"
           onClick={() => setInfoOpen((v) => !v)}
-          className="text-white/20 hover:text-white/40 transition-colors"
+          className="text-white/20 hover:text-white/40 transition-colors ml-1"
         >
           <IcInfo />
         </button>
@@ -455,7 +452,7 @@ function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayC
             <div className="text-center">
               <span className="text-white/20 flex justify-center mb-1.5"><IcLock /></span>
               <p className="text-[10px] text-white/25 font-mono tracking-wide">
-                あと{daysNeeded}日分のジャーナルで解放
+                もう少しジャーナルを重ねると解放されます
               </p>
             </div>
           </div>
@@ -478,11 +475,11 @@ function ObserverCounter({ observerDays, totalJournalCount, totalScanCount, tota
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       <div className="flex items-center mb-3">
-        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase flex-1">観測カウンター</span>
+        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase">観測カウンター</span>
         <button
           type="button"
           onClick={() => setInfoOpen((v) => !v)}
-          className="text-white/20 hover:text-white/40 transition-colors"
+          className="text-white/20 hover:text-white/40 transition-colors ml-1"
         >
           <IcInfo />
         </button>
@@ -628,7 +625,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               type="button"
               onClick={handleGenerate}
               disabled={!isButtonActive || isGenerating || isPending}
-              className={`w-full min-h-[56px] flex items-center justify-center py-4 px-5 rounded-lg font-mono transition-all duration-200 ${
+              className={`w-full min-h-[56px] flex items-center justify-center py-4 px-5 rounded-lg font-mono ${
                 isButtonActive && !isGenerating && !isPending
                   ? "bg-[#C4A35A]/10 border border-[#C4A35A]/40 text-[#C4A35A] hover:bg-[#C4A35A]/15 hover:border-[#C4A35A]/60"
                   : "bg-white/[0.02] border border-white/[0.05] text-white/20 cursor-not-allowed"
