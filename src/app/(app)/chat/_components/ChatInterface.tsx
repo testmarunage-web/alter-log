@@ -49,6 +49,12 @@ interface JournalMessage {
   createdAt: Date;
 }
 
+interface PastJournalEntry {
+  content: string;
+  createdAt: string; // ISO string
+  dailyNote: string | null;
+}
+
 interface Props {
   defaultMode: Mode;
   sessionId: string;
@@ -58,6 +64,47 @@ interface Props {
   initialJournalMessages: JournalMessage[];
   userName: string;
   hasTodayJournal: boolean;
+  pastJournal: PastJournalEntry | null;
+}
+
+// ── 「あの時のあなた」カード ────────────────────────────────────────────────
+function PastJournalCard({ dateStr, content, dailyNote }: {
+  dateStr: string;
+  content: string;
+  dailyNote: string | null;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const preview = content.slice(0, 100);
+  const hasMore = content.length > 100;
+
+  return (
+    <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full text-left"
+        style={{ opacity: 0.5 }}
+      >
+        <div
+          className="rounded-xl px-4 py-3 border border-white/[0.06]"
+          style={{ background: "rgba(255,255,255,0.012)" }}
+        >
+          <p className="font-mono text-[9px] tracking-[0.2em] text-white/30 uppercase mb-1.5">
+            あの時のあなた — {dateStr}
+          </p>
+          <p className="text-[11.5px] text-white/55 leading-relaxed">
+            {expanded ? content : preview}
+            {!expanded && hasMore && <span className="text-white/25">...</span>}
+          </p>
+          {expanded && dailyNote && (
+            <p className="mt-2 pt-2 border-t border-white/[0.05] text-[10.5px] text-[#C4A35A]/45 leading-relaxed italic">
+              {dailyNote.slice(0, 120)}
+            </p>
+          )}
+        </div>
+      </button>
+    </div>
+  );
 }
 
 // ── Alterアバター（フラットな欠けた円） ────────────────────────────────────
@@ -77,6 +124,7 @@ export function ChatInterface({
   initialJournalMessages,
   userName,
   hasTodayJournal,
+  pastJournal,
 }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesAreaRef = useRef<HTMLDivElement>(null);
@@ -371,6 +419,24 @@ export function ChatInterface({
               </button>
             </div>
           )}
+
+          {/* 「あの時のあなた」カード */}
+          {(() => {
+            if (!pastJournal) {
+              return (
+                <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
+                  <p className="text-[10px] text-white/[0.18] font-mono tracking-wide text-center">
+                    30日後、過去のあなたと再会できます
+                  </p>
+                </div>
+              );
+            }
+            const pastDate = new Date(pastJournal.createdAt);
+            const pastDateStr = pastDate.toLocaleDateString("ja-JP", {
+              timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
+            });
+            return <PastJournalCard dateStr={pastDateStr} content={pastJournal.content} dailyNote={pastJournal.dailyNote} />;
+          })()}
 
           {/* 3. 過去のジャーナルログ（タイムライン・flex-1 スクロール可能） */}
           {journalMessages.length > 0 && (

@@ -81,6 +81,41 @@ export default async function ChatPage({
     content: m.content,
   }));
 
+  // ── 「あの時のあなた」カード用：30日以上前のジャーナルからランダム1件 ──
+  const thirtyDaysAgoForPast = new Date();
+  thirtyDaysAgoForPast.setDate(thirtyDaysAgoForPast.getDate() - 30);
+
+  const pastJournalCount = await prisma.journalEntry.count({
+    where: { userId: user.id, createdAt: { lt: thirtyDaysAgoForPast } },
+  });
+
+  let pastJournal: { content: string; createdAt: string; dailyNote: string | null } | null = null;
+
+  if (pastJournalCount > 0) {
+    const skip = Math.floor(Math.random() * pastJournalCount);
+    const pastEntry = await prisma.journalEntry.findFirst({
+      where: { userId: user.id, createdAt: { lt: thirtyDaysAgoForPast } },
+      skip,
+      orderBy: { createdAt: "asc" },
+    });
+    if (pastEntry) {
+      // その日のAlterLogを取得（daily_note用）
+      const entryJst = new Date(pastEntry.createdAt.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+      const dateStr = `${entryJst.getFullYear()}-${String(entryJst.getMonth() + 1).padStart(2, "0")}-${String(entryJst.getDate()).padStart(2, "0")}`;
+      const dateOnlyUtc = new Date(`${dateStr}T00:00:00.000Z`);
+      const alterLog = await prisma.alterLog.findFirst({
+        where: { userId: user.id, date: dateOnlyUtc },
+        select: { insights: true },
+      });
+      const insights = alterLog?.insights as { daily_note?: string } | null;
+      pastJournal = {
+        content: pastEntry.content,
+        createdAt: pastEntry.createdAt.toISOString(),
+        dailyNote: insights?.daily_note ?? null,
+      };
+    }
+  }
+
   return (
     <ChatInterface
       defaultMode={defaultMode}
@@ -91,6 +126,7 @@ export default async function ChatPage({
       initialJournalMessages={initialJournalMessages}
       userName={userName}
       hasTodayJournal={hasTodayJournal}
+      pastJournal={pastJournal}
     />
   );
 }

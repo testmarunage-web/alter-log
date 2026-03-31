@@ -8,6 +8,32 @@ import type { AlterLogInsights } from "@/app/actions/alterLogSchema";
 import { AlterIcon } from "../../_components/AlterIcon";
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 型定義（dashboard/page.tsx からも import）
+// ─────────────────────────────────────────────────────────────────────────────
+export interface WeatherDay {
+  dateStr: string;       // YYYY-MM-DD (JST)
+  day: number;
+  month: number;
+  factPct: number | null; // null = AlterLog なし
+  journalSnippet: string | null; // null = その日のジャーナルなし
+}
+
+export interface WordEntry {
+  word: string;
+  count: number;
+}
+
+export interface TimelineData {
+  weatherDays: WeatherDay[];
+  wordCloudWords: WordEntry[];
+  journalDayCount: number;  // 直近30日でジャーナルがある日数
+  observerDays: number;
+  totalJournalCount: number;
+  totalScanCount: number;
+  totalCoachCount: number;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SVG アイコン
 // ─────────────────────────────────────────────────────────────────────────────
 const IcPen = () => (
@@ -28,6 +54,59 @@ const IcLock = () => (
     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
   </svg>
 );
+
+// 感情天気図アイコン（SVG）
+function WeatherIcon({ factPct }: { factPct: number }) {
+  if (factPct >= 60) {
+    // 晴れ：円 + 放射線
+    return (
+      <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="10" r="3.5" fill="#C4A35A" />
+        <line x1="10" y1="1.5" x2="10" y2="4" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="10" y1="16" x2="10" y2="18.5" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="1.5" y1="10" x2="4" y2="10" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="16" y1="10" x2="18.5" y2="10" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="3.9" y1="3.9" x2="5.7" y2="5.7" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="14.3" y1="14.3" x2="16.1" y2="16.1" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="3.9" y1="16.1" x2="5.7" y2="14.3" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="14.3" y1="5.7" x2="16.1" y2="3.9" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    );
+  } else if (factPct >= 45) {
+    // 晴れ時々曇り
+    return (
+      <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+        <circle cx="8" cy="9" r="3.5" fill="#A89050" />
+        <path d="M11 14 Q11 12 13 12 Q15 12 15 14 Q16.5 14 16.5 15.5 Q16.5 17 15 17 H11.5 Q10 17 10 15.5 Q10 14 11 14Z" fill="#7A7265" />
+      </svg>
+    );
+  } else if (factPct >= 30) {
+    // 曇り
+    return (
+      <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+        <path d="M5 13 Q4 11 6 10 Q7 7 10 8 Q12 6 14 8 Q16.5 8 16.5 10.5 Q17.5 10.5 17.5 12.5 Q17.5 14.5 15.5 14.5 H7 Q5 14.5 5 13Z" fill="#6A6358" />
+      </svg>
+    );
+  } else if (factPct >= 15) {
+    // 雨
+    return (
+      <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+        <path d="M4.5 11 Q3.5 9 5.5 8 Q6.5 5.5 9.5 6.5 Q11.5 4.5 13.5 6.5 Q16 6.5 16 9 Q17 9 17 11 Q17 13 15 13 H6.5 Q4.5 13 4.5 11Z" fill="#526070" />
+        <line x1="7" y1="14.5" x2="6" y2="17" stroke="#6090A8" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="10" y1="14.5" x2="9" y2="17" stroke="#6090A8" strokeWidth="1.5" strokeLinecap="round" />
+        <line x1="13" y1="14.5" x2="12" y2="17" stroke="#6090A8" strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+    );
+  } else {
+    // 雷雨（嵐）
+    return (
+      <svg width="11" height="11" viewBox="0 0 20 20" fill="none">
+        <path d="M4 10 Q3 8 5 7 Q6 4.5 9 5.5 Q11 3.5 13 5.5 Q15.5 5.5 15.5 8 Q16.5 8 16.5 10 Q16.5 12 14.5 12 H5.5 Q4 12 4 10Z" fill="#404858" />
+        <polyline points="9.5,13.5 7.5,17.5 10.5,15.5 8.5,20" stroke="#C4A35A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </svg>
+    );
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Ripple ボタン（ナビ用）
@@ -140,6 +219,165 @@ function ProfileCard({ label, value }: { label: string; value: string | null }) 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 感情の天気図
+// ─────────────────────────────────────────────────────────────────────────────
+function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayCount: number }) {
+  const [selectedDay, setSelectedDay] = useState<WeatherDay | null>(null);
+  const isLocked = journalDayCount < 3;
+  const daysNeeded = Math.max(0, 3 - journalDayCount);
+
+  return (
+    <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
+      <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase block mb-3">感情の天気図</span>
+      <div className="relative">
+        {/* コンテンツ（ロック時はぼかし） */}
+        <div className={isLocked ? "opacity-20 pointer-events-none" : ""}>
+          <div className="grid grid-cols-7 gap-1">
+            {(isLocked ? Array.from({ length: 30 }, (_, i) => ({
+              dateStr: `dummy-${i}`,
+              day: i + 1,
+              month: 3,
+              factPct: [70, 50, 35, 20, 10, 60, 45][i % 7],
+              journalSnippet: i % 3 !== 0 ? "dummy" : null,
+            })) : days).map((day) => (
+              <button
+                key={day.dateStr}
+                type="button"
+                onClick={() => {
+                  if (!day.journalSnippet) return;
+                  setSelectedDay(selectedDay?.dateStr === day.dateStr ? null : day as WeatherDay);
+                }}
+                className={`flex flex-col items-center py-1.5 rounded transition-colors ${
+                  day.journalSnippet ? "hover:bg-white/[0.04] cursor-pointer" : "cursor-default"
+                } ${selectedDay?.dateStr === day.dateStr ? "bg-white/[0.06]" : ""}`}
+              >
+                <span className="text-[8px] text-white/20 mb-0.5 font-mono">{day.day}</span>
+                {day.journalSnippet ? (
+                  <WeatherIcon factPct={day.factPct ?? 50} />
+                ) : (
+                  <div className="w-1.5 h-px bg-white/10 mt-1" />
+                )}
+              </button>
+            ))}
+          </div>
+          {selectedDay && !isLocked && (
+            <div className="mt-3 pt-3 border-t border-white/[0.06]">
+              <p className="font-mono text-[9px] text-white/25 mb-1.5">
+                {selectedDay.month}/{selectedDay.day}
+                {selectedDay.factPct !== null && (
+                  <span className="ml-2 text-[#C4A35A]/50">FACT {selectedDay.factPct}%</span>
+                )}
+              </p>
+              <p className="text-[11.5px] text-white/50 leading-relaxed">{selectedDay.journalSnippet}</p>
+            </div>
+          )}
+        </div>
+        {/* ロックオーバーレイ */}
+        {isLocked && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <span className="text-white/20 flex justify-center mb-1.5"><IcLock /></span>
+              <p className="text-[10px] text-white/25 font-mono tracking-wide">
+                あと{daysNeeded}日分のジャーナルで解放
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ワードクラウド
+// ─────────────────────────────────────────────────────────────────────────────
+function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayCount: number }) {
+  const isLocked = journalDayCount < 3;
+  const daysNeeded = Math.max(0, 3 - journalDayCount);
+
+  const dummyWords: WordEntry[] = [
+    { word: "???", count: 8 }, { word: "???", count: 5 }, { word: "??", count: 7 },
+    { word: "????", count: 3 }, { word: "???", count: 6 }, { word: "?????", count: 4 },
+    { word: "??", count: 9 }, { word: "????", count: 2 }, { word: "???", count: 5 },
+  ];
+
+  const displayWords = isLocked ? dummyWords : words;
+  const maxCount = displayWords.length > 0 ? Math.max(...displayWords.map((w) => w.count)) : 1;
+  const minCount = displayWords.length > 0 ? Math.min(...displayWords.map((w) => w.count)) : 1;
+
+  return (
+    <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
+      <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase block mb-3">頻出キーワード</span>
+      <div className="relative">
+        <div className={isLocked ? "opacity-20 pointer-events-none" : ""}>
+          {displayWords.length === 0 ? (
+            <p className="font-mono text-[10px] text-white/20">キーワードを抽出中...</p>
+          ) : (
+            <div className="flex flex-wrap gap-x-3 gap-y-2 items-baseline">
+              {displayWords.map(({ word, count }) => {
+                const ratio = maxCount === minCount ? 0.5 : (count - minCount) / (maxCount - minCount);
+                const fontSize = 11 + Math.round(ratio * 9);
+                const opacity = 0.35 + ratio * 0.65;
+                const color = ratio > 0.5 ? "#C4A35A" : "#8A8276";
+                return (
+                  <span
+                    key={word}
+                    className="font-mono"
+                    style={{ fontSize, color, opacity }}
+                  >
+                    {word}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        {isLocked && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center">
+              <span className="text-white/20 flex justify-center mb-1.5"><IcLock /></span>
+              <p className="text-[10px] text-white/25 font-mono tracking-wide">
+                あと{daysNeeded}日分のジャーナルで解放
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 観察カウンター
+// ─────────────────────────────────────────────────────────────────────────────
+function ObserverCounter({ observerDays, totalJournalCount, totalScanCount, totalCoachCount }: {
+  observerDays: number;
+  totalJournalCount: number;
+  totalScanCount: number;
+  totalCoachCount: number;
+}) {
+  return (
+    <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
+      <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase block mb-3">観察カウンター</span>
+      <p className="text-sm text-white/55 mb-2.5 leading-relaxed">
+        Alterは<span className="text-[#C4A35A] font-bold text-base">{observerDays}</span>日間あなたと共にいます
+      </p>
+      <div className="flex gap-4">
+        <span className="font-mono text-[9px] text-white/25 tracking-wide">
+          ジャーナル <span className="text-white/40">{totalJournalCount}</span>件
+        </span>
+        <span className="font-mono text-[9px] text-white/25 tracking-wide">
+          SCAN <span className="text-white/40">{totalScanCount}</span>回
+        </span>
+        <span className="font-mono text-[9px] text-white/25 tracking-wide">
+          壁打ち <span className="text-white/40">{totalCoachCount}</span>回
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // DashboardClient（メイン）
 // ─────────────────────────────────────────────────────────────────────────────
 type ButtonState = "A" | "B" | "C" | "D";
@@ -149,6 +387,7 @@ interface Props {
   buttonState: ButtonState;
   lastScanAt: Date | null;
   initialThoughtProfile: string | null;
+  timelineData: TimelineData;
 }
 
 function formatLastScan(date: Date): string {
@@ -167,7 +406,7 @@ const LOADING_MESSAGES = [
   "レポートを生成中...",
 ];
 
-export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, initialThoughtProfile }: Props) {
+export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, initialThoughtProfile, timelineData }: Props) {
   const [log, setLog] = useState<AlterLogInsights | null>(initialAlterLog);
   const [localLastScanAt, setLocalLastScanAt] = useState<Date | null>(lastScanAt);
   const [thoughtProfile, setThoughtProfile] = useState<string | null>(initialThoughtProfile);
@@ -247,6 +486,9 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
         .hl-d4 { animation-delay: 0.20s; }
         .hl-d5 { animation-delay: 0.25s; }
         .hl-d6 { animation-delay: 0.30s; }
+        .hl-d7 { animation-delay: 0.35s; }
+        .hl-d8 { animation-delay: 0.40s; }
+        .hl-d9 { animation-delay: 0.45s; }
       `}</style>
 
       <div className="bg-[#0B0E13] px-4 py-6 pb-32 md:px-6">
@@ -391,8 +633,34 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
             <ProfileCard label="保留リスト"     value={pendingDecisions} />
           </div>
 
+          {/* ─── ③ TIMELINE セクションヘッダー ──────────────────────────────── */}
+          <div className="hl-enter hl-d7 flex items-center gap-3 pt-2">
+            <span className="font-mono text-[9px] tracking-[0.25em] text-white/25 uppercase">③ Timeline</span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
+          </div>
+
+          {/* ── 観察カウンター（常に表示） ───────────────────────────────────── */}
+          <div className="hl-enter hl-d7">
+            <ObserverCounter
+              observerDays={timelineData.observerDays}
+              totalJournalCount={timelineData.totalJournalCount}
+              totalScanCount={timelineData.totalScanCount}
+              totalCoachCount={timelineData.totalCoachCount}
+            />
+          </div>
+
+          {/* ── 感情の天気図 ─────────────────────────────────────────────────── */}
+          <div className="hl-enter hl-d8">
+            <WeatherMap days={timelineData.weatherDays} journalDayCount={timelineData.journalDayCount} />
+          </div>
+
+          {/* ── 頻出キーワード ───────────────────────────────────────────────── */}
+          <div className="hl-enter hl-d9">
+            <WordCloud words={timelineData.wordCloudWords} journalDayCount={timelineData.journalDayCount} />
+          </div>
+
           {/* ── Alterステータス（壁打ちへの控えめな導線） ── */}
-          <div className="hl-enter hl-d6 flex justify-center pt-4 pb-8">
+          <div className="hl-enter hl-d9 flex justify-center pt-4 pb-8">
             <Link
               href="/chat?mode=coach"
               className="flex items-center gap-2 text-[11px] font-mono text-white/35 hover:text-white/55 transition-colors"
