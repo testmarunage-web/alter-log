@@ -162,6 +162,7 @@ export function ChatInterface({
   const [isNavigating, setIsNavigating]               = useState(false);
   const [showVoiceHint, setShowVoiceHint]             = useState(false);
   const [voiceHintFading, setVoiceHintFading]         = useState(false);
+  const [showScanSuggestion, setShowScanSuggestion]   = useState(false);
 
   // ジャーナルモードの初回のみウェルカムモーダルを表示
   useEffect(() => {
@@ -270,6 +271,7 @@ export function ChatInterface({
     if (!content || isSaving) return;
     setIsSaving(true);
     setCoachSuggestionText(null);
+    setShowScanSuggestion(false);
     const now = new Date();
     setJournalMessages((prev) => [...prev, { id: `j-${Date.now()}`, content, createdAt: now }]);
     setJournalInput("");
@@ -280,6 +282,8 @@ export function ChatInterface({
       ]);
       if (mood !== "neutral") {
         setCoachSuggestionText(COACH_SUGGESTION_MAP[mood]);
+      } else {
+        setShowScanSuggestion(true);
       }
     } finally {
       setIsSaving(false);
@@ -487,6 +491,23 @@ export function ChatInterface({
             </div>
           )}
 
+          {/* SCAN導線（neutral判定かつ壁打ち導線が出ていないときのみ） */}
+          {showScanSuggestion && !coachSuggestionText && (
+            <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard")}
+                className="flex items-center gap-2 text-xs text-[#8BA89E]/70 hover:text-[#8BA89E] transition-colors"
+              >
+                <AlterIcon size={12} />
+                <span>SCANで思考を解析する</span>
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
+                </svg>
+              </button>
+            </div>
+          )}
+
           {/* 「あの時のあなた」カード */}
           {(() => {
             if (!pastJournal) {
@@ -595,7 +616,6 @@ export function ChatInterface({
                     border: "1px solid rgba(196,163,90,0.22)",
                   }}
                 >
-                  <p className="text-[10px] font-bold tracking-[0.18em] text-[#C4A35A] uppercase mb-1.5">Alter</p>
                   <p className="text-sm text-[#E8E3D8] leading-relaxed">
                     こんにちは、私はAlter（オルター）です。思考の癖を映し出し、変化を促す<span className="text-[#C4A35A]">「鏡」</span>となる存在です。
                   </p>
@@ -632,8 +652,8 @@ export function ChatInterface({
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#8BA89E] tracking-wide mb-0.5">2. SCAN（思考の構造解析）</p>
-                    <p className="text-xs text-[#9A9488] leading-relaxed">ジャーナルを元に、事実と感情のバランスや認知バイアスをスキャンし、客観的なデータとして確認できます。</p>
+                    <p className="text-xs font-bold text-[#8BA89E] tracking-wide mb-0.5">2. スキャン（思考の構造解析）</p>
+                    <p className="text-xs text-[#9A9488] leading-relaxed">ジャーナルをもとに、事実と感情のバランス、認知の偏り、思考の変化をスキャンします。あなたの頭の中が丸見えになります。</p>
                   </div>
                 </div>
 
@@ -663,8 +683,8 @@ export function ChatInterface({
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#C4A35A]/60 tracking-wide mb-0.5">4. Alter Log（裏の記録）</p>
-                    <p className="text-xs text-[#9A9488]/70 leading-relaxed">これは私（Alter）が密かにつけている、あなたの観察日記です。閲覧は自己責任でお願いします。</p>
+                    <p className="text-xs font-bold text-[#C4A35A]/60 tracking-wide mb-0.5">4. Alter Log（究極の客観視）</p>
+                    <p className="text-xs text-[#9A9488]/70 leading-relaxed">これは私（Alter）が毎晩深夜に密かにつけている、あなたの観察日記です。お見せする前提で書いていないので、閲覧は自己責任で。</p>
                   </div>
                 </div>
               </div>

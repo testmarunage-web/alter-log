@@ -620,7 +620,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               disabled={!isButtonActive || isGenerating || isPending}
               className={`w-full min-h-[56px] flex items-center justify-center py-4 px-5 rounded-lg font-mono ${
                 isButtonActive && !isGenerating && !isPending
-                  ? "bg-[#C4A35A]/10 border border-[#C4A35A]/40 text-[#C4A35A] hover:bg-[#C4A35A]/15 hover:border-[#C4A35A]/60"
+                  ? "bg-[#8BA89E]/15 border border-[#8BA89E]/40 text-[#8BA89E] hover:bg-[#8BA89E]/25 hover:border-[#8BA89E]/60 hover:shadow-[0_0_20px_rgba(139,168,158,0.3)]"
                   : "bg-white/[0.02] border border-white/[0.05] text-white/20 cursor-not-allowed"
               }`}
             >
