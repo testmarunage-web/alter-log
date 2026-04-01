@@ -108,6 +108,23 @@ export default async function Home() {
           <p className="mt-3 text-xs text-[#8A8276]/60">お申し込みから7日以内にご満足いただけなければ、全額返金いたします。</p>
         </div>
 
+        {/* Hero: 3枚横並び */}
+        <div className="relative mt-16 w-full max-w-3xl mx-auto flex items-end justify-center gap-6 px-4">
+          <div className="hidden sm:block opacity-75 scale-90 origin-bottom translate-y-3 w-full max-w-[200px]">
+            <ScreenshotCard src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" />
+          </div>
+          <div className="z-10 w-full max-w-[240px]">
+            <ScreenshotCard src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" />
+          </div>
+          <div className="hidden sm:block opacity-75 scale-90 origin-bottom translate-y-3 w-full max-w-[200px]">
+            <ScreenshotCard src="/images/screenshot-dashboard.jpg" alt="ダッシュボード画面" />
+          </div>
+          {/* モバイル: 1枚のみ */}
+          <div className="sm:hidden w-full max-w-[220px]">
+            <ScreenshotCard src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" />
+          </div>
+        </div>
+
       </section>
 
       {/* ── 2. Problem / Agitation ── */}
@@ -314,22 +331,6 @@ export default async function Home() {
               <div className="flex justify-center pt-2">
                 <ScreenshotCard src="/images/screenshot-dashboard.jpg" alt="ダッシュボード画面" />
               </div>
-            </div>
-          </div>
-
-          {/* 3枚のスクリーンショット: 中央大・左右小・重なり */}
-          <div className="mt-14 flex items-end justify-center" style={{ gap: 0 }}>
-            {/* 左: SCAN */}
-            <div style={{ transform: "scale(0.88) translateX(24px)", transformOrigin: "bottom right", zIndex: 1, opacity: 0.85, flexShrink: 0 }}>
-              <ScreenshotCard src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" />
-            </div>
-            {/* 中央: ジャーナル（最大） */}
-            <div style={{ transform: "scale(1.08)", transformOrigin: "bottom center", zIndex: 3, flexShrink: 0 }}>
-              <ScreenshotCard src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" />
-            </div>
-            {/* 右: Alter Log */}
-            <div style={{ transform: "scale(0.88) translateX(-24px)", transformOrigin: "bottom left", zIndex: 1, opacity: 0.85, flexShrink: 0 }}>
-              <ScreenshotCard src="/images/screenshot-alterlog.jpg" alt="Alter Log観察日記画面" />
             </div>
           </div>
 
