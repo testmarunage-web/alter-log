@@ -48,7 +48,7 @@ function CommunityBanner() {
             気づきや思考プロファイルを仲間と共有できる場です。参加は無料・任意です。
           </p>
           <a
-            href="https://discord.gg/placeholder"
+            href="https://discord.gg/n5pnJEur72"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#C4A35A] hover:text-[#D4B36A] transition-colors"

@@ -50,7 +50,7 @@ export default async function SettingsPage() {
           {/* コミュニティに参加 */}
           <div className="border-b border-white/[0.06]">
             <a
-              href="https://discord.gg/placeholder"
+              href="https://discord.gg/n5pnJEur72"
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 pt-4 pb-1.5 flex items-center justify-between hover:bg-white/[0.03] transition-colors"
