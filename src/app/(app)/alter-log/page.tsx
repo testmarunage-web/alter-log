@@ -75,18 +75,12 @@ export default async function AlterLogPage() {
         insights.passive_voice_status ??
         null;
       if (!logEntry) return [];
-      const jst = log.createdAt
-        .toLocaleString("ja-JP", {
-          timeZone: "Asia/Tokyo",
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
-        .replace(/\//g, ".")
-        .replace(",", "");
+      const d = log.date;
+      const jst = [
+        d.getUTCFullYear(),
+        String(d.getUTCMonth() + 1).padStart(2, "0"),
+        d.getUTCDate().toString().padStart(2, "0"),
+      ].join(".");
       return [{ id: log.id, jst, logEntry }];
     } catch {
       return [];
