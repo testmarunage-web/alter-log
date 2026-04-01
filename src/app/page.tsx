@@ -74,15 +74,15 @@ function PhoneMockup({
           overflow: "hidden",
           width: `${screenW}px`,
           height: `${screenH}px`,
-          position: "relative",
+          lineHeight: 0,
         }}
       >
         <Image
           src={src}
           alt={alt}
-          fill
-          style={{ objectFit: "cover", objectPosition: "top" }}
-          sizes={`${width}px`}
+          width={screenW}
+          height={screenH}
+          style={{ objectFit: "cover", objectPosition: "top", display: "block", width: "100%", height: "100%" }}
         />
       </div>
     </div>
