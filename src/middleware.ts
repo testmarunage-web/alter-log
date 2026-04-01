@@ -10,6 +10,7 @@ const isPublicRoute = createRouteMatcher([
   "/subscribe(.*)",
   "/payment-pending(.*)",
   "/api/webhooks(.*)",
+  "/opengraph-image",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
