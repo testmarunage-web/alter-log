@@ -154,7 +154,7 @@ export default async function Home() {
                 <span className="inline-block">「あなたの観察日記」</span>
               </h3>
               <p className="text-sm text-[#8A8276] leading-relaxed max-w-xl mx-auto md:mx-0">
-                深夜、Alterはあなたとの対話をもとに、密かに「あなたについての観察日記」を書き上げます。翌朝その日記を覗き見ることで、自分の脳内をまるで他人のもののように客観視する、かつてない未知の体験が待っています。
+                深夜、Alterはあなたの記録をもとに、密かに「あなたについての観察日記」を書き上げます。翌朝その日記を覗き見ることで、自分の脳内をまるで他人のもののように客観視する、かつてない未知の体験が待っています。
               </p>
             </div>
             <div className="w-full md:w-1/2 aspect-[4/3] bg-white/[0.02] border border-white/[0.08] rounded-2xl flex items-center justify-center">
