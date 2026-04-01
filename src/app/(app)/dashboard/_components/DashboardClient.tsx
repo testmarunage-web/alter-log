@@ -7,6 +7,74 @@ import { generateDashboardScan } from "@/app/actions/generateAlterLog";
 import type { AlterLogInsights } from "@/app/actions/alterLogSchema";
 import { AlterIcon } from "../../_components/AlterIcon";
 
+const COMMUNITY_BANNER_KEY = "alter_community_banner_dismissed";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// コミュニティバナー
+// ─────────────────────────────────────────────────────────────────────────────
+function CommunityBanner() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const dismissed = localStorage.getItem(COMMUNITY_BANNER_KEY);
+      if (!dismissed) setVisible(true);
+    }
+  }, []);
+
+  function dismiss() {
+    localStorage.setItem(COMMUNITY_BANNER_KEY, "1");
+    setVisible(false);
+  }
+
+  if (!visible) return null;
+
+  return (
+    <div className="relative rounded-xl border border-[#C4A35A]/25 bg-[#C4A35A]/5 px-4 py-4 pr-10">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 flex-shrink-0 w-6 h-6 rounded-full bg-[#C4A35A]/15 border border-[#C4A35A]/30 flex items-center justify-center">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C4A35A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-bold text-[#E8D5A0] leading-snug mb-1">
+            Alter Log ユーザー限定コミュニティが始まりました
+          </p>
+          <p className="text-[11px] text-[#8A8276] leading-relaxed mb-2.5">
+            気づきや思考プロファイルを仲間と共有できる場です。参加は無料・任意です。
+          </p>
+          <a
+            href="https://discord.gg/placeholder"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#C4A35A] hover:text-[#D4B36A] transition-colors"
+          >
+            Discordに参加する
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 6h9M7 2l4 4-4 4" />
+            </svg>
+          </a>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={dismiss}
+        aria-label="閉じる"
+        className="absolute top-3 right-3 text-[#8A8276]/60 hover:text-[#8A8276] transition-colors"
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <line x1="1" y1="1" x2="11" y2="11" />
+          <line x1="11" y1="1" x2="1" y2="11" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 型定義（dashboard/page.tsx からも import）
 // ─────────────────────────────────────────────────────────────────────────────
@@ -764,6 +832,12 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               totalScanCount={timelineData.totalScanCount}
             />
           </div>
+
+          {timelineData.totalJournalCount >= 3 && (
+            <div className="hl-enter hl-d9">
+              <CommunityBanner />
+            </div>
+          )}
 
         </div>
       </div>
