@@ -13,13 +13,20 @@ export async function GET(req: Request) {
   }
 
   try {
-    // 過去24時間以内にアクティブだったユーザーを取得
-    const since = new Date();
-    since.setHours(since.getHours() - 24);
+    // 前日（N-1日）のJST 00:00〜23:59:59 をUTCに変換
+    const nowJst = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+    nowJst.setDate(nowJst.getDate() - 1);
+    const yesterdayJstStr = [
+      nowJst.getFullYear(),
+      String(nowJst.getMonth() + 1).padStart(2, "0"),
+      String(nowJst.getDate()).padStart(2, "0"),
+    ].join("-");
+    const jstDayStartUtc = new Date(`${yesterdayJstStr}T00:00:00+09:00`);
+    const jstDayEndUtc   = new Date(`${yesterdayJstStr}T23:59:59+09:00`);
 
-    // 過去24時間にJournalEntryを作成したユーザーのIDを収集
+    // 前日にJournalEntryを作成したユーザーのIDを収集
     const journalUsers = await prisma.journalEntry.findMany({
-      where: { createdAt: { gte: since } },
+      where: { createdAt: { gte: jstDayStartUtc, lte: jstDayEndUtc } },
       select: { user: { select: { clerkId: true } } },
       distinct: ["userId"],
     });

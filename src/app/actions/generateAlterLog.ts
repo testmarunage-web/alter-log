@@ -21,6 +21,17 @@ function getJstDateStr(): string {
   ].join("-");
 }
 
+/** 前日の JST 日付文字列を返す（例: "2026-03-28"） */
+function getYesterdayJstDateStr(): string {
+  const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+  d.setDate(d.getDate() - 1);
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
 /**
  * 指定 JST 日付の「翌日 02:00〜04:00 JST」のランダムな Date を返す。
  * Cron・手動バッチ両方で使用する createdAt 偽装ヘルパー。
@@ -117,16 +128,17 @@ export async function processAlterLogForUser(clerkId: string): Promise<AlterLogI
     update: {},
   });
 
-  // 直近3日間のデータを取得
-  const since = new Date();
-  since.setDate(since.getDate() - 3);
+  // 前日（N-1日）のJST 00:00〜23:59:59 を対象とする
+  const yesterdayJstStr  = getYesterdayJstDateStr();
+  const jstDayStartUtc   = new Date(`${yesterdayJstStr}T00:00:00+09:00`);
+  const jstDayEndUtc     = new Date(`${yesterdayJstStr}T23:59:59+09:00`);
 
   const journals = await prisma.journalEntry.findMany({
-    where: { userId: user.id, createdAt: { gte: since } },
+    where: { userId: user.id, createdAt: { gte: jstDayStartUtc, lte: jstDayEndUtc } },
     orderBy: { createdAt: "asc" },
   });
 
-  // ジャーナルがない場合はAPIコール・DB保存をスキップ
+  // 前日にジャーナルがない場合はAPIコール・DB保存をスキップ
   if (journals.length === 0) return FALLBACK_INSIGHTS;
 
   // ログを1つのコンテキスト文字列に結合
@@ -152,8 +164,8 @@ ${journalBlock}`,
     object = FALLBACK_INSIGHTS;
   }
 
-  const jstDateStr = getJstDateStr();
-  const dateForDb  = new Date(`${jstDateStr}T00:00:00Z`);
+  // dateForDb は前日のJST日付（AlterLogのdate列 = ジャーナルが書かれた日）
+  const dateForDb = new Date(`${yesterdayJstStr}T00:00:00Z`);
 
   const existing = await prisma.alterLog.findFirst({
     where: { userId: user.id, date: dateForDb },
@@ -167,7 +179,7 @@ ${journalBlock}`,
       date: dateForDb,
       type: "daily",
       insights: object,
-      createdAt: getSpoofedCreatedAt(jstDateStr),
+      createdAt: getSpoofedCreatedAt(yesterdayJstStr),
     },
   });
 
