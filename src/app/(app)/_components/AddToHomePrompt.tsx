@@ -34,15 +34,6 @@ function isAlreadySnoozed(): boolean {
   }
 }
 
-/** オンボーディングモーダルが未完了の場合は PWA プロンプトを表示しない */
-function isOnboardingPending(): boolean {
-  try {
-    return !localStorage.getItem("alter-log-welcomed");
-  } catch {
-    return false;
-  }
-}
-
 function saveSnooze() {
   try {
     localStorage.setItem(SNOOZE_KEY, String(Date.now()));
@@ -95,7 +86,6 @@ export function AddToHomePrompt() {
   useEffect(() => {
     if (isStandalone()) return;
     if (isAlreadySnoozed()) return;
-    if (isOnboardingPending()) return;
 
     const env = detectEnv();
 
