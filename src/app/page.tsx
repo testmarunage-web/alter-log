@@ -20,25 +20,41 @@ export function AlterIcon({ size = 20 }: { size?: number }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// コンポーネント: スクリーンショットカード
+// コンポーネント: スクリーンショットカード（スマホ枠風）
 // ─────────────────────────────────────────────────────────────────────────────
 function ScreenshotCard({ src, alt }: { src: string; alt: string }) {
   return (
     <div style={{
-      borderRadius: "20px",
-      border: "2px solid rgba(255,255,255,0.08)",
-      boxShadow: "0 0 30px rgba(196,163,90,0.12)",
-      overflow: "hidden",
+      background: "#1a1a1a",
+      borderRadius: "28px",
+      padding: "8px",
+      boxShadow: "0 0 30px rgba(196,163,90,0.12), 0 0 0 1px rgba(255,255,255,0.06)",
       width: "100%",
       maxWidth: "280px",
       lineHeight: 0,
+      position: "relative",
     }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt}
-        style={{ display: "block", width: "100%", height: "auto" }}
-      />
+      {/* ノッチ風バー */}
+      <div style={{
+        position: "absolute",
+        top: "12px",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "80px",
+        height: "4px",
+        background: "#333",
+        borderRadius: "2px",
+        zIndex: 1,
+      }} />
+      {/* スクリーン */}
+      <div style={{ borderRadius: "20px", overflow: "hidden", lineHeight: 0 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={alt}
+          style={{ display: "block", width: "100%", height: "auto" }}
+        />
+      </div>
     </div>
   );
 }
@@ -296,9 +312,6 @@ export default async function Home() {
               <p className="text-sm text-[#8A8276] leading-relaxed">
                 頭の中のモヤモヤを、テキストでも音声でも、そのままジャーナルに。整える必要はありません。Alterが全てを静かに受け止めます。
               </p>
-              <div className="flex justify-center pt-2">
-                <ScreenshotCard src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" />
-              </div>
             </div>
 
             {/* Step 2 */}
@@ -312,9 +325,6 @@ export default async function Home() {
               <p className="text-sm text-[#8A8276] leading-relaxed">
                 Alterがジャーナルを読み解き、思考の構造を分析。あなた専用の「観察日記」と「思考プロファイル」で、自分を他人のように見つめる体験が始まります。
               </p>
-              <div className="flex justify-center pt-2">
-                <ScreenshotCard src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" />
-              </div>
             </div>
 
             {/* Step 3 */}
@@ -328,11 +338,25 @@ export default async function Home() {
               <p className="text-sm text-[#8A8276] leading-relaxed">
                 ムードマップやワードクラウドで、過去の自分と今の自分を比較。1週間前には見えなかった自分の変化に気づく瞬間が訪れます。
               </p>
-              <div className="flex justify-center pt-2">
-                <ScreenshotCard src="/images/screenshot-alterlog.jpg" alt="Alter Log観察日記画面" />
-              </div>
             </div>
           </div>
+
+          {/* 3枚のスクリーンショット: 中央大・左右小・重なり */}
+          <div className="mt-14 flex items-end justify-center" style={{ gap: 0 }}>
+            {/* 左: SCAN */}
+            <div style={{ transform: "scale(0.88) translateX(24px)", transformOrigin: "bottom right", zIndex: 1, opacity: 0.85, flexShrink: 0 }}>
+              <ScreenshotCard src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" />
+            </div>
+            {/* 中央: ジャーナル（最大） */}
+            <div style={{ transform: "scale(1.08)", transformOrigin: "bottom center", zIndex: 3, flexShrink: 0 }}>
+              <ScreenshotCard src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" />
+            </div>
+            {/* 右: Alter Log */}
+            <div style={{ transform: "scale(0.88) translateX(-24px)", transformOrigin: "bottom left", zIndex: 1, opacity: 0.85, flexShrink: 0 }}>
+              <ScreenshotCard src="/images/screenshot-alterlog.jpg" alt="Alter Log観察日記画面" />
+            </div>
+          </div>
+
         </div>
       </section>
 
