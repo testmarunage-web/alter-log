@@ -1,23 +1,9 @@
 "use client";
 
-import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { saveChatMessage, resetSession } from "@/app/actions/chat";
-import { classifyJournalMood, type JournalMood } from "@/app/actions/classifyJournal";
+import { saveChatMessage } from "@/app/actions/chat";
 import { AlterIcon } from "../../_components/AlterIcon";
-import { Sparkles } from "lucide-react";
-
-const COACH_SUGGESTION_MAP: Record<Exclude<JournalMood, "neutral">, string> = {
-  negative: "Alterに話を聞いてもらう",
-  uncertain: "Alterともう少し話してみる",
-};
-
-// メッセージ時刻フォーマット（壁打ちモード用）
-function formatTime(date?: Date): string {
-  if (!date) return "";
-  return date.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", hour12: false });
-}
 
 // ジャーナルカード用の日時フォーマット
 function formatDateTime(date: Date): string {
@@ -28,19 +14,6 @@ function formatDateTime(date: Date): string {
     minute: "2-digit",
     hour12: false,
   });
-}
-
-// AIメッセージのマークダウン記号を除去
-function stripMarkdown(text: string): string {
-  return text.replace(/\*\*/g, "").replace(/\*/g, "").replace(/^#+\s/gm, "").trim();
-}
-
-type Mode = "journal" | "coach";
-
-interface InitialMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
 }
 
 interface JournalMessage {
@@ -57,11 +30,6 @@ interface PastJournalEntry {
 }
 
 interface Props {
-  defaultMode: Mode;
-  sessionId: string;
-  dailyLimit: number;
-  initialUsedCount: number;
-  initialMessages: InitialMessage[];
   initialJournalMessages: JournalMessage[];
   userName: string;
   hasTodayJournal: boolean;
@@ -132,57 +100,43 @@ function AlterAvatar({ size = "md" }: { size?: "sm" | "md" }) {
 
 // ── メインコンポーネント ─────────────────────────────────────────────────────
 export function ChatInterface({
-  defaultMode,
-  sessionId,
-  dailyLimit,
-  initialUsedCount,
-  initialMessages,
   initialJournalMessages,
   userName,
   hasTodayJournal,
   pastJournal,
 }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const router = useRouter();
 
-  const isJournal = defaultMode === "journal";
-
   const [journalMessages, setJournalMessages] = useState<JournalMessage[]>(initialJournalMessages);
   const [journalInput, setJournalInput]       = useState("");
-  const [localUsedCount, setLocalUsedCount]   = useState(initialUsedCount);
   const [hintOpen, setHintOpen]               = useState(false);
-  const [isResetting, setIsResetting]         = useState(false);
   const [isSaving, setIsSaving]               = useState(false);
   const [showWelcome, setShowWelcome]         = useState(false);
   const [welcomeFading, setWelcomeFading]     = useState(false);
-  const [coachSuggestionText, setCoachSuggestionText] = useState<string | null>(null);
-  const [isNavigating, setIsNavigating]               = useState(false);
-  const [showVoiceHint, setShowVoiceHint]             = useState(false);
-  const [voiceHintFading, setVoiceHintFading]         = useState(false);
-  const [showScanSuggestion, setShowScanSuggestion]   = useState(false);
+  const [showVoiceHint, setShowVoiceHint]     = useState(false);
+  const [voiceHintFading, setVoiceHintFading] = useState(false);
+  const [showScanSuggestion, setShowScanSuggestion] = useState(false);
 
-  // ジャーナルモードの初回のみウェルカムモーダルを表示
+  // 初回のみウェルカムモーダルを表示
   useEffect(() => {
-    if (!isJournal) return;
     try {
       if (!localStorage.getItem("alter-log-welcomed")) {
         setShowWelcome(true);
       }
     } catch { /* localStorage unavailable */ }
-  }, [isJournal]);
+  }, []);
 
   // 音声入力ヒント（初回のみ）
   useEffect(() => {
-    if (!isJournal) return;
     try {
       if (!localStorage.getItem("alter-log-voice-hint-dismissed")) {
         setShowVoiceHint(true);
       }
     } catch { /* localStorage unavailable */ }
-  }, [isJournal]);
+  }, []);
 
   function handleVoiceHintDismiss() {
     setVoiceHintFading(true);
@@ -202,58 +156,6 @@ export function ChatInterface({
     }, 420);
   }
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages, append } =
-    useChat({
-      api: "/api/chat",
-      initialMessages,
-      body: { sessionId },
-      onFinish: () => setLocalUsedCount((c) => c + 1),
-    });
-
-  // 壁打ちモード初期化：sessionStorageにジャーナルコンテキストがあれば自動で第一声をトリガー
-  // deps=[defaultMode]: ソフトナビゲーションでpropsが変わった場合も再実行するため
-  useEffect(() => {
-    if (defaultMode !== "coach") return;
-    setIsNavigating(false); // ソフトナビゲーション完了時にスピナーをリセット
-    // 遷移直後に最下部へスクロールしてTypingIndicatorを見せる
-    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-    try {
-      const context = sessionStorage.getItem("alter-coach-context");
-      if (!context) return;
-      sessionStorage.removeItem("alter-coach-context");
-      append(
-        { role: "user", content: "__OPEN__" },
-        { body: { sessionId, journalContext: context } }
-      );
-    } catch { /* sessionStorage unavailable */ }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [defaultMode]);
-
-  async function handleReset() {
-    if (isResetting || isLoading) return;
-    setIsResetting(true);
-    try {
-      await resetSession(sessionId);
-      setMessages([]);
-      setLocalUsedCount(0);
-    } finally {
-      setIsResetting(false);
-    }
-  }
-
-  // 新メッセージで最下部へスクロール（壁打ちのみ・メッセージがある場合のみ）
-  useEffect(() => {
-    if (defaultMode !== "coach") return;
-    if (messages.length === 0) return;
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, defaultMode]);
-
-  function handleCoachInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    handleInputChange(e);
-    e.target.style.height = "auto";
-    e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
-  }
-
   function handleJournalInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setJournalInput(e.target.value);
   }
@@ -270,30 +172,20 @@ export function ChatInterface({
     const content = journalInput.trim();
     if (!content || isSaving) return;
     setIsSaving(true);
-    setCoachSuggestionText(null);
     setShowScanSuggestion(false);
     const now = new Date();
     setJournalMessages((prev) => [...prev, { id: `j-${Date.now()}`, content, createdAt: now }]);
     setJournalInput("");
     try {
-      const [, mood] = await Promise.all([
-        saveChatMessage("journal", content),
-        classifyJournalMood(content),
-      ]);
-      if (mood !== "neutral") {
-        setCoachSuggestionText(COACH_SUGGESTION_MAP[mood]);
-      } else {
-        setShowScanSuggestion(true);
-      }
+      await saveChatMessage(content);
+      setShowScanSuggestion(true);
     } finally {
       setIsSaving(false);
     }
   }
 
-  const remaining       = dailyLimit - localUsedCount;
-  const visibleMessages = messages.filter((m) => m.content !== "__OPEN__");
-  const initial         = userName.slice(0, 1).toUpperCase();
-  const headerCls       = "bg-[#0B0E13]/95 border-[#C4A35A]/10 backdrop-blur-md";
+  const initial   = userName.slice(0, 1).toUpperCase();
+  const headerCls = "bg-[#0B0E13]/95 border-[#C4A35A]/10 backdrop-blur-md";
 
   const todayJst = new Date().toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" });
   const hasTodayJournalEntry =
@@ -301,6 +193,9 @@ export function ChatInterface({
     journalMessages.some(
       (m) => m.createdAt.toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo" }) === todayJst
     );
+
+  // suppress unused variable warning
+  void initial;
 
   return (
     // h-full: AppLayoutのmain(flex-1)を埋める / overflow-hidden: 自身をはみ出させない
@@ -330,233 +225,181 @@ export function ChatInterface({
 
           <div className="flex-1 flex justify-center">
             <h1 className="text-sm font-semibold text-[#E8E3D8] tracking-wide">
-              {isJournal ? "ジャーナル" : "セッション"}
+              ジャーナル
             </h1>
           </div>
 
-          {!isJournal ? (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleReset}
-                disabled={isResetting || isLoading}
-                aria-label="話題を変える"
-                title="話題を変える"
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-[#8A8276] hover:text-[#E8E3D8] hover:bg-white/[0.05] transition-colors disabled:opacity-30"
-              >
-                <Sparkles size={14} />
-              </button>
-            </div>
-          ) : (
-            <div className="w-8" />
-          )}
+          <div className="w-8" />
         </div>
       </header>
 
       {/* ── ジャーナルモード ── */}
-      {isJournal && (
-        <main className="flex-1 flex flex-col overflow-hidden min-h-0">
+      <main className="flex-1 flex flex-col overflow-hidden min-h-0">
 
-          {/* 1. 入力エリア＋送信ボタン（flex-none・常に画面内） */}
-          <div className="flex-none max-w-2xl mx-auto w-full px-4 pt-3 pb-2">
-            <form onSubmit={submitJournal}>
-              <div className="relative">
-                <textarea
-                  ref={textareaRef}
-                  value={journalInput}
-                  onChange={handleJournalInputChange}
-                  placeholder="今日あったこと、感じたこと、モヤモヤ…なんでもどうぞ。"
-                  className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
-                  style={{ height: "140px" }}
-                />
-                {journalInput.length > 0 && (
-                  <span className="absolute bottom-3 right-4 text-[10px] text-[#8A8276]/40 font-mono pointer-events-none">
-                    {journalInput.length}
-                  </span>
-                )}
+        {/* 1. 入力エリア＋送信ボタン（flex-none・常に画面内） */}
+        <div className="flex-none max-w-2xl mx-auto w-full px-4 pt-3 pb-2">
+          <form onSubmit={submitJournal}>
+            <div className="relative">
+              <textarea
+                ref={textareaRef}
+                value={journalInput}
+                onChange={handleJournalInputChange}
+                onKeyDown={(e) => handleKeyDown(e, () => submitJournal())}
+                placeholder="今日あったこと、感じたこと、モヤモヤ…なんでもどうぞ。"
+                className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
+                style={{ height: "140px" }}
+              />
+              {journalInput.length > 0 && (
+                <span className="absolute bottom-3 right-4 text-[10px] text-[#8A8276]/40 font-mono pointer-events-none">
+                  {journalInput.length}
+                </span>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={!journalInput.trim() || isSaving}
+              className={`mt-2.5 w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2
+                ${journalInput.trim() && !isSaving
+                  ? "bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.3)] active:scale-[0.98]"
+                  : "bg-white/[0.03] border border-white/[0.06] text-[#8A8276]/30 cursor-not-allowed"
+                }`}
+            >
+              {isSaving ? (
+                <span className="w-4 h-4 border border-[#8A8276]/60 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              )}
+              {isSaving ? "保存中..." : "ジャーナルを記録する"}
+            </button>
+          </form>
+
+          {/* 音声入力ヒント（初回のみ・dismissable） */}
+          {showVoiceHint && (
+            <div
+              className="mt-2 rounded-xl px-4 py-2.5 bg-white/[0.02] border border-white/[0.06] flex items-center gap-2.5"
+              style={{ opacity: voiceHintFading ? 0 : 1, transition: "opacity 0.3s ease-out" }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-[#C4A35A]/60 flex-shrink-0 mt-0.5">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+                <line x1="8" y1="23" x2="16" y2="23" />
+              </svg>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] text-white/50 font-medium leading-snug">音声でも入力できます</p>
+                <p className="text-[11px] text-white/30 leading-relaxed mt-0.5">キーボードの 🎙 マイクボタンをタップすると、話した内容がそのまま文字になります。</p>
               </div>
               <button
-                type="submit"
-                disabled={!journalInput.trim() || isSaving}
-                className={`mt-2.5 w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2
-                  ${journalInput.trim() && !isSaving
-                    ? "bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.3)] active:scale-[0.98]"
-                    : "bg-white/[0.03] border border-white/[0.06] text-[#8A8276]/30 cursor-not-allowed"
-                  }`}
+                type="button"
+                onClick={handleVoiceHintDismiss}
+                className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0 mt-0.5"
+                aria-label="閉じる"
               >
-                {isSaving ? (
-                  <span className="w-4 h-4 border border-[#8A8276]/60 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                )}
-                {isSaving ? "保存中..." : "ジャーナルを記録する"}
-              </button>
-            </form>
-
-            {/* 音声入力ヒント（初回のみ・dismissable） */}
-            {showVoiceHint && (
-              <div
-                className="mt-2 rounded-xl px-4 py-2.5 bg-white/[0.02] border border-white/[0.06] flex items-center gap-2.5"
-                style={{ opacity: voiceHintFading ? 0 : 1, transition: "opacity 0.3s ease-out" }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-[#C4A35A]/60 flex-shrink-0 mt-0.5">
-                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                  <line x1="12" y1="19" x2="12" y2="23" />
-                  <line x1="8" y1="23" x2="16" y2="23" />
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12px] text-white/50 font-medium leading-snug">音声でも入力できます</p>
-                  <p className="text-[11px] text-white/30 leading-relaxed mt-0.5">キーボードの 🎙 マイクボタンをタップすると、話した内容がそのまま文字になります。</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleVoiceHintDismiss}
-                  className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0 mt-0.5"
-                  aria-label="閉じる"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
-              </div>
-            )}
-          </div>
+              </button>
+            </div>
+          )}
+        </div>
 
-          {/* 2. ヒントアコーディオン（今日の投稿が0件のときのみ表示） */}
-          {!hasTodayJournalEntry && <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
+        {/* 2. ヒントアコーディオン（今日の投稿が0件のときのみ表示） */}
+        {!hasTodayJournalEntry && <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
+          <button
+            type="button"
+            onClick={() => setHintOpen((v) => !v)}
+            className="flex items-center gap-1.5 text-xs text-[#8A8276]/70 hover:text-[#8A8276] transition-colors"
+            aria-expanded={hintOpen}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            話すことがない場合は
+            <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }} className="text-[10px]">▾</span>
+          </button>
+          {hintOpen && (
+            <div className="mt-2 rounded-xl px-4 py-3 shadow-[0_0_18px_rgba(196,163,90,0.10)]"
+              style={{ background: "rgba(26,20,8,0.6)", border: "1px solid rgba(196,163,90,0.22)" }}>
+              <div className="flex items-center gap-1.5 mb-2">
+                <AlterIcon size={12} />
+                <p className="text-[10px] text-[#C4A35A]/70 tracking-widest uppercase font-bold">Alterからの問いかけ</p>
+              </div>
+              <p className="text-sm text-[#E8E3D8] leading-relaxed font-medium">
+                「最近、一番ホッとした瞬間はいつですか？」
+              </p>
+            </div>
+          )}
+        </div>}
+
+        {/* SCAN導線（ジャーナル投稿後に表示） */}
+        {showScanSuggestion && (
+          <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
             <button
               type="button"
-              onClick={() => setHintOpen((v) => !v)}
-              className="flex items-center gap-1.5 text-xs text-[#8A8276]/70 hover:text-[#8A8276] transition-colors"
-              aria-expanded={hintOpen}
+              onClick={() => router.push("/dashboard")}
+              className="flex items-center gap-2 text-xs text-[#8BA89E]/70 hover:text-[#8BA89E] transition-colors"
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              <AlterIcon size={12} />
+              <span>SCANで思考を解析する</span>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
               </svg>
-              話すことがない場合は
-              <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }} className="text-[10px]">▾</span>
             </button>
-            {hintOpen && (
-              <div className="mt-2 rounded-xl px-4 py-3 shadow-[0_0_18px_rgba(196,163,90,0.10)]"
-                style={{ background: "rgba(26,20,8,0.6)", border: "1px solid rgba(196,163,90,0.22)" }}>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <AlterIcon size={12} />
-                  <p className="text-[10px] text-[#C4A35A]/70 tracking-widest uppercase font-bold">Alterからの問いかけ</p>
-                </div>
-                <p className="text-sm text-[#E8E3D8] leading-relaxed font-medium">
-                  「最近、一番ホッとした瞬間はいつですか？」
+          </div>
+        )}
+
+        {/* 「あの時のあなた」カード */}
+        {(() => {
+          if (!pastJournal) {
+            return (
+              <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
+                <p className="text-[10px] text-white/[0.18] font-mono tracking-wide text-center">
+                  30日後、過去のあなたと再会できます
                 </p>
               </div>
-            )}
-          </div>}
+            );
+          }
+          const pastDate = new Date(pastJournal.createdAt);
+          const pastDateStr = pastDate.toLocaleDateString("ja-JP", {
+            timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
+          });
+          return <PastJournalCard dateStr={pastDateStr} entries={pastJournal.entries} dailyNote={pastJournal.dailyNote} />;
+        })()}
 
-          {/* 壁打ち導線（感情分類でnegative/uncertainの場合のみ表示） */}
-          {coachSuggestionText && (
-            <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
-              <button
-                type="button"
-                disabled={isNavigating}
-                onClick={() => {
-                  setIsNavigating(true);
-                  try {
-                    const lastJournal = journalMessages[journalMessages.length - 1];
-                    if (lastJournal) {
-                      sessionStorage.setItem("alter-coach-context", lastJournal.content);
-                    }
-                  } catch { /* noop */ }
-                  router.push("/chat?mode=coach");
-                }}
-                className="flex items-center gap-2 text-xs text-[#C4A35A]/70 hover:text-[#C4A35A] transition-colors disabled:opacity-60"
-              >
-                {isNavigating ? (
-                  <>
-                    <span className="w-2.5 h-2.5 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin" />
-                    <span>Alterに接続中...</span>
-                  </>
-                ) : (
-                  <>
-                    <AlterIcon size={12} />
-                    <span>{coachSuggestionText}</span>
-                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
-                    </svg>
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-
-          {/* SCAN導線（neutral判定かつ壁打ち導線が出ていないときのみ） */}
-          {showScanSuggestion && !coachSuggestionText && (
-            <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
-              <button
-                type="button"
-                onClick={() => router.push("/dashboard")}
-                className="flex items-center gap-2 text-xs text-[#8BA89E]/70 hover:text-[#8BA89E] transition-colors"
-              >
-                <AlterIcon size={12} />
-                <span>SCANで思考を解析する</span>
-                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
-                </svg>
-              </button>
-            </div>
-          )}
-
-          {/* 「あの時のあなた」カード */}
-          {(() => {
-            if (!pastJournal) {
-              return (
-                <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
-                  <p className="text-[10px] text-white/[0.18] font-mono tracking-wide text-center">
-                    30日後、過去のあなたと再会できます
-                  </p>
-                </div>
-              );
-            }
-            const pastDate = new Date(pastJournal.createdAt);
-            const pastDateStr = pastDate.toLocaleDateString("ja-JP", {
-              timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
-            });
-            return <PastJournalCard dateStr={pastDateStr} entries={pastJournal.entries} dailyNote={pastJournal.dailyNote} />;
-          })()}
-
-          {/* 3. 過去のジャーナルログ（タイムライン・flex-1 スクロール可能） */}
-          {journalMessages.length > 0 && (
-            <div className="flex-1 overflow-y-auto border-t border-white/[0.04] min-h-0">
-              <div className="max-w-2xl mx-auto px-4 py-4">
-                <p className="text-[10px] text-[#8A8276]/45 tracking-widest uppercase mb-4">過去のジャーナル</p>
-                <div className="relative">
-                  {/* 縦線 */}
-                  <div className="absolute left-[5px] top-1 bottom-0 w-px bg-gradient-to-b from-[#C4A35A]/30 via-[#C4A35A]/12 to-transparent" />
-                  <div className="space-y-6 pl-5">
-                    {[...journalMessages].reverse().map((m) => (
-                      <div key={m.id} className="relative">
-                        {/* ドット */}
-                        <span className="absolute -left-[22px] top-[5px] w-2.5 h-2.5 rounded-full bg-[#0B0E13] border border-[#C4A35A]/45" />
-                        <p className="text-[10px] text-[#8A8276]/55 font-mono tracking-wide mb-1.5">
-                          {formatDateTime(m.createdAt)}
-                        </p>
-                        <p className="text-sm text-[#E8E3D8]/75 leading-relaxed whitespace-pre-wrap">
-                          {m.content}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+        {/* 3. 過去のジャーナルログ（タイムライン・flex-1 スクロール可能） */}
+        {journalMessages.length > 0 && (
+          <div className="flex-1 overflow-y-auto border-t border-white/[0.04] min-h-0">
+            <div className="max-w-2xl mx-auto px-4 py-4">
+              <p className="text-[10px] text-[#8A8276]/45 tracking-widest uppercase mb-4">過去のジャーナル</p>
+              <div className="relative">
+                {/* 縦線 */}
+                <div className="absolute left-[5px] top-1 bottom-0 w-px bg-gradient-to-b from-[#C4A35A]/30 via-[#C4A35A]/12 to-transparent" />
+                <div className="space-y-6 pl-5">
+                  {[...journalMessages].reverse().map((m) => (
+                    <div key={m.id} className="relative">
+                      {/* ドット */}
+                      <span className="absolute -left-[22px] top-[5px] w-2.5 h-2.5 rounded-full bg-[#0B0E13] border border-[#C4A35A]/45" />
+                      <p className="text-[10px] text-[#8A8276]/55 font-mono tracking-wide mb-1.5">
+                        {formatDateTime(m.createdAt)}
+                      </p>
+                      <p className="text-sm text-[#E8E3D8]/75 leading-relaxed whitespace-pre-wrap">
+                        {m.content}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-          )}
-        </main>
-      )}
+          </div>
+        )}
+      </main>
 
-      {/* ── ウェルカムモーダル（ジャーナルモード・初回のみ） ── */}
-      {isJournal && showWelcome && (
+      {/* ── ウェルカムモーダル（初回のみ） ── */}
+      {showWelcome && (
         <div
           className="fixed inset-0 z-[200] flex items-center justify-center px-4"
           style={{
@@ -642,7 +485,7 @@ export function ChatInterface({
                   </div>
                 </div>
 
-                {/* 2. ダッシュボード */}
+                {/* 2. スキャン */}
                 <div className="flex items-center gap-3.5 rounded-xl px-3.5 py-3"
                   style={{ background: "rgba(139,168,158,0.06)", border: "1px solid rgba(139,168,158,0.14)" }}>
                   <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
@@ -657,22 +500,7 @@ export function ChatInterface({
                   </div>
                 </div>
 
-                {/* 3. セッション */}
-                <div className="flex items-center gap-3.5 rounded-xl px-3.5 py-3"
-                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                  <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: "rgba(255,255,255,0.06)" }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9A9488" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#9A9488] tracking-wide mb-0.5">3. セッション（思考の深掘り）</p>
-                    <p className="text-xs text-[#9A9488] leading-relaxed">Alterとの対話を通して、見えた課題の解像度を上げ、具体的なアクションへと落とし込みます。</p>
-                  </div>
-                </div>
-
-                {/* 4. Alter Log */}
+                {/* 3. Alter Log */}
                 <div className="flex items-center gap-3.5 rounded-xl px-3.5 py-3"
                   style={{ background: "rgba(196,163,90,0.03)", border: "1px solid rgba(196,163,90,0.08)" }}>
                   <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
@@ -683,7 +511,7 @@ export function ChatInterface({
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-[#C4A35A]/80 tracking-wide mb-0.5">4. Alter Log（究極の客観視）</p>
+                    <p className="text-xs font-bold text-[#C4A35A]/80 tracking-wide mb-0.5">3. Alter Log（究極の客観視）</p>
                     <p className="text-xs text-[#9A9488]/90 leading-relaxed">これは私（Alter）が毎晩深夜に密かにつけている、あなたの観察日記です。お見せする前提で書いていないので、閲覧は自己責任で。</p>
                   </div>
                 </div>
@@ -705,140 +533,7 @@ export function ChatInterface({
         </div>
       )}
 
-      {/* ── 壁打ちモード ── */}
-      {!isJournal && (
-        <>
-          {/* メッセージエリア（flex-1・スクロール） */}
-          <main
-            ref={messagesAreaRef}
-            className="flex-1 overflow-y-auto min-h-0"
-          >
-            {visibleMessages.length === 0 && !isLoading ? (
-              /* Empty State：ど真ん中に中央配置 */
-              <div className="h-full flex flex-col items-center justify-center gap-4 px-6">
-                <AlterAvatar size="md" />
-                <p className="text-sm text-[#8A8276] text-center">
-                  思考の壁打ちを始めましょう。
-                </p>
-              </div>
-            ) : (
-              <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-                {visibleMessages.length === 0 && isLoading && <TypingIndicator />}
-
-                {visibleMessages.map((m) => (
-                  <div key={m.id} className={`flex gap-2 items-end ${m.role === "user" ? "flex-row-reverse" : ""}`}>
-                    {m.role === "assistant" ? (
-                      <AlterAvatar />
-                    ) : (
-                      <div className="w-9 h-9 rounded-full bg-[#C4A35A]/20 text-[#C4A35A] flex items-center justify-center text-sm font-bold flex-shrink-0">
-                        {initial}
-                      </div>
-                    )}
-                    <div
-                      className={`max-w-[78%] px-4 py-3.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                        m.role === "assistant"
-                          ? "bg-white/[0.04] border border-[#C4A35A]/22 text-[#E8E3D8] rounded-tl-sm shadow-[0_0_14px_rgba(196,163,90,0.09)] msg-fade-in"
-                          : "bg-[#C4A35A]/10 border border-[#C4A35A]/20 text-[#E8E3D8] rounded-tr-sm"
-                      }`}
-                    >
-                      {m.role === "assistant" ? stripMarkdown(m.content) : m.content}
-                    </div>
-                    <span className="text-[9px] text-[#8A8276] font-mono flex-shrink-0 mb-0.5">
-                      {formatTime(m.createdAt)}
-                    </span>
-                  </div>
-                ))}
-
-                {isLoading &&
-                  visibleMessages.length > 0 &&
-                  messages.length > 0 &&
-                  messages[messages.length - 1]?.role === "user" && (
-                    <TypingIndicator />
-                  )}
-
-                {/* 上限到達システムメッセージ */}
-                {remaining <= 0 && !isLoading && visibleMessages.length > 0 && (
-                  <div className="flex flex-col items-center gap-3 pt-2 pb-4">
-                    <p className="text-sm text-[#9A9488] text-center leading-relaxed max-w-xs">
-                      {hasTodayJournal ? (
-                        <>本日は深く思考を巡らせましたね。<br />Alterの脳も本日は休ませていただきます。</>
-                      ) : (
-                        <>本日は深く思考を巡らせましたね。Alterとの対話はここまでにして、<br />今日の気づきをジャーナルに書き留めませんか？</>
-                      )}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => router.push(hasTodayJournal ? "/dashboard" : "/chat?mode=journal")}
-                      className="px-5 py-2.5 rounded-xl text-sm font-medium border border-[#C4A35A]/30 text-[#C4A35A] hover:bg-[#C4A35A]/10 transition-colors"
-                    >
-                      {hasTodayJournal ? "本日の思考分析を確認する" : "ジャーナルに思考をまとめる"}
-                    </button>
-                  </div>
-                )}
-
-                <div ref={messagesEndRef} />
-              </div>
-            )}
-          </main>
-
-          {/* 壁打ち入力フッター（flex-none: 絶対に押し出されない） */}
-          <div className={`flex-none border-t ${headerCls}`}>
-            <div className="max-w-2xl mx-auto px-4 pt-3 pb-6">
-              {remaining > 0 && (
-                <form onSubmit={(e) => {
-                  handleSubmit(e);
-                  if (textareaRef.current) textareaRef.current.style.height = "auto";
-                }} className="flex items-end gap-2">
-                  <textarea
-                    ref={textareaRef}
-                    value={input}
-                    onChange={handleCoachInputChange}
-                    onKeyDown={(e) => handleKeyDown(e, () => {
-                      if (input.trim() && !isLoading) {
-                        handleSubmit(e as unknown as React.FormEvent);
-                        if (textareaRef.current) textareaRef.current.style.height = "auto";
-                      }
-                    })}
-                    placeholder="Alterに疑問や課題をぶつける..."
-                    rows={1}
-                    disabled={isLoading}
-                    className="flex-1 resize-none bg-white/[0.03] border border-white/[0.1] focus:border-[#C4A35A]/50 rounded-2xl px-4 py-3 text-sm text-[#E8E3D8] placeholder:text-[#8A8276] focus:outline-none disabled:opacity-50 transition-colors"
-                    style={{ minHeight: "44px", maxHeight: "120px" }}
-                  />
-                  <button
-                    type="submit"
-                    disabled={!input.trim() || isLoading}
-                    className="w-11 h-11 flex-shrink-0 flex items-center justify-center rounded-2xl bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] transition-colors disabled:opacity-30"
-                    aria-label="送信"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 8h10M9 4l4 4-4 4" />
-                    </svg>
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-// ── タイピングインジケーター（Alter）────────────────────────────────────────
-function TypingIndicator() {
-  return (
-    <div className="flex gap-3">
-      <AlterAvatar />
-      <div className="bg-white/[0.04] border border-[#C4A35A]/15 rounded-2xl rounded-tl-sm px-4 py-3.5 flex items-center gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="w-1.5 h-1.5 bg-[#C4A35A]/60 rounded-full animate-bounce"
-            style={{ animationDelay: `${i * 0.15}s` }}
-          />
-        ))}
-      </div>
+      <div ref={messagesEndRef} />
     </div>
   );
 }

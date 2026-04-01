@@ -51,7 +51,6 @@ export default async function DashboardPage() {
     observerDays: 1,
     totalJournalCount: 0,
     totalScanCount: 0,
-    totalCoachCount: 0,
   };
 
   if (user) {
@@ -62,22 +61,15 @@ export default async function DashboardPage() {
     const [
       totalJournalCount,
       newJournalCount,
-      newCoachCount,
       recentAlterLogs,
       recentJournals,
       totalScanCount,
-      totalCoachCount,
       latestAlterLogRecord,
     ] = await Promise.all([
       prisma.journalEntry.count({ where: { userId: user.id } }),
       user.lastDashboardScanAt
         ? prisma.journalEntry.count({
             where: { userId: user.id, createdAt: { gt: user.lastDashboardScanAt } },
-          })
-        : Promise.resolve(0),
-      user.lastDashboardScanAt
-        ? prisma.coachMessage.count({
-            where: { userId: user.id, role: "user", createdAt: { gt: user.lastDashboardScanAt } },
           })
         : Promise.resolve(0),
       prisma.alterLog.findMany({
@@ -91,7 +83,6 @@ export default async function DashboardPage() {
         orderBy: { createdAt: "asc" },
       }),
       prisma.alterLog.count({ where: { userId: user.id } }),
-      prisma.coachMessage.count({ where: { userId: user.id, role: "user" } }),
       prisma.alterLog.findFirst({
         where: { userId: user.id },
         orderBy: { createdAt: "desc" },
@@ -108,7 +99,7 @@ export default async function DashboardPage() {
     } else if (!user.lastDashboardScanAt) {
       buttonState = "B";
     } else {
-      buttonState = newJournalCount >= 1 || newCoachCount >= 3 ? "C" : "D";
+      buttonState = newJournalCount >= 1 ? "C" : "D";
     }
 
     // ── 感情天気図：alterLog date → factPct マップ ──────────────────────────
@@ -158,7 +149,6 @@ export default async function DashboardPage() {
       observerDays,
       totalJournalCount,
       totalScanCount,
-      totalCoachCount,
     };
   }
 

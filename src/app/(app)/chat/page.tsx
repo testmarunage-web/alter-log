@@ -13,8 +13,9 @@ export default async function ChatPage({
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
+  // coach モードへのアクセスはジャーナルへリダイレクト
   const params = await searchParams;
-  const defaultMode = params.mode === "coach" ? "coach" : "journal";
+  if (params.mode === "coach") redirect("/chat?mode=journal");
 
   // User upsert（外部キーエラー防止）
   const user = await prisma.user.upsert({
@@ -62,26 +63,7 @@ export default async function ChatPage({
     createdAt: e.createdAt,
   }));
 
-  // 壁打ちセッション（日次 upsert）
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const session = await prisma.session.upsert({
-    where: { userId_date: { userId: user.id, date: today } },
-    create: { userId: user.id, date: today },
-    update: {},
-  });
-
-  const dbMessages = await prisma.message.findMany({
-    where: { sessionId: session.id },
-    orderBy: { createdAt: "asc" },
-  });
-  const initialMessages = dbMessages.map((m) => ({
-    id: m.id,
-    role: m.role.toLowerCase() as "user" | "assistant",
-    content: m.content,
-  }));
-
-  // ── 「あの時のあなた」カード用：1日以上前のジャーナルからランダム1件（確認用・本番は30日）
+  // ── 「あの時のあなた」カード用：30日以上前のジャーナルからランダム1件
   const thirtyDaysAgoForPast = new Date();
   thirtyDaysAgoForPast.setDate(thirtyDaysAgoForPast.getDate() - 30);
 
@@ -136,11 +118,6 @@ export default async function ChatPage({
 
   return (
     <ChatInterface
-      defaultMode={defaultMode}
-      sessionId={session.id}
-      dailyLimit={session.dailyLimit}
-      initialUsedCount={session.usedCount}
-      initialMessages={initialMessages}
       initialJournalMessages={initialJournalMessages}
       userName={userName}
       hasTodayJournal={hasTodayJournal}

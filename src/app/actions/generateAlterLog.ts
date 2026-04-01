@@ -39,7 +39,7 @@ function getSpoofedCreatedAt(jstDateStr: string): Date {
 // 共有プロンプト・フォールバック定数
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `あなたはAlter Log解析エンジンである。ユーザーが書いたジャーナルと壁打ちログを、構文・語彙・構造の観点から客観的に分析し、レポートを生成する。
+const SYSTEM_PROMPT = `あなたはAlter Log解析エンジンである。ユーザーが書いたジャーナルを、構文・語彙・構造の観点から客観的に分析し、レポートを生成する。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ■ 基本姿勢
@@ -121,16 +121,10 @@ export async function processAlterLogForUser(clerkId: string): Promise<AlterLogI
   const since = new Date();
   since.setDate(since.getDate() - 3);
 
-  const [journals, coachMsgs] = await Promise.all([
-    prisma.journalEntry.findMany({
-      where: { userId: user.id, createdAt: { gte: since } },
-      orderBy: { createdAt: "asc" },
-    }),
-    prisma.coachMessage.findMany({
-      where: { userId: user.id, createdAt: { gte: since } },
-      orderBy: { createdAt: "asc" },
-    }),
-  ]);
+  const journals = await prisma.journalEntry.findMany({
+    where: { userId: user.id, createdAt: { gte: since } },
+    orderBy: { createdAt: "asc" },
+  });
 
   // ログを1つのコンテキスト文字列に結合
   const journalBlock =
@@ -138,19 +132,9 @@ export async function processAlterLogForUser(clerkId: string): Promise<AlterLogI
       ? "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n")
       : "";
 
-  const coachBlock =
-    coachMsgs.length > 0
-      ? "【壁打ちログ】\n" +
-        coachMsgs
-          .map((m) => `${m.role === "user" ? "User" : "Alter"}: ${m.content}`)
-          .join("\n")
-      : "";
+  const context = journalBlock || "（入力データなし）";
 
-  const context =
-    [journalBlock, coachBlock].filter(Boolean).join("\n\n") ||
-    "（入力データなし）";
-
-  const hasData = journals.length > 0 || coachMsgs.length > 0;
+  const hasData = journals.length > 0;
 
   let object: AlterLogInsights;
   try {
@@ -210,29 +194,17 @@ export async function generateDashboardScan(): Promise<{ insights: AlterLogInsig
   const since = new Date();
   since.setDate(since.getDate() - 3);
 
-  const [journals, coachMsgs] = await Promise.all([
-    prisma.journalEntry.findMany({
-      where: { userId: user.id, createdAt: { gte: since } },
-      orderBy: { createdAt: "asc" },
-    }),
-    prisma.coachMessage.findMany({
-      where: { userId: user.id, createdAt: { gte: since } },
-      orderBy: { createdAt: "asc" },
-    }),
-  ]);
+  const journals = await prisma.journalEntry.findMany({
+    where: { userId: user.id, createdAt: { gte: since } },
+    orderBy: { createdAt: "asc" },
+  });
 
   const journalBlock =
     journals.length > 0
       ? "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n")
       : "";
-  const coachBlock =
-    coachMsgs.length > 0
-      ? "【壁打ちログ】\n" +
-        coachMsgs.map((m) => `${m.role === "user" ? "User" : "Alter"}: ${m.content}`).join("\n")
-      : "";
-  const context =
-    [journalBlock, coachBlock].filter(Boolean).join("\n\n") || "（入力データなし）";
-  const hasData = journals.length > 0 || coachMsgs.length > 0;
+  const context = journalBlock || "（入力データなし）";
+  const hasData = journals.length > 0;
 
   let result: AlterLogInsights;
   let scanSucceeded = false;
@@ -316,25 +288,14 @@ export async function generateForDate(userId: string, targetDate: Date): Promise
   const jstDayStartUtc = new Date(dateForDb.getTime() - 9 * 60 * 60 * 1000);
   const jstDayEndUtc   = new Date(jstDayStartUtc.getTime() + 24 * 60 * 60 * 1000 - 1);
 
-  const [journals, coachMsgs] = await Promise.all([
-    prisma.journalEntry.findMany({
-      where: { userId, createdAt: { gte: jstDayStartUtc, lte: jstDayEndUtc } },
-      orderBy: { createdAt: "asc" },
-    }),
-    prisma.coachMessage.findMany({
-      where: { userId, createdAt: { gte: jstDayStartUtc, lte: jstDayEndUtc } },
-      orderBy: { createdAt: "asc" },
-    }),
-  ]);
-  if (journals.length === 0 && coachMsgs.length === 0) return;
+  const journals = await prisma.journalEntry.findMany({
+    where: { userId, createdAt: { gte: jstDayStartUtc, lte: jstDayEndUtc } },
+    orderBy: { createdAt: "asc" },
+  });
+  if (journals.length === 0) return;
 
   const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n");
-  const coachBlock =
-    coachMsgs.length > 0
-      ? "【壁打ちログ】\n" +
-        coachMsgs.map((m) => `${m.role === "user" ? "User" : "Alter"}: ${m.content}`).join("\n")
-      : "";
-  const context = [journalBlock, coachBlock].filter(Boolean).join("\n\n");
+  const context = journalBlock;
 
   let object: AlterLogInsights;
   try {

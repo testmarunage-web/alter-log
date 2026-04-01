@@ -40,7 +40,7 @@ export default function PrivacyPage() {
             <ul className="list-disc list-inside mt-3 space-y-1.5 pl-2">
               <li>アカウント情報（メールアドレス、表示名）</li>
               <li>ジャーナルの入力内容（テキスト）</li>
-              <li>AIとの対話履歴（壁打ち・コーチングセッション）</li>
+              <li>AIが生成した分析レポート・観察日記</li>
               <li>サービス利用状況（ログイン日時、利用回数等）</li>
               <li>決済情報（Stripeを経由して処理され、カード番号等の機密情報は当サービスに保存されません）</li>
             </ul>

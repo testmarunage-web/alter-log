@@ -17,25 +17,14 @@ export async function GET(req: Request) {
     const since = new Date();
     since.setHours(since.getHours() - 24);
 
-    // JournalEntry または CoachMessage を作成したユーザーのIDを収集
-    const [journalUsers, coachUsers] = await Promise.all([
-      prisma.journalEntry.findMany({
-        where: { createdAt: { gte: since } },
-        select: { user: { select: { clerkId: true } } },
-        distinct: ["userId"],
-      }),
-      prisma.coachMessage.findMany({
-        where: { createdAt: { gte: since }, role: "user" },
-        select: { user: { select: { clerkId: true } } },
-        distinct: ["userId"],
-      }),
-    ]);
+    // 過去24時間にJournalEntryを作成したユーザーのIDを収集
+    const journalUsers = await prisma.journalEntry.findMany({
+      where: { createdAt: { gte: since } },
+      select: { user: { select: { clerkId: true } } },
+      distinct: ["userId"],
+    });
 
-    // 重複排除してclerkIdのセットを作成
-    const clerkIdSet = new Set<string>();
-    for (const e of journalUsers) clerkIdSet.add(e.user.clerkId);
-    for (const e of coachUsers) clerkIdSet.add(e.user.clerkId);
-    const clerkIds = Array.from(clerkIdSet);
+    const clerkIds = [...new Set(journalUsers.map((e) => e.user.clerkId))];
 
     if (clerkIds.length === 0) {
       return NextResponse.json({ message: "No active users in the past 24h.", processed: 0 });

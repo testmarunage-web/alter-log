@@ -30,7 +30,6 @@ export interface TimelineData {
   observerDays: number;
   totalJournalCount: number;
   totalScanCount: number;
-  totalCoachCount: number;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -458,11 +457,10 @@ function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayC
 // ─────────────────────────────────────────────────────────────────────────────
 // 観測カウンター
 // ─────────────────────────────────────────────────────────────────────────────
-function ObserverCounter({ observerDays, totalJournalCount, totalScanCount, totalCoachCount }: {
+function ObserverCounter({ observerDays, totalJournalCount, totalScanCount }: {
   observerDays: number;
   totalJournalCount: number;
   totalScanCount: number;
-  totalCoachCount: number;
 }) {
   const [infoOpen, setInfoOpen] = useState(false);
   return (
@@ -491,9 +489,6 @@ function ObserverCounter({ observerDays, totalJournalCount, totalScanCount, tota
         </span>
         <span className="font-mono text-[9px] text-white/25 tracking-wide">
           SCAN <span className="text-white/40">{totalScanCount}</span>回
-        </span>
-        <span className="font-mono text-[9px] text-white/25 tracking-wide">
-          壁打ち <span className="text-white/40">{totalCoachCount}</span>回
         </span>
       </div>
     </div>
@@ -767,18 +762,17 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               observerDays={timelineData.observerDays}
               totalJournalCount={timelineData.totalJournalCount}
               totalScanCount={timelineData.totalScanCount}
-              totalCoachCount={timelineData.totalCoachCount}
             />
           </div>
 
           {/* ── Alterステータス ── */}
           <div className="hl-enter hl-d9 flex justify-center pt-4 pb-8">
             <Link
-              href="/chat?mode=coach"
+              href="/chat?mode=journal"
               className="flex items-center gap-2 text-[11px] font-mono text-white/35 hover:text-white/55 transition-colors"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#C4A35A]/70" />
-              <span>Alterは対話可能な状態です</span>
+              <span>Alterは観測中です</span>
             </Link>
           </div>
 
