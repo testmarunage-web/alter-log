@@ -20,69 +20,25 @@ export function AlterIcon({ size = 20 }: { size?: number }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// コンポーネント: iPhoneモックアップ
+// コンポーネント: スクリーンショットカード
 // ─────────────────────────────────────────────────────────────────────────────
-function PhoneMockup({
-  src,
-  alt,
-  width = 220,
-}: {
-  src: string;
-  alt: string;
-  width?: number;
-}) {
-  const pad = Math.round(width * 0.046);
-  const frameR = Math.round(width * 0.164);
-  const screenR = Math.round(width * 0.132);
-  const notchW = Math.round(width * 0.33);
-  const notchH = Math.round(width * 0.096);
-  const screenW = width - pad * 2;
-  const screenH = Math.round(screenW / (9 / 19.5));
-
+function ScreenshotCard({ src, alt }: { src: string; alt: string }) {
   return (
-    <div
-      style={{
-        width: `${width}px`,
-        flexShrink: 0,
-        borderRadius: `${frameR}px`,
-        padding: `${pad}px`,
-        background: "#1a1a1a",
-        boxShadow:
-          "0 0 0 1px rgba(255,255,255,0.09), 0 0 40px rgba(196,163,90,0.15), inset 0 0 0 1px rgba(255,255,255,0.04)",
-        position: "relative",
-      }}
-    >
-      {/* ノッチ */}
-      <div
-        style={{
-          position: "absolute",
-          top: `${pad}px`,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: `${notchW}px`,
-          height: `${notchH}px`,
-          background: "#1a1a1a",
-          borderRadius: `0 0 ${Math.round(notchH * 0.55)}px ${Math.round(notchH * 0.55)}px`,
-          zIndex: 10,
-        }}
+    <div style={{
+      borderRadius: "20px",
+      border: "2px solid rgba(255,255,255,0.08)",
+      boxShadow: "0 0 30px rgba(196,163,90,0.12)",
+      overflow: "hidden",
+      width: "100%",
+      maxWidth: "280px",
+      lineHeight: 0,
+    }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        style={{ display: "block", width: "100%", height: "auto" }}
       />
-      {/* スクリーン */}
-      <div
-        style={{
-          borderRadius: `${screenR}px`,
-          overflow: "hidden",
-          width: `${screenW}px`,
-          height: `${screenH}px`,
-          lineHeight: 0,
-        }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={src}
-          alt={alt}
-          style={{ display: "block", width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
-        />
-      </div>
     </div>
   );
 }
@@ -136,20 +92,20 @@ export default async function Home() {
           <p className="mt-3 text-xs text-[#8A8276]/60">お申し込みから7日以内にご満足いただけなければ、全額返金いたします。</p>
         </div>
 
-        {/* Hero スクリーンショット: 3枚並び */}
-        <div className="relative mt-16 w-full max-w-4xl mx-auto flex items-end justify-center gap-4 sm:gap-8 px-4">
-          <div className="opacity-70 scale-90 origin-bottom translate-y-4 hidden sm:block">
-            <PhoneMockup src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" width={170} />
+        {/* Hero: 3枚横並び */}
+        <div className="relative mt-16 w-full max-w-3xl mx-auto flex items-end justify-center gap-6 px-4">
+          <div className="hidden sm:block opacity-75 scale-90 origin-bottom translate-y-3 w-full max-w-[200px]">
+            <ScreenshotCard src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" />
           </div>
-          <div className="z-10">
-            <PhoneMockup src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" width={210} />
+          <div className="z-10 w-full max-w-[240px]">
+            <ScreenshotCard src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" />
           </div>
-          <div className="opacity-70 scale-90 origin-bottom translate-y-4 hidden sm:block">
-            <PhoneMockup src="/images/screenshot-alterlog.jpg" alt="Alter Log画面" width={170} />
+          <div className="hidden sm:block opacity-75 scale-90 origin-bottom translate-y-3 w-full max-w-[200px]">
+            <ScreenshotCard src="/images/screenshot-alterlog.jpg" alt="Alter Log観察日記画面" />
           </div>
-          {/* モバイル用: 1枚だけ表示 */}
-          <div className="sm:hidden">
-            <PhoneMockup src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" width={200} />
+          {/* モバイル: 1枚のみ */}
+          <div className="sm:hidden w-full max-w-[220px]">
+            <ScreenshotCard src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" />
           </div>
         </div>
       </section>
@@ -196,7 +152,7 @@ export default async function Home() {
               </p>
             </div>
             <div className="w-full md:w-1/2 flex items-center justify-center">
-              <PhoneMockup src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" width={240} />
+              <ScreenshotCard src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" />
             </div>
           </div>
 
@@ -212,14 +168,8 @@ export default async function Home() {
                 人間相手のコーチングでは、どうしても遠慮や同調が生まれてしまいます。Alterにはそれがありません。あなたの何気ない言葉から「よく使う口癖」や「無意識のバイアス」を抽出し、あなた自身すら気づいていない「ハッとする真実」を突きつけます。
               </p>
             </div>
-            {/* SCAN: 2枚を縦にずらして重ねて奥行きを演出 */}
-            <div className="w-full md:w-1/2 flex items-end justify-center gap-4">
-              <div className="translate-y-4">
-                <PhoneMockup src="/images/screenshot-scan-top.jpg" alt="SCAN分析上部" width={170} />
-              </div>
-              <div className="-translate-y-4">
-                <PhoneMockup src="/images/screenshot-scan-bottom.jpg" alt="SCAN分析下部" width={170} />
-              </div>
+            <div className="w-full md:w-1/2 flex items-center justify-center">
+              <ScreenshotCard src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" />
             </div>
           </div>
 
@@ -236,7 +186,7 @@ export default async function Home() {
               </p>
             </div>
             <div className="w-full md:w-1/2 flex items-center justify-center">
-              <PhoneMockup src="/images/screenshot-alterlog.jpg" alt="Alter Log観察日記画面" width={240} />
+              <ScreenshotCard src="/images/screenshot-alterlog.jpg" alt="Alter Log観察日記画面" />
             </div>
           </div>
 
@@ -253,10 +203,7 @@ export default async function Home() {
               </p>
             </div>
             <div className="w-full md:w-1/2 aspect-[4/3] bg-white/[0.02] border border-white/[0.08] rounded-2xl flex items-center justify-center">
-              <div className="text-center px-4">
-                <p className="text-[#C4A35A]/60 text-xs font-mono tracking-wider mb-1">[スクリーンショット: コミュニティイメージ]</p>
-                <p className="text-xs text-[#8A8276]/50">気づきを共有するコミュニティの画面イメージ</p>
-              </div>
+              <p className="text-xs text-[#8A8276]/40 font-mono tracking-wider text-center px-4">COMING SOON</p>
             </div>
           </div>
 
@@ -350,7 +297,7 @@ export default async function Home() {
                 頭の中のモヤモヤを、テキストでも音声でも、そのままジャーナルに。整える必要はありません。Alterが全てを静かに受け止めます。
               </p>
               <div className="flex justify-center pt-2">
-                <PhoneMockup src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" width={145} />
+                <ScreenshotCard src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" />
               </div>
             </div>
 
@@ -366,7 +313,7 @@ export default async function Home() {
                 Alterがジャーナルを読み解き、思考の構造を分析。あなた専用の「観察日記」と「思考プロファイル」で、自分を他人のように見つめる体験が始まります。
               </p>
               <div className="flex justify-center pt-2">
-                <PhoneMockup src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" width={145} />
+                <ScreenshotCard src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" />
               </div>
             </div>
 
@@ -382,7 +329,7 @@ export default async function Home() {
                 ムードマップやワードクラウドで、過去の自分と今の自分を比較。1週間前には見えなかった自分の変化に気づく瞬間が訪れます。
               </p>
               <div className="flex justify-center pt-2">
-                <PhoneMockup src="/images/screenshot-alterlog.jpg" alt="Alter Log観察日記画面" width={145} />
+                <ScreenshotCard src="/images/screenshot-alterlog.jpg" alt="Alter Log観察日記画面" />
               </div>
             </div>
           </div>
