@@ -151,13 +151,13 @@ export default async function Home() {
 
         {/* Hero: 3枚横並び */}
         <div className="relative mt-16 w-full max-w-3xl mx-auto flex items-end justify-center gap-3 sm:gap-6 px-2 sm:px-4">
-          <div className="opacity-75 scale-95 origin-bottom translate-y-3 w-full max-w-[100px] sm:max-w-[200px]">
+          <div className="w-full max-w-[100px] sm:max-w-[200px] origin-bottom sm:opacity-75 sm:scale-95 sm:translate-y-3">
             <ScreenshotCard src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" />
           </div>
-          <div className="z-10 scale-[1.03] origin-bottom w-full max-w-[160px] sm:max-w-[240px]">
+          <div className="z-10 w-full max-w-[100px] sm:max-w-[240px] origin-bottom sm:scale-[1.03]">
             <ScreenshotCard src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" />
           </div>
-          <div className="opacity-75 scale-95 origin-bottom translate-y-3 w-full max-w-[100px] sm:max-w-[200px]">
+          <div className="w-full max-w-[100px] sm:max-w-[200px] origin-bottom sm:opacity-75 sm:scale-95 sm:translate-y-3">
             <ScreenshotCard src="/images/screenshot-dashboard.jpg" alt="ダッシュボード画面" />
           </div>
         </div>
