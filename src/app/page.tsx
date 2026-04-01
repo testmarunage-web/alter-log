@@ -108,22 +108,6 @@ export default async function Home() {
           <p className="mt-3 text-xs text-[#8A8276]/60">お申し込みから7日以内にご満足いただけなければ、全額返金いたします。</p>
         </div>
 
-        {/* Hero: 3枚横並び */}
-        <div className="relative mt-16 w-full max-w-3xl mx-auto flex items-end justify-center gap-6 px-4">
-          <div className="hidden sm:block opacity-75 scale-90 origin-bottom translate-y-3 w-full max-w-[200px]">
-            <ScreenshotCard src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" />
-          </div>
-          <div className="z-10 w-full max-w-[240px]">
-            <ScreenshotCard src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" />
-          </div>
-          <div className="hidden sm:block opacity-75 scale-90 origin-bottom translate-y-3 w-full max-w-[200px]">
-            <ScreenshotCard src="/images/screenshot-alterlog.jpg" alt="Alter Log観察日記画面" />
-          </div>
-          {/* モバイル: 1枚のみ */}
-          <div className="sm:hidden w-full max-w-[220px]">
-            <ScreenshotCard src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" />
-          </div>
-        </div>
       </section>
 
       {/* ── 2. Problem / Agitation ── */}
@@ -327,6 +311,9 @@ export default async function Home() {
               <p className="text-sm text-[#8A8276] leading-relaxed">
                 ムードマップやワードクラウドで、過去の自分と今の自分を比較。1週間前には見えなかった自分の変化に気づく瞬間が訪れます。
               </p>
+              <div className="flex justify-center pt-2">
+                <ScreenshotCard src="/images/screenshot-dashboard.jpg" alt="ダッシュボード画面" />
+              </div>
             </div>
           </div>
 
