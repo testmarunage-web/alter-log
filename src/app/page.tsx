@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
@@ -16,6 +17,75 @@ export function AlterIcon({ size = 20 }: { size?: number }) {
     >
       <path d="M14,3 A8,8 0 1,0 18,10 L14,3 Z" fill="#C4A35A" />
     </svg>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// コンポーネント: iPhoneモックアップ
+// ─────────────────────────────────────────────────────────────────────────────
+function PhoneMockup({
+  src,
+  alt,
+  width = 220,
+}: {
+  src: string;
+  alt: string;
+  width?: number;
+}) {
+  const pad = Math.round(width * 0.046);
+  const frameR = Math.round(width * 0.164);
+  const screenR = Math.round(width * 0.132);
+  const notchW = Math.round(width * 0.33);
+  const notchH = Math.round(width * 0.096);
+  const screenW = width - pad * 2;
+  const screenH = Math.round(screenW / (9 / 19.5));
+
+  return (
+    <div
+      style={{
+        width: `${width}px`,
+        flexShrink: 0,
+        borderRadius: `${frameR}px`,
+        padding: `${pad}px`,
+        background: "#1a1a1a",
+        boxShadow:
+          "0 0 0 1px rgba(255,255,255,0.09), 0 0 40px rgba(196,163,90,0.15), inset 0 0 0 1px rgba(255,255,255,0.04)",
+        position: "relative",
+      }}
+    >
+      {/* ノッチ */}
+      <div
+        style={{
+          position: "absolute",
+          top: `${pad}px`,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: `${notchW}px`,
+          height: `${notchH}px`,
+          background: "#1a1a1a",
+          borderRadius: `0 0 ${Math.round(notchH * 0.55)}px ${Math.round(notchH * 0.55)}px`,
+          zIndex: 10,
+        }}
+      />
+      {/* スクリーン */}
+      <div
+        style={{
+          borderRadius: `${screenR}px`,
+          overflow: "hidden",
+          width: `${screenW}px`,
+          height: `${screenH}px`,
+          position: "relative",
+        }}
+      >
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          style={{ objectFit: "cover", objectPosition: "top" }}
+          sizes={`${width}px`}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -68,10 +138,20 @@ export default async function Home() {
           <p className="mt-3 text-xs text-[#8A8276]/60">お申し込みから7日以内にご満足いただけなければ、全額返金いたします。</p>
         </div>
 
-        <div className="relative mt-16 w-full max-w-4xl aspect-video bg-[#12161E] border border-white/[0.08] rounded-2xl sm:rounded-3xl overflow-hidden flex items-center justify-center shadow-2xl shadow-black/50 mx-auto">
-          <div className="text-center px-4">
-            <p className="text-[#C4A35A]/60 text-xs font-mono tracking-wider mb-1">[スクリーンショット: アプリ全体イメージ]</p>
-            <p className="text-xs text-[#8A8276]/50">ジャーナル入力〜AI分析〜観察日記の流れを示すスクリーンショット</p>
+        {/* Hero スクリーンショット: 3枚並び */}
+        <div className="relative mt-16 w-full max-w-4xl mx-auto flex items-end justify-center gap-4 sm:gap-8 px-4">
+          <div className="opacity-70 scale-90 origin-bottom translate-y-4 hidden sm:block">
+            <PhoneMockup src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" width={170} />
+          </div>
+          <div className="z-10">
+            <PhoneMockup src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" width={210} />
+          </div>
+          <div className="opacity-70 scale-90 origin-bottom translate-y-4 hidden sm:block">
+            <PhoneMockup src="/images/screenshot-alterlog.jpg" alt="Alter Log画面" width={170} />
+          </div>
+          {/* モバイル用: 1枚だけ表示 */}
+          <div className="sm:hidden">
+            <PhoneMockup src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" width={200} />
           </div>
         </div>
       </section>
@@ -117,11 +197,8 @@ export default async function Home() {
                 綺麗な文章を書く必要はありません。思い浮かんだ感情やまとまらない思考、誰かへの不満を、あなたが一番気楽に本音を出せる方法で打ち明けてください。Alterはあなたを許容し、すべてを静かに聞き入れます。
               </p>
             </div>
-            <div className="w-full md:w-1/2 aspect-[4/3] bg-white/[0.02] border border-white/[0.08] rounded-2xl flex items-center justify-center">
-              <div className="text-center px-4">
-                <p className="text-[#C4A35A]/60 text-xs font-mono tracking-wider mb-1">[スクリーンショット: ジャーナル入力画面]</p>
-                <p className="text-xs text-[#8A8276]/50">テキストや音声で、まとまらない思考をラフに入力している画面</p>
-              </div>
+            <div className="w-full md:w-1/2 flex items-center justify-center">
+              <PhoneMockup src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" width={240} />
             </div>
           </div>
 
@@ -137,10 +214,13 @@ export default async function Home() {
                 人間相手のコーチングでは、どうしても遠慮や同調が生まれてしまいます。Alterにはそれがありません。あなたの何気ない言葉から「よく使う口癖」や「無意識のバイアス」を抽出し、あなた自身すら気づいていない「ハッとする真実」を突きつけます。
               </p>
             </div>
-            <div className="w-full md:w-1/2 aspect-[4/3] bg-white/[0.02] border border-white/[0.08] rounded-2xl flex items-center justify-center">
-              <div className="text-center px-4">
-                <p className="text-[#C4A35A]/60 text-xs font-mono tracking-wider mb-1">[スクリーンショット: SCAN分析結果]</p>
-                <p className="text-xs text-[#8A8276]/50">Alterがハッとする指摘をする分析結果の画面</p>
+            {/* SCAN: 2枚を縦にずらして重ねて奥行きを演出 */}
+            <div className="w-full md:w-1/2 flex items-end justify-center gap-4">
+              <div className="translate-y-4">
+                <PhoneMockup src="/images/screenshot-scan-top.jpg" alt="SCAN分析上部" width={170} />
+              </div>
+              <div className="-translate-y-4">
+                <PhoneMockup src="/images/screenshot-scan-bottom.jpg" alt="SCAN分析下部" width={170} />
               </div>
             </div>
           </div>
@@ -157,11 +237,8 @@ export default async function Home() {
                 深夜、Alterはあなたの記録をもとに、密かに「あなたについての観察日記」を書き上げます。翌朝その日記を覗き見ることで、自分の脳内をまるで他人のもののように客観視する、かつてない未知の体験が待っています。
               </p>
             </div>
-            <div className="w-full md:w-1/2 aspect-[4/3] bg-white/[0.02] border border-white/[0.08] rounded-2xl flex items-center justify-center">
-              <div className="text-center px-4">
-                <p className="text-[#C4A35A]/60 text-xs font-mono tracking-wider mb-1">[スクリーンショット: Alter Log画面]</p>
-                <p className="text-xs text-[#8A8276]/50">朝起きると、Alterが書いた観察日記が届いている画面</p>
-              </div>
+            <div className="w-full md:w-1/2 flex items-center justify-center">
+              <PhoneMockup src="/images/screenshot-alterlog.jpg" alt="Alter Log観察日記画面" width={240} />
             </div>
           </div>
 
@@ -274,6 +351,9 @@ export default async function Home() {
               <p className="text-sm text-[#8A8276] leading-relaxed">
                 頭の中のモヤモヤを、テキストでも音声でも、そのままジャーナルに。整える必要はありません。Alterが全てを静かに受け止めます。
               </p>
+              <div className="flex justify-center pt-2">
+                <PhoneMockup src="/images/screenshot-journal.jpg" alt="ジャーナル入力画面" width={145} />
+              </div>
             </div>
 
             {/* Step 2 */}
@@ -287,6 +367,9 @@ export default async function Home() {
               <p className="text-sm text-[#8A8276] leading-relaxed">
                 Alterがジャーナルを読み解き、思考の構造を分析。あなた専用の「観察日記」と「思考プロファイル」で、自分を他人のように見つめる体験が始まります。
               </p>
+              <div className="flex justify-center pt-2">
+                <PhoneMockup src="/images/screenshot-scan-top.jpg" alt="SCAN分析画面" width={145} />
+              </div>
             </div>
 
             {/* Step 3 */}
@@ -300,6 +383,9 @@ export default async function Home() {
               <p className="text-sm text-[#8A8276] leading-relaxed">
                 ムードマップやワードクラウドで、過去の自分と今の自分を比較。1週間前には見えなかった自分の変化に気づく瞬間が訪れます。
               </p>
+              <div className="flex justify-center pt-2">
+                <PhoneMockup src="/images/screenshot-alterlog.jpg" alt="Alter Log観察日記画面" width={145} />
+              </div>
             </div>
           </div>
         </div>
