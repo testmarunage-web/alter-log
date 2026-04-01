@@ -765,17 +765,6 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
             />
           </div>
 
-          {/* ── Alterステータス ── */}
-          <div className="hl-enter hl-d9 flex justify-center pt-4 pb-8">
-            <Link
-              href="/chat?mode=journal"
-              className="flex items-center gap-2 text-[11px] font-mono text-white/35 hover:text-white/55 transition-colors"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C4A35A]/70" />
-              <span>Alterは観測中です</span>
-            </Link>
-          </div>
-
         </div>
       </div>
     </>

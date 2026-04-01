@@ -23,7 +23,7 @@ export default function PaymentPendingPage() {
           if (data.active) {
             if (intervalRef.current) clearInterval(intervalRef.current);
             // router.replace ではなくフルリロードで遷移（AppLayoutのサーバーキャッシュを確実に破棄）
-            window.location.href = "/dashboard";
+            window.location.href = "/chat?mode=journal";
             return;
           }
         }
@@ -53,7 +53,7 @@ export default function PaymentPendingPage() {
       if (res.ok) {
         const data = await res.json();
         if (data.activated) {
-          window.location.href = "/dashboard";
+          window.location.href = "/chat?mode=journal";
           return;
         }
       }
@@ -86,14 +86,14 @@ export default function PaymentPendingPage() {
             </div>
             <h1 className="text-lg font-bold text-[#F0EAD8] mb-3">処理が混み合っています</h1>
             <p className="text-sm text-[#8A8276] leading-relaxed mb-8">
-              決済自体は完了しています。少し時間をおいてから、ダッシュボードをご確認ください。
+              決済自体は完了しています。少し時間をおいてから、アプリをご確認ください。
             </p>
             <button
               type="button"
-              onClick={() => { window.location.href = "/dashboard"; }}
+              onClick={() => { window.location.href = "/chat?mode=journal"; }}
               className="px-7 py-3 rounded-xl bg-[#C4A35A] text-[#0B0E13] font-bold text-sm hover:bg-[#D4B36A] transition-colors"
             >
-              ダッシュボードを確認する
+              アプリを開く
             </button>
           </>
         ) : (
@@ -107,7 +107,7 @@ export default function PaymentPendingPage() {
             <p className="text-sm text-[#8A8276] leading-relaxed">
               しばらくそのままお待ちください。
               <br />
-              自動的にダッシュボードへ移動します。
+              自動的にアプリへ移動します。
             </p>
           </>
         )}
