@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
@@ -77,12 +76,11 @@ function PhoneMockup({
           lineHeight: 0,
         }}
       >
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={src}
           alt={alt}
-          width={screenW}
-          height={screenH}
-          style={{ objectFit: "cover", objectPosition: "top", display: "block", width: "100%", height: "100%" }}
+          style={{ display: "block", width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
         />
       </div>
     </div>
