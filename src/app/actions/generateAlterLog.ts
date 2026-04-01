@@ -126,15 +126,11 @@ export async function processAlterLogForUser(clerkId: string): Promise<AlterLogI
     orderBy: { createdAt: "asc" },
   });
 
+  // ジャーナルがない場合はAPIコール・DB保存をスキップ
+  if (journals.length === 0) return FALLBACK_INSIGHTS;
+
   // ログを1つのコンテキスト文字列に結合
-  const journalBlock =
-    journals.length > 0
-      ? "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n")
-      : "";
-
-  const context = journalBlock || "（入力データなし）";
-
-  const hasData = journals.length > 0;
+  const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n");
 
   let object: AlterLogInsights;
   try {
@@ -145,10 +141,10 @@ export async function processAlterLogForUser(clerkId: string): Promise<AlterLogI
       prompt: `以下のログを構造解析し、指定のJSON形式でレポートを生成せよ。
 
 【データ状況】
-${hasData ? "ログあり（以下のテキストのみを根拠に解析すること。ログに存在しない情報の補完は禁止）" : "ログなし（is_insufficient_data を true にし、nullable 項目は null を返すこと）"}
+ログあり（以下のテキストのみを根拠に解析すること。ログに存在しない情報の補完は禁止）
 
 【分析対象ログ】
-${context}`,
+${journalBlock}`,
     });
     object = generated;
   } catch (err) {
@@ -199,69 +195,54 @@ export async function generateDashboardScan(): Promise<{ insights: AlterLogInsig
     orderBy: { createdAt: "asc" },
   });
 
-  const journalBlock =
-    journals.length > 0
-      ? "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n")
-      : "";
-  const context = journalBlock || "（入力データなし）";
   const hasData = journals.length > 0;
+  const context = hasData
+    ? "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n")
+    : "（入力データなし）";
 
-  let result: AlterLogInsights;
-  let scanSucceeded = false;
-  try {
-    const { object } = await generateObject({
-      model: anthropic("claude-sonnet-4-5"),
-      schema: alterLogSchema,
-      system: SYSTEM_PROMPT,
-      prompt: `以下のログを構造解析し、指定のJSON形式でレポートを生成せよ。
+  const prompt = `以下のログを構造解析し、指定のJSON形式でレポートを生成せよ。
 
 【データ状況】
 ${hasData ? "ログあり（以下のテキストのみを根拠に解析すること。ログに存在しない情報の補完は禁止）" : "ログなし（is_insufficient_data を true にし、nullable 項目は null を返すこと）"}
 
 【分析対象ログ】
-${context}`,
-    });
-    result = object;
-    scanSucceeded = true;
-  } catch (err) {
-    console.error("[generateDashboardScan] generateObject failed — using fallback:", err);
-    result = FALLBACK_INSIGHTS;
-  }
+${context}`;
 
-  let thoughtProfile: string | null = null;
+  // generateObject と generateText（思考プロファイル）を並列実行
+  const [objectOutcome, thoughtProfileOutcome] = await Promise.all([
+    generateObject({
+      model: anthropic("claude-sonnet-4-5"),
+      schema: alterLogSchema,
+      system: SYSTEM_PROMPT,
+      prompt,
+    })
+      .then(({ object }) => ({ ok: true as const, data: object }))
+      .catch((err) => {
+        console.error("[generateDashboardScan] generateObject failed — using fallback:", err);
+        return { ok: false as const, data: FALLBACK_INSIGHTS };
+      }),
+
+    hasData
+      ? generateText({
+          model: anthropic("claude-sonnet-4-5"),
+          system: `以下のジャーナルをもとに、この対象者の思考パターンをビジネスパーソン文脈で一言で表現してください。「〇〇な〇〇型〇〇」のような形式で、具体的なビジネス職種や役割を含めてください。例：「慎重すぎる参謀型マーケター」「焦りを燃料にする突破型リーダー」「理詰めで逃げる完璧主義アナリスト」結果のみを出力し、それ以外は一切出力しないでください。`,
+          prompt: context,
+          maxTokens: 50,
+        })
+          .then(({ text }) => text.trim() || null)
+          .catch((err) => {
+            console.error("[generateDashboardScan] thoughtProfile generation failed:", err);
+            return null;
+          })
+      : Promise.resolve(null),
+  ]);
+
+  const result       = objectOutcome.data;
+  const scanSucceeded = objectOutcome.ok;
+  const thoughtProfile = thoughtProfileOutcome as string | null;
 
   if (scanSucceeded) {
-    const jstDateStr = getJstDateStr();
-    const dateForDb  = new Date(`${jstDateStr}T00:00:00Z`);
-
-    // 思考プロファイルを生成（データ不足の場合はスキップ）
-    if (!result.is_insufficient_data) {
-      try {
-        const { text } = await generateText({
-          model: anthropic("claude-sonnet-4-5"),
-          system: `以下のSCAN分析結果をもとに、この対象者の思考パターンをビジネスパーソン文脈で一言で表現してください。「〇〇な〇〇型〇〇」のような形式で、具体的なビジネス職種や役割を含めてください。例：「慎重すぎる参謀型マーケター」「焦りを燃料にする突破型リーダー」「理詰めで逃げる完璧主義アナリスト」結果のみを出力し、それ以外は一切出力しないでください。`,
-          prompt: JSON.stringify(result),
-          maxTokens: 50,
-        });
-        thoughtProfile = text.trim() || null;
-      } catch (err) {
-        console.error("[generateDashboardScan] thoughtProfile generation failed:", err);
-      }
-    }
-
-    // 当日のAlterLogを削除してから新規作成（upsertはcreatedAt上書き不可のためdelete→create）
-    await prisma.alterLog.deleteMany({ where: { userId: user.id, date: dateForDb } });
-    await prisma.alterLog.create({
-      data: {
-        userId:        user.id,
-        date:          dateForDb,
-        type:          "daily",
-        insights:      result,
-        thoughtProfile,
-        createdAt: new Date(), // SCANは即時実行なので偽装不要
-      },
-    });
-
+    // lastDashboardScanAt のみ更新（AlterLog保存はCronバッチが担当）
     await prisma.user.update({
       where: { id: user.id },
       data: { lastDashboardScanAt: new Date() },
@@ -269,7 +250,7 @@ ${context}`,
     revalidatePath("/dashboard");
   }
 
-  return { insights: result, thoughtProfile: scanSucceeded ? (thoughtProfile ?? null) : null };
+  return { insights: result, thoughtProfile: scanSucceeded ? thoughtProfile : null };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
