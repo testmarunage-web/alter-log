@@ -29,6 +29,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://alter-log.vercel.app"),
   title: "Alter Log",
   description: "Alter Log",
   manifest: "/manifest.json",

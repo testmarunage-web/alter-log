@@ -1,6 +1,23 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Alter Log | 究極の客観視で、自分を知る。",
+  description: "AIがあなたの思考を観察し、毎晩密かに観察日記を書く。自分では気づけない認知の歪みやパターンを可視化する、新しいジャーナリング体験。",
+  openGraph: {
+    title: "Alter Log | 究極の客観視で、自分を知る。",
+    description: "AIがあなたの思考を観察し、毎晩密かに観察日記を書く。自分では気づけない認知の歪みやパターンを可視化する、新しいジャーナリング体験。",
+    siteName: "Alter Log",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Alter Log | 究極の客観視で、自分を知る。",
+    description: "AIがあなたの思考を観察し、毎晩密かに観察日記を書く。自分では気づけない認知の歪みやパターンを可視化する、新しいジャーナリング体験。",
+  },
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // コンポーネント: Alterロゴ
