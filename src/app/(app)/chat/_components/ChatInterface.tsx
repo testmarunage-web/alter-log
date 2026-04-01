@@ -48,7 +48,7 @@ function PastJournalCard({ dateStr, entries, dailyNote }: {
   const hasMore = (firstEntry?.content.length ?? 0) > 100 || entries.length > 1;
 
   return (
-    <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
+    <div className="max-w-2xl mx-auto w-full px-4 pb-3">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -107,6 +107,7 @@ export function ChatInterface({
 }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const journalListRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
 
@@ -119,6 +120,7 @@ export function ChatInterface({
   const [showVoiceHint, setShowVoiceHint]     = useState(false);
   const [voiceHintFading, setVoiceHintFading] = useState(false);
   const [showScanSuggestion, setShowScanSuggestion] = useState(false);
+  const [inputVisible, setInputVisible]       = useState(true);
 
   // 初回のみウェルカムモーダルを表示
   useEffect(() => {
@@ -136,6 +138,15 @@ export function ChatInterface({
         setShowVoiceHint(true);
       }
     } catch { /* localStorage unavailable */ }
+  }, []);
+
+  // 過去ジャーナルのスクロール検知 → 入力エリアの表示/非表示
+  useEffect(() => {
+    const el = journalListRef.current;
+    if (!el) return;
+    const handleScroll = () => { setInputVisible(el.scrollTop <= 20); };
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
   }, []);
 
   function handleVoiceHintDismiss() {
@@ -236,143 +247,180 @@ export function ChatInterface({
       {/* ── ジャーナルモード ── */}
       <main className="flex-1 flex flex-col overflow-hidden min-h-0">
 
-        {/* 1. 入力エリア＋送信ボタン（flex-none・常に画面内） */}
-        <div className="flex-none max-w-2xl mx-auto w-full px-4 pt-3 pb-2">
-          <form onSubmit={submitJournal}>
-            <div className="relative">
-              <textarea
-                ref={textareaRef}
-                value={journalInput}
-                onChange={handleJournalInputChange}
-                onKeyDown={(e) => handleKeyDown(e, () => submitJournal())}
-                placeholder="今日あったこと、感じたこと、モヤモヤ…なんでもどうぞ。"
-                className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
-                style={{ height: "140px" }}
-              />
-              {journalInput.length > 0 && (
-                <span className="absolute bottom-3 right-4 text-[10px] text-[#8A8276]/40 font-mono pointer-events-none">
-                  {journalInput.length}
-                </span>
-              )}
-            </div>
+        {/* ジャーナルを書くミニバー（入力エリア非表示時） */}
+        <div
+          className="flex-none max-w-2xl mx-auto w-full overflow-hidden"
+          style={{
+            maxHeight: inputVisible ? "0px" : "52px",
+            transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1)",
+          }}
+        >
+          <div className="px-4 py-2">
             <button
-              type="submit"
-              disabled={!journalInput.trim() || isSaving}
-              className={`mt-2.5 w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2
-                ${journalInput.trim() && !isSaving
-                  ? "bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.3)] active:scale-[0.98]"
-                  : "bg-white/[0.03] border border-white/[0.06] text-[#8A8276]/30 cursor-not-allowed"
-                }`}
+              type="button"
+              onClick={() => {
+                setInputVisible(true);
+                journalListRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className="w-full py-2.5 rounded-full border border-white/[0.08] text-xs text-[#8A8276]/70 hover:text-[#8A8276] hover:border-white/[0.15] hover:bg-white/[0.02] transition-all flex items-center justify-center gap-2"
             >
-              {isSaving ? (
-                <span className="w-4 h-4 border border-[#8A8276]/60 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-              )}
-              {isSaving ? "保存中..." : "ジャーナルを記録する"}
-            </button>
-          </form>
-
-          {/* 音声入力ヒント（初回のみ・dismissable） */}
-          {showVoiceHint && (
-            <div
-              className="mt-2 rounded-xl px-4 py-2.5 bg-white/[0.02] border border-white/[0.06] flex items-center gap-2.5"
-              style={{ opacity: voiceHintFading ? 0 : 1, transition: "opacity 0.3s ease-out" }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-[#C4A35A]/60 flex-shrink-0 mt-0.5">
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                <line x1="12" y1="19" x2="12" y2="23" />
-                <line x1="8" y1="23" x2="16" y2="23" />
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
-              <div className="flex-1 min-w-0">
-                <p className="text-[12px] text-white/50 font-medium leading-snug">音声でも入力できます</p>
-                <p className="text-[11px] text-white/30 leading-relaxed mt-0.5">キーボードの 🎙 マイクボタンをタップすると、話した内容がそのまま文字になります。</p>
+              ジャーナルを書く
+            </button>
+          </div>
+        </div>
+
+        {/* 入力エリア全体（スクロールで非表示・ミニバーで再表示） */}
+        <div
+          className="flex-none overflow-hidden"
+          style={{
+            maxHeight: inputVisible ? "800px" : "0px",
+            transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1)",
+          }}
+        >
+          {/* 1. 入力エリア＋送信ボタン */}
+          <div className="max-w-2xl mx-auto w-full px-4 pt-3 pb-2">
+            <form onSubmit={submitJournal}>
+              <div className="relative">
+                <textarea
+                  ref={textareaRef}
+                  value={journalInput}
+                  onChange={handleJournalInputChange}
+                  onKeyDown={(e) => handleKeyDown(e, () => submitJournal())}
+                  placeholder="今日あったこと、感じたこと、モヤモヤ…なんでもどうぞ。"
+                  className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
+                  style={{ height: "140px" }}
+                />
+                {journalInput.length > 0 && (
+                  <span className="absolute bottom-3 right-4 text-[10px] text-[#8A8276]/40 font-mono pointer-events-none">
+                    {journalInput.length}
+                  </span>
+                )}
               </div>
               <button
-                type="button"
-                onClick={handleVoiceHintDismiss}
-                className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0 mt-0.5"
-                aria-label="閉じる"
+                type="submit"
+                disabled={!journalInput.trim() || isSaving}
+                className={`mt-2.5 w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2
+                  ${journalInput.trim() && !isSaving
+                    ? "bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.3)] active:scale-[0.98]"
+                    : "bg-white/[0.03] border border-white/[0.06] text-[#8A8276]/30 cursor-not-allowed"
+                  }`}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
+                {isSaving ? (
+                  <span className="w-4 h-4 border border-[#8A8276]/60 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                )}
+                {isSaving ? "保存中..." : "ジャーナルを記録する"}
+              </button>
+            </form>
+
+            {/* 音声入力ヒント（初回のみ・dismissable） */}
+            {showVoiceHint && (
+              <div
+                className="mt-2 rounded-xl px-4 py-2.5 bg-white/[0.02] border border-white/[0.06] flex items-center gap-2.5"
+                style={{ opacity: voiceHintFading ? 0 : 1, transition: "opacity 0.3s ease-out" }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-[#C4A35A]/60 flex-shrink-0 mt-0.5">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="23" />
+                  <line x1="8" y1="23" x2="16" y2="23" />
+                </svg>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] text-white/50 font-medium leading-snug">音声でも入力できます</p>
+                  <p className="text-[11px] text-white/30 leading-relaxed mt-0.5">キーボードの 🎙 マイクボタンをタップすると、話した内容がそのまま文字になります。</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleVoiceHintDismiss}
+                  className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0 mt-0.5"
+                  aria-label="閉じる"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 2. ヒントアコーディオン（今日の投稿が0件のときのみ表示） */}
+          {!hasTodayJournalEntry && (
+            <div className="max-w-2xl mx-auto w-full px-4 pb-3">
+              <button
+                type="button"
+                onClick={() => setHintOpen((v) => !v)}
+                className="flex items-center gap-1.5 text-xs text-[#8A8276]/70 hover:text-[#8A8276] transition-colors"
+                aria-expanded={hintOpen}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                話すことがない場合は
+                <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }} className="text-[10px]">▾</span>
+              </button>
+              {hintOpen && (
+                <div className="mt-2 rounded-xl px-4 py-3 shadow-[0_0_18px_rgba(196,163,90,0.10)]"
+                  style={{ background: "rgba(26,20,8,0.6)", border: "1px solid rgba(196,163,90,0.22)" }}>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <AlterIcon size={12} />
+                    <p className="text-[10px] text-[#C4A35A]/70 tracking-widest uppercase font-bold">Alterからの問いかけ</p>
+                  </div>
+                  <p className="text-sm text-[#E8E3D8] leading-relaxed font-medium">
+                    「最近、一番ホッとした瞬間はいつですか？」
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* SCAN導線（ジャーナル投稿後に表示） */}
+          {showScanSuggestion && (
+            <div className="max-w-2xl mx-auto w-full px-4 pb-3">
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard")}
+                className="flex items-center gap-2 text-xs text-[#8BA89E]/70 hover:text-[#8BA89E] transition-colors"
+              >
+                <AlterIcon size={12} />
+                <span>SCANで思考を解析する</span>
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
                 </svg>
               </button>
             </div>
           )}
+
+          {/* 「あの時のあなた」カード */}
+          {(() => {
+            if (!pastJournal) {
+              return (
+                <div className="max-w-2xl mx-auto w-full px-4 pb-3">
+                  <p className="text-[10px] text-white/[0.18] font-mono tracking-wide text-center">
+                    30日後、過去のあなたと再会できます
+                  </p>
+                </div>
+              );
+            }
+            const pastDate = new Date(pastJournal.createdAt);
+            const pastDateStr = pastDate.toLocaleDateString("ja-JP", {
+              timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
+            });
+            return <PastJournalCard dateStr={pastDateStr} entries={pastJournal.entries} dailyNote={pastJournal.dailyNote} />;
+          })()}
         </div>
-
-        {/* 2. ヒントアコーディオン（今日の投稿が0件のときのみ表示） */}
-        {!hasTodayJournalEntry && <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
-          <button
-            type="button"
-            onClick={() => setHintOpen((v) => !v)}
-            className="flex items-center gap-1.5 text-xs text-[#8A8276]/70 hover:text-[#8A8276] transition-colors"
-            aria-expanded={hintOpen}
-          >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-            話すことがない場合は
-            <span style={{ display: "inline-block", transform: hintOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s" }} className="text-[10px]">▾</span>
-          </button>
-          {hintOpen && (
-            <div className="mt-2 rounded-xl px-4 py-3 shadow-[0_0_18px_rgba(196,163,90,0.10)]"
-              style={{ background: "rgba(26,20,8,0.6)", border: "1px solid rgba(196,163,90,0.22)" }}>
-              <div className="flex items-center gap-1.5 mb-2">
-                <AlterIcon size={12} />
-                <p className="text-[10px] text-[#C4A35A]/70 tracking-widest uppercase font-bold">Alterからの問いかけ</p>
-              </div>
-              <p className="text-sm text-[#E8E3D8] leading-relaxed font-medium">
-                「最近、一番ホッとした瞬間はいつですか？」
-              </p>
-            </div>
-          )}
-        </div>}
-
-        {/* SCAN導線（ジャーナル投稿後に表示） */}
-        {showScanSuggestion && (
-          <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              className="flex items-center gap-2 text-xs text-[#8BA89E]/70 hover:text-[#8BA89E] transition-colors"
-            >
-              <AlterIcon size={12} />
-              <span>SCANで思考を解析する</span>
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
-              </svg>
-            </button>
-          </div>
-        )}
-
-        {/* 「あの時のあなた」カード */}
-        {(() => {
-          if (!pastJournal) {
-            return (
-              <div className="flex-none max-w-2xl mx-auto w-full px-4 pb-3">
-                <p className="text-[10px] text-white/[0.18] font-mono tracking-wide text-center">
-                  30日後、過去のあなたと再会できます
-                </p>
-              </div>
-            );
-          }
-          const pastDate = new Date(pastJournal.createdAt);
-          const pastDateStr = pastDate.toLocaleDateString("ja-JP", {
-            timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
-          });
-          return <PastJournalCard dateStr={pastDateStr} entries={pastJournal.entries} dailyNote={pastJournal.dailyNote} />;
-        })()}
 
         {/* 3. 過去のジャーナルログ（タイムライン・flex-1 スクロール可能） */}
         {journalMessages.length > 0 && (
-          <div className="flex-1 overflow-y-auto border-t border-white/[0.04] min-h-0">
+          <div ref={journalListRef} className="flex-1 overflow-y-auto border-t border-white/[0.04] min-h-0">
             <div className="max-w-2xl mx-auto px-4 py-4">
               <p className="text-[10px] text-[#8A8276]/45 tracking-widest uppercase mb-4">過去のジャーナル</p>
               <div className="relative">
