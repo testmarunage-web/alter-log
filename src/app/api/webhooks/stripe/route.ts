@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+const log = process.env.NODE_ENV !== "production" ? console.log.bind(console) : () => {};
+
 /** Stripe の current_period_end (Unix秒) を安全に Date に変換する。
  *  undefined / null / NaN の場合は null を返す。 */
 function toPeriodEnd(unixSec: number | null | undefined): Date | null {
@@ -34,7 +36,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  console.log(`[stripe webhook] received event=${event.type} id=${event.id} t=+${Date.now() - webhookStart}ms`);
+  log(`[stripe webhook] received event=${event.type} id=${event.id} t=+${Date.now() - webhookStart}ms`);
 
   try {
     switch (event.type) {
@@ -78,7 +80,7 @@ export async function POST(req: Request) {
             create: { clerkId },
             update: {},
           });
-          console.log(`[stripe webhook] user upsert ok userId=${user.id} t=+${Date.now() - webhookStart}ms`);
+          log(`[stripe webhook] user upsert ok userId=${user.id} t=+${Date.now() - webhookStart}ms`);
         } catch (dbErr) {
           console.error("[stripe webhook] user upsert failed:", dbErr);
           throw dbErr;
@@ -102,7 +104,7 @@ export async function POST(req: Request) {
               status: "ACTIVE",
             },
           });
-          console.log(`[stripe webhook] checkout.session.completed: DB updated clerkId=${clerkId} t=+${Date.now() - webhookStart}ms`);
+          log(`[stripe webhook] checkout.session.completed: DB updated clerkId=${clerkId} t=+${Date.now() - webhookStart}ms`);
         } catch (dbErr) {
           console.error("[stripe webhook] subscription upsert failed:", dbErr);
           throw dbErr;

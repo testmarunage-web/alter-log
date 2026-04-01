@@ -9,6 +9,8 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+const log = process.env.NODE_ENV !== "production" ? console.log.bind(console) : () => {};
+
 /** DB上でisActiveかどうかを判定する共通ロジック（layoutと同一ロジック） */
 function checkIsActive(sub: {
   stripeSubscriptionId: string | null;
@@ -24,7 +26,7 @@ export async function POST() {
   const { userId: clerkId } = await auth();
   if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  console.log(`[subscription-activate] start clerkId=${clerkId}`);
+  log(`[subscription-activate] start clerkId=${clerkId}`);
 
   // ── Step 1: DBからユーザーを取得 ──────────────────────────────────────────
   const user = await prisma.user.findUnique({
@@ -37,7 +39,7 @@ export async function POST() {
     return NextResponse.json({ activated: false, reason: "user_not_found" });
   }
 
-  console.log(`[subscription-activate] user found userId=${user.id} subscription=${JSON.stringify({
+  log(`[subscription-activate] user found userId=${user.id} subscription=${JSON.stringify({
     status: user.subscription?.status,
     stripeCustomerId: user.subscription?.stripeCustomerId,
     stripeSubscriptionId: user.subscription?.stripeSubscriptionId,
@@ -46,20 +48,20 @@ export async function POST() {
 
   // ── Step 2: 既にACTIVEなら即返す ─────────────────────────────────────────
   if (checkIsActive(user.subscription)) {
-    console.log(`[subscription-activate] already active in DB — returning true`);
+    log(`[subscription-activate] already active in DB — returning true`);
     return NextResponse.json({ activated: true });
   }
 
   // ── Step 3: StripeのCustomer IDを取得 ─────────────────────────────────────
   let customerId = user.subscription?.stripeCustomerId ?? null;
-  console.log(`[subscription-activate] customerId from DB: ${customerId}`);
+  log(`[subscription-activate] customerId from DB: ${customerId}`);
 
   if (!customerId) {
     const customers = await stripe.customers.search({
       query: `metadata["clerkId"]:"${clerkId}"`,
     });
     customerId = customers.data[0]?.id ?? null;
-    console.log(`[subscription-activate] customerId from Stripe search: ${customerId} (found ${customers.data.length} customers)`);
+    log(`[subscription-activate] customerId from Stripe search: ${customerId} (found ${customers.data.length} customers)`);
   }
 
   if (!customerId) {
@@ -75,7 +77,7 @@ export async function POST() {
   });
 
   const activeSub = subscriptions.data[0];
-  console.log(`[subscription-activate] Stripe active subscriptions: ${subscriptions.data.length} found. activeSub=${activeSub?.id ?? "none"}`);
+  log(`[subscription-activate] Stripe active subscriptions: ${subscriptions.data.length} found. activeSub=${activeSub?.id ?? "none"}`);
 
   if (!activeSub) {
     console.error(`[subscription-activate] FAILED: no active subscription in Stripe customerId=${customerId}`);
@@ -101,7 +103,7 @@ export async function POST() {
         status: "ACTIVE",
       },
     });
-    console.log(`[subscription-activate] upsert completed for userId=${user.id} subscriptionId=${activeSub.id}`);
+    log(`[subscription-activate] upsert completed for userId=${user.id} subscriptionId=${activeSub.id}`);
   } catch (err) {
     console.error("[subscription-activate] FAILED: DB upsert threw error:", err);
     return NextResponse.json({ activated: false, reason: "db_error" });
@@ -118,13 +120,13 @@ export async function POST() {
   });
 
   const isNowActive = checkIsActive(verified);
-  console.log(`[subscription-activate] POST-VERIFICATION: isActive=${isNowActive} record=${JSON.stringify(verified)}`);
+  log(`[subscription-activate] POST-VERIFICATION: isActive=${isNowActive} record=${JSON.stringify(verified)}`);
 
   if (!isNowActive) {
     console.error(`[subscription-activate] FAILED: DB updated but isActive still false. record=${JSON.stringify(verified)}`);
     return NextResponse.json({ activated: false, reason: "verification_failed" });
   }
 
-  console.log(`[subscription-activate] SUCCESS clerkId=${clerkId}`);
+  log(`[subscription-activate] SUCCESS clerkId=${clerkId}`);
   return NextResponse.json({ activated: true });
 }

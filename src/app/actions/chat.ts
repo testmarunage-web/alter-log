@@ -19,7 +19,6 @@ export async function saveChatMessage(content: string) {
   const entry = await prisma.journalEntry.create({
     data: { userId: user.id, content },
   });
-  console.log("[saveChatMessage] journal saved | entryId:", entry.id, "| userId:", user.id);
   revalidatePath("/dashboard");
   revalidatePath("/");
   return entry;
