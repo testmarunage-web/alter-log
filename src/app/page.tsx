@@ -20,6 +20,34 @@ export function AlterIcon({ size = 20 }: { size?: number }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// コンポーネント: CTAボタン＋価格・返金情報ブロック
+// ─────────────────────────────────────────────────────────────────────────────
+function CtaBlock() {
+  return (
+    <>
+      <Link href="/sign-up" className="inline-flex items-center justify-center px-10 py-3.5 rounded-full bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_32px_rgba(196,163,90,0.4)] active:scale-[0.98] transition-all duration-300">
+        <span className="font-bold text-sm sm:text-base tracking-wide">Alter Logを始める</span>
+      </Link>
+      <div className="flex flex-col items-center gap-1.5 mt-3">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-[11px] text-[#8A8276]/50">月額</span>
+          <span className="text-[12px] text-[#8A8276]/50 line-through">¥2,980</span>
+          <span className="text-[11px] text-[#C4A35A]/80">→ 初月</span>
+          <span className="text-[16px] font-medium text-[#C4A35A]">¥2,682</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C4A35A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          <span className="text-[12px] text-[#C4A35A]/85">7日間全額返金保証</span>
+        </div>
+        <p className="text-[10px] text-[#8A8276]/35 mt-0.5">※ 次月以降は月額2,980円になります</p>
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // コンポーネント: スクリーンショットカード（スマホ枠風）
 // ─────────────────────────────────────────────────────────────────────────────
 function ScreenshotCard({ src, alt }: { src: string; alt: string }) {
@@ -100,12 +128,8 @@ export default async function Home() {
           <span className="inline-block">専属AI「Alter」があなたの言葉を静かに受け止め、</span><span className="inline-block">無意識のパターンを解き明かします。</span>
         </p>
 
-        <div className="mt-10">
-          <Link href="/sign-up" className="inline-flex flex-col items-center justify-center px-10 py-3.5 rounded-full bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_32px_rgba(196,163,90,0.4)] active:scale-[0.98] transition-all duration-300">
-            <span className="font-bold text-sm sm:text-base tracking-wide">Alter Logを始める</span>
-            <span className="text-[10px] sm:text-xs font-semibold mt-0.5 opacity-80">初月2,682円（10%OFF）</span>
-          </Link>
-          <p className="mt-3 text-xs text-[#8A8276]/60">お申し込みから7日以内にご満足いただけなければ、全額返金いたします。</p>
+        <div className="mt-10 flex flex-col items-center">
+          <CtaBlock />
         </div>
 
         {/* Hero: 3枚横並び */}
@@ -356,11 +380,7 @@ export default async function Home() {
         </p>
 
         <div className="relative flex flex-col items-center">
-          <Link href="/sign-up" className="inline-flex flex-col items-center justify-center px-10 py-3.5 rounded-full bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_32px_rgba(196,163,90,0.4)] active:scale-[0.98] transition-all duration-300">
-            <span className="font-bold text-sm sm:text-base tracking-wide">Alter Logを始める</span>
-            <span className="text-[10px] sm:text-xs font-semibold mt-0.5 opacity-80">初月2,682円（10%OFF）</span>
-          </Link>
-          <p className="mt-3 text-xs text-[#8A8276]/60">お申し込みから7日以内にご満足いただけなければ、全額返金いたします。</p>
+          <CtaBlock />
         </div>
       </section>
 
