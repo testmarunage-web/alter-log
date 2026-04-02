@@ -10,6 +10,7 @@ const isPublicRoute = createRouteMatcher([
   "/subscribe(.*)",
   "/payment-pending(.*)",
   "/api/webhooks(.*)",
+  "/api/cron(.*)",
   "/opengraph-image",
 ]);
 
