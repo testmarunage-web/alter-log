@@ -36,9 +36,7 @@ export default async function SettingsPage() {
           {/* お支払い管理 */}
           <div className="border-b border-white/[0.06]">
             <a
-              href="https://billing.stripe.com/p/login/placeholder"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/api/stripe/portal"
               className="px-4 pt-4 pb-1.5 flex items-center justify-between hover:bg-white/[0.03] transition-colors"
             >
               <span className="text-sm text-white/75">お支払い管理</span>
