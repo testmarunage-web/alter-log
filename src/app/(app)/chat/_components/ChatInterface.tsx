@@ -328,8 +328,8 @@ export function ChatInterface({
 
             {/* 音声入力ヒント（フォーカス時・3回まで） */}
             {showFocusTooltip && (
-              <div className="mt-2 rounded-xl px-4 py-2.5 bg-white/[0.03] border border-white/[0.06] flex items-center justify-between gap-3">
-                <p className="text-[12px] text-white/40 leading-snug">
+              <div className="mt-2 rounded-xl px-4 py-2.5 bg-[#C4A35A]/10 border border-[#C4A35A]/30 flex items-center justify-between gap-3">
+                <p className="text-[12px] text-white/60 leading-snug">
                   💡 キーボードの 🎙 をタップすると、話した内容がそのまま文字になります
                 </p>
                 <button
