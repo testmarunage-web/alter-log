@@ -61,10 +61,10 @@ export default async function DashboardPage() {
     const [
       totalJournalCount,
       newJournalCount,
-      recentAlterLogs,
+      recentScanResults,
       recentJournals,
       totalScanCount,
-      latestAlterLogRecord,
+      latestScanRecord,
     ] = await Promise.all([
       prisma.journalEntry.count({ where: { userId: user.id } }),
       user.lastDashboardScanAt
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
             where: { userId: user.id, createdAt: { gt: user.lastDashboardScanAt } },
           })
         : Promise.resolve(0),
-      prisma.alterLog.findMany({
+      prisma.scanResult.findMany({
         where: { userId: user.id, date: { gte: thirtyDaysAgo } },
         select: { date: true, insights: true },
         orderBy: { date: "asc" },
@@ -82,16 +82,16 @@ export default async function DashboardPage() {
         select: { createdAt: true, content: true },
         orderBy: { createdAt: "asc" },
       }),
-      prisma.alterLog.count({ where: { userId: user.id } }),
-      prisma.alterLog.findFirst({
+      prisma.scanResult.count({ where: { userId: user.id } }),
+      prisma.scanResult.findFirst({
         where: { userId: user.id },
         orderBy: { createdAt: "desc" },
         select: { createdAt: true, thoughtProfile: true },
       }),
     ]);
 
-    lastScanAt = latestAlterLogRecord?.createdAt ?? null;
-    initialThoughtProfile = latestAlterLogRecord?.thoughtProfile ?? null;
+    lastScanAt = latestScanRecord?.createdAt ?? null;
+    initialThoughtProfile = latestScanRecord?.thoughtProfile ?? null;
 
     // ── ボタン状態 ──────────────────────────────────────────────────────────
     if (totalJournalCount === 0) {
@@ -102,12 +102,12 @@ export default async function DashboardPage() {
       buttonState = newJournalCount >= 1 ? "C" : "D";
     }
 
-    // ── 感情天気図：alterLog date → factPct マップ ──────────────────────────
+    // ── 感情天気図：scanResult date → factPct マップ ──────────────────────────
     const alterLogMap: Record<string, number> = {};
-    for (const log of recentAlterLogs) {
-      const d = new Date(new Date(log.date).toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+    for (const scan of recentScanResults) {
+      const d = new Date(new Date(scan.date).toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
       const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const ins = log.insights as { fact_emotion_ratio?: { fact_percentage?: number } };
+      const ins = scan.insights as { fact_emotion_ratio?: { fact_percentage?: number } };
       if (ins?.fact_emotion_ratio?.fact_percentage != null) {
         alterLogMap[ds] = ins.fact_emotion_ratio.fact_percentage;
       }

@@ -31,6 +31,7 @@ model User {
   journalEntries JournalEntry[]
   coachMessages  CoachMessage[]
   alterLogs      AlterLog[]
+  scanResults    ScanResult[]
 
   @@map("users")
 }
@@ -207,4 +208,23 @@ model AlterLog {
 
   @@unique([userId, date]) // 同一ユーザー・同一日付の重複生成を防止
   @@map("alter_logs")
+}
+
+// ============================================================
+// SCANボタン実行結果（ユーザーが手動実行した分析・1日1件upsert）
+// ============================================================
+model ScanResult {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date           DateTime // JST今日のUTC midnight（1日1件upsert）
+  insights       Json     // 全分析データ（fact_emotion_ratio, cognitive_bias_detected, etc.）
+  thoughtProfile String?  // 思考プロファイル（例: 「慎重すぎる参謀型マーケター」）
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@map("scan_results")
 }

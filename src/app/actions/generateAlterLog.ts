@@ -117,11 +117,39 @@ const FALLBACK_INSIGHTS: AlterLogInsights = {
   daily_note: "INSUFFICIENT_DATA",
 };
 
+// Cronバッチ専用：daily_noteのみを生成するシンプルなプロンプト
+const DAILY_NOTE_SYSTEM_PROMPT = `あなたはAlter Log解析エンジンである。ユーザーが書いたジャーナルを観察し、daily_noteのみを出力する。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 基本姿勢
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- 共感・励まし・慰めは出力しない。「辛そうですね」「頑張っていますね」等は不要。
+- 攻撃・皮肉・挑発も出力しない。役割は評価ではなく観察である。
+- 全ての記述は、入力テキスト内の具体的な表現を根拠とすること。根拠のない推測は禁止。
+- 文体は「〜である」「〜が観察される」調。簡潔で読みやすい日本語を使う。
+- 専門用語は避け、ビジネスパーソンが朝の3分で読んで意味が取れる平易な言葉を使う。
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ daily_note の記述ガイド（1〜5文）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- ジャーナルの情報量に応じて1〜5文で記す。内容が薄い時に長文を書かない。
+- ユーザーのことは「対象者」と呼ぶ。「記述者」「この人物」「ユーザー」等は使わない。
+- 「〜である」「〜と観察される」調を維持する。共感や励ましは入れない。
+- 対象者の言葉の中から最も特徴的な構造（矛盾、繰り返し、欠落）を1つ選び、それを軸に書く。
+- 意味の区切りごとに改行（\\n）を入れ、読みやすくする。
+- 例：「本日の記録では、行動の報告と内面の逡巡が交互に現れている。特に『できます』という発言と『持たない』という予測の間にある距離が目立つ。\\n言葉の上では明日の行動を宣言しているが、その行動に必要な判断材料はまだ揃っていない。」
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 情報不足の判定
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+入力が「テスト」「test」等の無意味な文字列、または構造解析に足る情報量がない場合は、「INSUFFICIENT_DATA」とだけ出力せよ。
+十分な情報がある場合は daily_note の本文のみを出力する。余計なテキスト・前置き・JSONは不要。`;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // コアロジック：clerkId を受け取って AlterLog を生成・保存する
 // バッチ処理（Cron）とUIからの呼び出し双方で使用
 // ─────────────────────────────────────────────────────────────────────────────
-export async function processAlterLogForUser(clerkId: string): Promise<AlterLogInsights> {
+export async function processAlterLogForUser(clerkId: string): Promise<void> {
   // User upsert（外部キーエラー防止）
   const user = await prisma.user.upsert({
     where: { clerkId },
@@ -140,51 +168,46 @@ export async function processAlterLogForUser(clerkId: string): Promise<AlterLogI
   });
 
   // 前日にジャーナルがない場合はAPIコール・DB保存をスキップ
-  if (journals.length === 0) return FALLBACK_INSIGHTS;
+  if (journals.length === 0) return;
 
-  // ログを1つのコンテキスト文字列に結合
-  const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n");
-
-  let object: AlterLogInsights;
-  try {
-    const { object: generated } = await generateObject({
-      model: anthropic("claude-sonnet-4-5"),
-      schema: alterLogSchema,
-      system: SYSTEM_PROMPT,
-      prompt: `以下のログを構造解析し、指定のJSON形式でレポートを生成せよ。
-
-【データ状況】
-ログあり（以下のテキストのみを根拠に解析すること。ログに存在しない情報の補完は禁止）
-
-【分析対象ログ】
-${journalBlock}`,
-    });
-    object = generated;
-  } catch (err) {
-    console.error("[processAlterLogForUser] generateObject failed — using fallback:", err);
-    object = FALLBACK_INSIGHTS;
-  }
-
-  // dateForDb は前日のJST日付（AlterLogのdate列 = ジャーナルが書かれた日）
+  // 既存チェック（重複生成防止）
   const dateForDb = new Date(`${yesterdayJstStr}T00:00:00Z`);
-
   const existing = await prisma.alterLog.findFirst({
     where: { userId: user.id, date: dateForDb },
     select: { id: true },
   });
-  if (existing) return object;
+  if (existing) return;
+
+  // ログを1つのコンテキスト文字列に結合
+  const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n");
+
+  // daily_noteのみを生成（generateText）
+  let dailyNote: string;
+  let isInsufficient: boolean;
+  try {
+    const { text } = await generateText({
+      model: anthropic("claude-sonnet-4-5"),
+      system: DAILY_NOTE_SYSTEM_PROMPT,
+      prompt: `以下のジャーナルを観察し、daily_noteを出力せよ。\n\n${journalBlock}`,
+      maxTokens: 512,
+    });
+    dailyNote = text.trim() || "INSUFFICIENT_DATA";
+    isInsufficient = dailyNote === "INSUFFICIENT_DATA";
+  } catch (err) {
+    console.error("[processAlterLogForUser] generateText failed:", err);
+    dailyNote = "INSUFFICIENT_DATA";
+    isInsufficient = true;
+  }
 
   await prisma.alterLog.create({
     data: {
       userId: user.id,
       date: dateForDb,
       type: "daily",
-      insights: object,
+      insights: { is_insufficient_data: isInsufficient, daily_note: dailyNote },
       createdAt: getSpoofedCreatedAt(yesterdayJstStr),
     },
   });
-
-  return object;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -265,7 +288,24 @@ ${context}`;
   const thoughtProfile = thoughtProfileOutcome as string | null;
 
   if (scanSucceeded) {
-    // lastDashboardScanAt のみ更新（AlterLog保存はCronバッチが担当）
+    // ScanResult に当日分を upsert（同日複数回SCANした場合は上書き）
+    const todayJstStr   = getJstDateStr();
+    const dateForDb     = new Date(`${todayJstStr}T00:00:00Z`);
+    await prisma.scanResult.upsert({
+      where: { userId_date: { userId: user.id, date: dateForDb } },
+      create: {
+        userId: user.id,
+        date:   dateForDb,
+        insights: result as object,
+        thoughtProfile: thoughtProfile,
+      },
+      update: {
+        insights: result as object,
+        thoughtProfile: thoughtProfile,
+      },
+    });
+
+    // lastDashboardScanAt を更新
     await prisma.user.update({
       where: { id: user.id },
       data: { lastDashboardScanAt: new Date() },
@@ -299,20 +339,23 @@ export async function generateForDate(userId: string, targetDate: Date): Promise
   if (journals.length === 0) return;
 
   const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n");
-  const context = journalBlock;
 
-  let object: AlterLogInsights;
+  // daily_noteのみを生成（generateText）
+  let dailyNote: string;
+  let isInsufficient: boolean;
   try {
-    const { object: generated } = await generateObject({
+    const { text } = await generateText({
       model: anthropic("claude-sonnet-4-5"),
-      schema: alterLogSchema,
-      system: SYSTEM_PROMPT,
-      prompt: `以下のログを構造解析し、指定のJSON形式でレポートを生成せよ。\n\n【データ状況】\nログあり（以下のテキストのみを根拠に解析すること。ログに存在しない情報の補完は禁止）\n\n【分析対象ログ】\n${context}`,
+      system: DAILY_NOTE_SYSTEM_PROMPT,
+      prompt: `以下のジャーナルを観察し、daily_noteを出力せよ。\n\n${journalBlock}`,
+      maxTokens: 512,
     });
-    object = generated;
+    dailyNote = text.trim() || "INSUFFICIENT_DATA";
+    isInsufficient = dailyNote === "INSUFFICIENT_DATA";
   } catch (err) {
-    console.error(`[generateForDate] failed for ${dateForDb.toISOString()}:`, err);
-    object = FALLBACK_INSIGHTS;
+    console.error(`[generateForDate] generateText failed for ${dateForDb.toISOString()}:`, err);
+    dailyNote = "INSUFFICIENT_DATA";
+    isInsufficient = true;
   }
 
   const jstDateStr = dateForDb.toISOString().split("T")[0];
@@ -321,7 +364,7 @@ export async function generateForDate(userId: string, targetDate: Date): Promise
       userId,
       date: dateForDb,
       type: "daily",
-      insights: object,
+      insights: { is_insufficient_data: isInsufficient, daily_note: dailyNote },
       createdAt: getSpoofedCreatedAt(jstDateStr),
     },
   });
@@ -379,6 +422,7 @@ export async function generateMissingDailyLogs(clerkId: string): Promise<void> {
 // ─────────────────────────────────────────────────────────────────────────────
 // 最新の AlterLog を取得（ダッシュボード初期表示用）
 // ─────────────────────────────────────────────────────────────────────────────
+// 最新のSCAN結果を取得（ダッシュボード初期表示用）
 export async function getLatestAlterLog(): Promise<AlterLogInsights | null> {
   const { userId } = await auth();
   if (!userId) return null;
@@ -386,13 +430,13 @@ export async function getLatestAlterLog(): Promise<AlterLogInsights | null> {
   const user = await prisma.user.findUnique({ where: { clerkId: userId } });
   if (!user) return null;
 
-  const log = await prisma.alterLog.findFirst({
+  const scan = await prisma.scanResult.findFirst({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
   });
 
-  if (!log) return null;
-  const result = alterLogSchema.safeParse(log.insights);
+  if (!scan) return null;
+  const result = alterLogSchema.safeParse(scan.insights);
   if (!result.success) return null;
   return result.data;
 }
