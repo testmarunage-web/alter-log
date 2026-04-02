@@ -117,8 +117,7 @@ export function ChatInterface({
   const [isSaving, setIsSaving]               = useState(false);
   const [showWelcome, setShowWelcome]         = useState(false);
   const [welcomeFading, setWelcomeFading]     = useState(false);
-  const [showVoiceHint, setShowVoiceHint]     = useState(false);
-  const [voiceHintFading, setVoiceHintFading] = useState(false);
+  const [showFocusTooltip, setShowFocusTooltip] = useState(false);
   const [showScanSuggestion, setShowScanSuggestion] = useState(false);
   const [inputVisible, setInputVisible]       = useState(true);
 
@@ -131,14 +130,27 @@ export function ChatInterface({
     } catch { /* localStorage unavailable */ }
   }, []);
 
-  // 音声入力ヒント（初回のみ）
-  useEffect(() => {
+  // 音声入力ヒント（フォーカス時・3回まで）
+  const VOICE_HINT_KEY = "alter-log-voice-hint-count";
+
+  function handleTextareaFocus() {
     try {
-      if (!localStorage.getItem("alter-log-voice-hint-dismissed")) {
-        setShowVoiceHint(true);
+      const count = parseInt(localStorage.getItem(VOICE_HINT_KEY) ?? "0", 10);
+      if (count < 3) {
+        localStorage.setItem(VOICE_HINT_KEY, String(count + 1));
+        setShowFocusTooltip(true);
       }
     } catch { /* localStorage unavailable */ }
-  }, []);
+  }
+
+  function handleTextareaBlur() {
+    setShowFocusTooltip(false);
+  }
+
+  function handleTooltipDismiss() {
+    try { localStorage.setItem(VOICE_HINT_KEY, "3"); } catch { /* noop */ }
+    setShowFocusTooltip(false);
+  }
 
   // 過去ジャーナルのスクロール検知 → 入力エリアの表示/非表示
   useEffect(() => {
@@ -148,15 +160,6 @@ export function ChatInterface({
     el.addEventListener("scroll", handleScroll, { passive: true });
     return () => el.removeEventListener("scroll", handleScroll);
   }, []);
-
-  function handleVoiceHintDismiss() {
-    setVoiceHintFading(true);
-    try { localStorage.setItem("alter-log-voice-hint-dismissed", "1"); } catch { /* noop */ }
-    setTimeout(() => {
-      setShowVoiceHint(false);
-      setVoiceHintFading(false);
-    }, 300);
-  }
 
   function handleWelcomeClose() {
     setWelcomeFading(true);
@@ -290,6 +293,8 @@ export function ChatInterface({
                   value={journalInput}
                   onChange={handleJournalInputChange}
                   onKeyDown={(e) => handleKeyDown(e, () => submitJournal())}
+                  onFocus={handleTextareaFocus}
+                  onBlur={handleTextareaBlur}
                   placeholder="今日あったこと、感じたこと、モヤモヤ…なんでもどうぞ。"
                   className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
                   style={{ height: "140px" }}
@@ -321,26 +326,16 @@ export function ChatInterface({
               </button>
             </form>
 
-            {/* 音声入力ヒント（初回のみ・dismissable） */}
-            {showVoiceHint && (
-              <div
-                className="mt-2 rounded-xl px-4 py-2.5 bg-white/[0.02] border border-white/[0.06] flex items-center gap-2.5"
-                style={{ opacity: voiceHintFading ? 0 : 1, transition: "opacity 0.3s ease-out" }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-[#C4A35A]/60 flex-shrink-0 mt-0.5">
-                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                  <line x1="12" y1="19" x2="12" y2="23" />
-                  <line x1="8" y1="23" x2="16" y2="23" />
-                </svg>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12px] text-white/50 font-medium leading-snug">音声でも入力できます</p>
-                  <p className="text-[11px] text-white/30 leading-relaxed mt-0.5">キーボードの 🎙 マイクボタンをタップすると、話した内容がそのまま文字になります。</p>
-                </div>
+            {/* 音声入力ヒント（フォーカス時・3回まで） */}
+            {showFocusTooltip && (
+              <div className="mt-2 rounded-xl px-4 py-2.5 bg-white/[0.03] border border-white/[0.06] flex items-center justify-between gap-3">
+                <p className="text-[12px] text-white/40 leading-snug">
+                  💡 キーボードの 🎙 をタップすると、話した内容がそのまま文字になります
+                </p>
                 <button
                   type="button"
-                  onClick={handleVoiceHintDismiss}
-                  className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0 mt-0.5"
+                  onClick={handleTooltipDismiss}
+                  className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0"
                   aria-label="閉じる"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
