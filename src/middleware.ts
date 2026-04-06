@@ -18,6 +18,8 @@ export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {
     await auth.protect();
   }
+}, {
+  proxyUrl: "https://alter-log.com/__clerk",
 });
 
 export const config = {
