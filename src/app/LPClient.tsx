@@ -167,8 +167,8 @@ export default function LPClient() {
       </header>
 
       {/* ── Hero ── */}
-      <section className="relative z-[1] min-h-screen flex items-center px-6 sm:px-10 pt-16">
-        <div className="w-full max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-8 lg:gap-6 items-center py-8 sm:py-14">
+      <section className="relative z-[1] flex items-center px-6 sm:px-10 pt-20">
+        <div className="w-full max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-8 lg:gap-6 items-center py-4 sm:py-10">
           {/* テキスト: スマホ中央揃え、PC左揃え */}
           <div className="text-center lg:text-left">
             <h1 className="rv">
@@ -218,10 +218,10 @@ export default function LPClient() {
       <section className="relative z-[1] py-16 sm:py-28 px-6 sm:px-10">
         <div className="max-w-[580px] mx-auto text-center rv">
           <h2 className="heading text-[1.8rem] sm:text-[2.8rem] text-white leading-[1.15]">
-            「自分の思考」という<br />
-            <span style={{ whiteSpace: "nowrap" }}>密室から、抜け出そう。</span>
+            <span style={{ whiteSpace: "nowrap" }}>「自分の思考」という密室から、</span><br />
+            <span style={{ whiteSpace: "nowrap" }}>抜け出そう。</span>
           </h2>
-          <div className="mt-8 space-y-3 text-[13px] sm:text-[14px] text-[#6a6358] leading-[2.2] font-light">
+          <div className="mt-8 space-y-2 text-[13px] sm:text-[14px] text-[#6a6358] leading-[2.2] font-light">
             <p>思考を整理するために日記やジャーナリングを試しても、結局自分の枠を出られない。</p>
             <p>一人で内省を繰り返しても、同じ悩みをループし、自分自身を客観視するには限界がある。</p>
             <p>かといって、プロのコーチングを受けるのはハードルが高い。</p>
@@ -238,68 +238,74 @@ export default function LPClient() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
             {/* Feature 01 */}
-            <div className="rv-l img-card">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/screenshot-journal.jpg"
-                alt="ジャーナル入力画面"
-                className="w-full"
-                style={{ height: "280px", objectFit: "cover", objectPosition: "top" }}
-              />
-              <div className="p-6">
-                <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
-                  Feature 01
-                </p>
-                <h3 className="heading text-[1.1rem] text-white leading-[1.2] mb-3">
-                  言葉にならないモヤモヤも、<br />そのまま受け止める。
-                </h3>
-                <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
-                  綺麗な文章は不要です。思い浮かんだ感情やまとまらない思考を、そのまま打ち明けてください。Alterが静かに聞き入れます。
-                </p>
+            <div className="rv-l flex justify-center md:block">
+              <div className="img-card w-full max-w-[75vw] md:max-w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/screenshot-journal.jpg"
+                  alt="ジャーナル入力画面"
+                  className="w-full"
+                  style={{ aspectRatio: "3/4", objectFit: "cover", objectPosition: "top" }}
+                />
+                <div className="p-6">
+                  <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
+                    Feature 01
+                  </p>
+                  <h3 className="heading text-[1.1rem] text-white leading-[1.2] mb-3">
+                    言葉にならないモヤモヤも、<br />そのまま受け止める。
+                  </h3>
+                  <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
+                    綺麗な文章は不要です。思い浮かんだ感情やまとまらない思考を、そのまま打ち明けてください。Alterが静かに聞き入れます。
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Feature 02 */}
-            <div className="rv img-card" style={{ transitionDelay: "0.1s" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/screenshot-scan-top.jpg"
-                alt="SCAN分析画面"
-                className="w-full"
-                style={{ height: "280px", objectFit: "cover", objectPosition: "top" }}
-              />
-              <div className="p-6">
-                <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
-                  Feature 02
-                </p>
-                <h3 className="heading text-[1.1rem] text-white leading-[1.2] mb-3">
-                  忖度ゼロの「鏡」が、<br />ハッとする気づきをくれる。
-                </h3>
-                <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
-                  Alterにはあなたへの遠慮がありません。何気ない言葉から「無意識のバイアス」を抽出し、あなた自身すら気づいていない真実を突きつけます。
-                </p>
+            <div className="rv flex justify-center md:block" style={{ transitionDelay: "0.1s" }}>
+              <div className="img-card w-full max-w-[75vw] md:max-w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/screenshot-scan-top.jpg"
+                  alt="SCAN分析画面"
+                  className="w-full"
+                  style={{ aspectRatio: "3/4", objectFit: "cover", objectPosition: "top" }}
+                />
+                <div className="p-6">
+                  <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
+                    Feature 02
+                  </p>
+                  <h3 className="heading text-[1.1rem] text-white leading-[1.2] mb-3">
+                    忖度ゼロの「鏡」が、<br />ハッとする気づきをくれる。
+                  </h3>
+                  <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
+                    Alterにはあなたへの遠慮がありません。何気ない言葉から「無意識のバイアス」を抽出し、あなた自身すら気づいていない真実を突きつけます。
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Feature 03 */}
-            <div className="rv-r img-card" style={{ transitionDelay: "0.2s" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/screenshot-alterlog.jpg"
-                alt="Alter Log観察日記画面"
-                className="w-full"
-                style={{ height: "280px", objectFit: "cover", objectPosition: "top" }}
-              />
-              <div className="p-6">
-                <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
-                  Feature 03
-                </p>
-                <h3 className="heading text-[1.1rem] text-white leading-[1.2] mb-3">
-                  眠る間に書き上げられる<br />「あなたの観察日記」
-                </h3>
-                <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
-                  深夜、Alterは「あなたについての観察日記」を書き上げます。翌朝、自分の脳内を他人のように客観視する未知の体験が始まります。
-                </p>
+            <div className="rv-r flex justify-center md:block" style={{ transitionDelay: "0.2s" }}>
+              <div className="img-card w-full max-w-[75vw] md:max-w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/screenshot-alterlog.jpg"
+                  alt="Alter Log観察日記画面"
+                  className="w-full"
+                  style={{ aspectRatio: "3/4", objectFit: "cover", objectPosition: "top" }}
+                />
+                <div className="p-6">
+                  <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
+                    Feature 03
+                  </p>
+                  <h3 className="heading text-[1.1rem] text-white leading-[1.2] mb-3">
+                    眠る間に書き上げられる<br />「あなたの観察日記」
+                  </h3>
+                  <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
+                    深夜、Alterは「あなたについての観察日記」を書き上げます。翌朝、自分の脳内を他人のように客観視する未知の体験が始まります。
+                  </p>
+                </div>
               </div>
             </div>
 
