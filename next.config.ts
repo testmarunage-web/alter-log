@@ -11,15 +11,6 @@ const nextConfig: NextConfig = {
       dynamic: 0,
     },
   },
-  async rewrites() {
-    return [
-      {
-        // /__clerk/:path* → /api/clerk-proxy/:path*（Route Handlerに転送）
-        source: "/__clerk/:path*",
-        destination: "/api/clerk-proxy/:path*",
-      },
-    ];
-  },
 };
 
 export default nextConfig;
