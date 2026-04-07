@@ -209,6 +209,7 @@ export default function LPClient() {
                 src="/images/screenshot-scan-top.jpg"
                 alt="SCAN分析画面"
                 className="w-full"
+                style={{ maxHeight: "520px", objectFit: "contain" }}
               />
             </div>
           </div>
@@ -243,8 +244,7 @@ export default function LPClient() {
               <img
                 src="/images/screenshot-journal.jpg"
                 alt="ジャーナル入力画面"
-                className="w-full"
-                style={{ aspectRatio: "16/9", objectFit: "cover", objectPosition: "top" }}
+                className="w-full block"
               />
             </div>
             <div
@@ -273,8 +273,7 @@ export default function LPClient() {
                 <img
                   src="/images/screenshot-scan-top.jpg"
                   alt="SCAN分析画面"
-                  className="w-full"
-                  style={{ aspectRatio: "4/3", objectFit: "cover", objectPosition: "top" }}
+                  className="w-full block"
                 />
                 <div className="p-6 sm:p-8">
                   <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
@@ -295,8 +294,7 @@ export default function LPClient() {
                 <img
                   src="/images/screenshot-alterlog.jpg"
                   alt="Alter Log観察日記画面"
-                  className="w-full"
-                  style={{ aspectRatio: "4/3", objectFit: "cover", objectPosition: "top" }}
+                  className="w-full block"
                 />
                 <div className="p-6 sm:p-8">
                   <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
