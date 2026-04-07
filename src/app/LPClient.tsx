@@ -168,7 +168,7 @@ export default function LPClient() {
 
       {/* ── Hero ── */}
       <section className="relative z-[1] min-h-screen flex items-center px-6 sm:px-10 pt-16">
-        <div className="w-full max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-6 items-center py-16 sm:py-20">
+        <div className="w-full max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-8 lg:gap-6 items-center py-8 sm:py-14">
           <div>
             <h1 className="rv">
               <span className="heading block text-[2.6rem] sm:text-[3.6rem] lg:text-[4.6rem] leading-[0.95] text-white">
@@ -216,7 +216,7 @@ export default function LPClient() {
       </section>
 
       {/* ── Problem ── */}
-      <section className="relative z-[1] py-32 sm:py-40 px-6 sm:px-10">
+      <section className="relative z-[1] py-16 sm:py-32 px-6 sm:px-10">
         <div className="max-w-[580px] mx-auto text-center rv">
           <h2 className="heading text-[1.8rem] sm:text-[2.8rem] text-white leading-[1.15]">
             「自分の思考」という密室から、<br />抜け出そう。
@@ -227,7 +227,7 @@ export default function LPClient() {
             <p>かといって、プロのコーチングを受けるのはハードルが高い。</p>
           </div>
           <p className="heading text-[1.3rem] sm:text-[1.9rem] text-[#C9A84C] mt-16 leading-[1.3]">
-            Alter Log ── それは「ジャーナリング2.0」。
+            Alter Log ── それは「<span style={{ whiteSpace: "nowrap" }}>ジャーナリング2.0</span>」。
           </p>
         </div>
       </section>
@@ -244,7 +244,7 @@ export default function LPClient() {
                 src="/images/screenshot-journal.jpg"
                 alt="ジャーナル入力画面"
                 className="w-full"
-                style={{ aspectRatio: "21/9", objectFit: "cover" }}
+                style={{ aspectRatio: "16/9", objectFit: "cover", objectPosition: "top" }}
               />
             </div>
             <div
@@ -274,7 +274,7 @@ export default function LPClient() {
                   src="/images/screenshot-scan-top.jpg"
                   alt="SCAN分析画面"
                   className="w-full"
-                  style={{ aspectRatio: "4/3", objectFit: "cover" }}
+                  style={{ aspectRatio: "4/3", objectFit: "cover", objectPosition: "top" }}
                 />
                 <div className="p-6 sm:p-8">
                   <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
@@ -296,7 +296,7 @@ export default function LPClient() {
                   src="/images/screenshot-alterlog.jpg"
                   alt="Alter Log観察日記画面"
                   className="w-full"
-                  style={{ aspectRatio: "4/3", objectFit: "cover" }}
+                  style={{ aspectRatio: "4/3", objectFit: "cover", objectPosition: "top" }}
                 />
                 <div className="p-6 sm:p-8">
                   <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
@@ -318,7 +318,7 @@ export default function LPClient() {
 
       {/* ── Comparison ── */}
       <section
-        className="relative z-[1] py-28 sm:py-36 px-6 sm:px-10"
+        className="relative z-[1] py-16 sm:py-28 px-6 sm:px-10"
         style={{ borderTop: "1px solid rgba(201,168,76,0.06)" }}
       >
         <div className="max-w-[880px] mx-auto rv">
@@ -341,7 +341,7 @@ export default function LPClient() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="text-[12.5px]">
+              <tbody className="text-[14px]">
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
                   <td className="py-5 px-4 text-[#d4cfc2] font-medium">心理的安全性</td>
                   <td className="py-5 px-4 text-center text-[#C9A84C] font-semibold gold-col">◎ 一切の評価・ジャッジなし</td>
@@ -371,15 +371,15 @@ export default function LPClient() {
           </div>
           <div className="text-center mt-14">
             <div
-              className="inline-flex items-center gap-3 px-6 py-3 rounded-full"
-              style={{ border: "1px solid rgba(201,168,76,0.1)", background: "rgba(201,168,76,0.02)" }}
+              className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl"
+              style={{ border: "1px solid rgba(201,168,76,0.3)", background: "rgba(201,168,76,0.06)" }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
-              <span className="text-[12px] text-[#E2D1A0] font-semibold tracking-[0.04em]">7日間全額返金保証</span>
+              <span className="text-[15px] text-[#E2D1A0] font-bold tracking-[0.04em]">7日間全額返金保証</span>
             </div>
-            <p className="mt-4 text-[12px] text-[#4a4438] font-light">
+            <p className="mt-4 text-[13px] text-[#6a6358] font-light">
               お申し込みから7日以内にご満足いただけなければ、理由を問わず全額返金いたします。
             </p>
           </div>
@@ -388,12 +388,12 @@ export default function LPClient() {
 
       {/* ── Steps ── */}
       <section
-        className="relative z-[1] py-28 sm:py-36 px-6 sm:px-10"
+        className="relative z-[1] py-16 sm:py-28 px-6 sm:px-10"
         style={{ background: "linear-gradient(180deg,rgba(12,13,18,0.5),#050507)" }}
       >
         <div className="max-w-[600px] mx-auto rv">
           <h2 className="heading text-[1.8rem] sm:text-[2.4rem] text-center text-white leading-[1.15] mb-4">
-            始めるのは簡単。気づきは、すぐに。
+            始めるのは簡単。<br className="sm:hidden" />気づきは、すぐに。
           </h2>
           <p className="text-center text-[13px] text-[#4a4438] font-light mb-14">
             登録からわずか数日で、変化を実感できます。
@@ -461,7 +461,7 @@ export default function LPClient() {
       </section>
 
       {/* ── Final CTA ── */}
-      <section className="relative z-[1] py-40 sm:py-52 px-6 sm:px-10 text-center overflow-hidden">
+      <section className="relative z-[1] py-24 sm:py-40 px-6 sm:px-10 text-center overflow-hidden">
         <div className="relative z-10 max-w-2xl mx-auto rv">
           <h2 className="heading text-[2.4rem] sm:text-[3.5rem] md:text-[4.5rem] text-white leading-[1.05]">
             本当の自分と、<br />もう一度出会う場所。

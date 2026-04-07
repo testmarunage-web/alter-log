@@ -241,3 +241,14 @@
 .gold-col {
   background: linear-gradient(180deg, rgba(201,168,76,0.07), rgba(201,168,76,0.02));
 }
+
+/* スマホではtiltを無効化 */
+@media (max-width: 767px) {
+  .tilt-l, .tilt-r {
+    transform: none !important;
+  }
+  .tilt-l:hover, .tilt-r:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.4) !important;
+  }
+}
