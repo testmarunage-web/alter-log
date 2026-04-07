@@ -36,10 +36,12 @@ async function handleRequest(
     }
   });
 
-  // Clerkインスタンス識別に必要なヘッダーを上書き
-  headers.set("Host", CLERK_INSTANCE_HOST);
+  // TLSホストに合わせてHostを設定（clerk.alter-log.comはSSL未発行のためFAPI hostを使用）
+  headers.set("Host", CLERK_FAPI_HOST);
   headers.set("X-Forwarded-Host", url.host);
   headers.set("X-Forwarded-Proto", "https");
+  // インスタンス識別のためにカスタムドメインを別ヘッダーで伝える
+  headers.set("Clerk-Domain", CLERK_INSTANCE_HOST);
 
   const hasBody = ["POST", "PUT", "PATCH"].includes(req.method);
 
@@ -53,9 +55,13 @@ async function handleRequest(
       duplex: hasBody ? "half" : undefined,
     });
   } catch (err) {
-    const detail = err instanceof Error ? err.message : String(err);
-    console.error("[__clerk proxy] fetch error:", detail);
-    return new NextResponse(JSON.stringify({ error: "proxy_error", detail, targetUrl: targetUrl.toString() }), { status: 502 });
+    const error = err instanceof Error ? err : new Error(String(err));
+    const cause = error.cause instanceof Error ? error.cause.message : String(error.cause ?? "");
+    console.error("[__clerk proxy] fetch error:", error.message, cause);
+    return new NextResponse(
+      JSON.stringify({ error: "proxy_error", detail: error.message, cause, targetUrl: targetUrl.toString() }),
+      { status: 502 }
+    );
   }
 
   // レスポンスヘッダーを転送（hop-by-hop を除く）
