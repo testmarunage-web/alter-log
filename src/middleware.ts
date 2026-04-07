@@ -20,7 +20,7 @@ export default clerkMiddleware(async (auth, req) => {
     await auth.protect();
   }
 }, {
-  frontendApiProxy: { enabled: true },
+  proxyUrl: process.env.NEXT_PUBLIC_CLERK_PROXY_URL,
 });
 
 export const config = {

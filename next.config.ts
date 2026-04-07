@@ -11,6 +11,15 @@ const nextConfig: NextConfig = {
       dynamic: 0,
     },
   },
+  async rewrites() {
+    return [
+      {
+        // /__clerk/:path* → https://clerk.alter-log.com/:path*（/__clerk プレフィックスを除去して転送）
+        source: "/__clerk/:path*",
+        destination: "https://clerk.alter-log.com/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
