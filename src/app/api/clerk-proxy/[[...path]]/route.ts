@@ -52,8 +52,9 @@ async function handleRequest(req: NextRequest): Promise<NextResponse> {
       duplex: hasBody ? "half" : undefined,
     });
   } catch (err) {
-    console.error("[__clerk proxy] fetch error:", err);
-    return new NextResponse(JSON.stringify({ error: "proxy_error" }), { status: 502 });
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error("[__clerk proxy] fetch error:", detail);
+    return new NextResponse(JSON.stringify({ error: "proxy_error", detail, targetUrl: targetUrl.toString() }), { status: 502 });
   }
 
   // レスポンスヘッダーを転送（hop-by-hop を除く）
