@@ -21,18 +21,27 @@ export async function POST(req: Request) {
   const signature = req.headers.get("stripe-signature");
 
   if (!signature) {
+    console.error("[stripe webhook] MISSING stripe-signature header");
     return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
   }
 
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error("[stripe webhook] MISSING STRIPE_WEBHOOK_SECRET env var");
     return NextResponse.json({ error: "STRIPE_WEBHOOK_SECRET is not set" }, { status: 500 });
+  }
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    console.error("[stripe webhook] MISSING STRIPE_SECRET_KEY env var");
+    return NextResponse.json({ error: "STRIPE_SECRET_KEY is not set" }, { status: 500 });
   }
 
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    console.error("[stripe webhook] signature verification failed:", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[stripe webhook] SIGNATURE VERIFICATION FAILED:", msg,
+      "| secret prefix:", process.env.STRIPE_WEBHOOK_SECRET?.slice(0, 12));
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -46,6 +55,13 @@ export async function POST(req: Request) {
 
         // client_reference_id → metadata.clerkId の順で安全に取得
         const clerkId = session.client_reference_id ?? session.metadata?.clerkId ?? null;
+        console.log("[stripe webhook] checkout.session.completed", {
+          sessionId: session.id,
+          clerkId,
+          customerId: session.customer,
+          subscriptionId: session.subscription,
+          mode: session.mode,
+        });
         if (!clerkId) {
           console.error("[stripe webhook] checkout.session.completed: clerkId not found", {
             sessionId: session.id,
