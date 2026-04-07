@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 const CLERK_FAPI_HOST = "frontend-api.clerk.services";
 const CLERK_INSTANCE_HOST = "clerk.alter-log.com";
-// rewriteで /__clerk/:path* → /api/clerk-proxy/:path* に変換されるため、このプレフィックスを除去する
-const ROUTE_PATH_PREFIX = "/api/clerk-proxy";
-// Location ヘッダーのリライトは外部公開パス（/__clerk）に戻す
 const PUBLIC_PROXY_PREFIX = "/__clerk";
 
 // hop-by-hop ヘッダーは転送しない
@@ -19,11 +16,15 @@ const HOP_BY_HOP_HEADERS = [
   "upgrade",
 ];
 
-async function handleRequest(req: NextRequest): Promise<NextResponse> {
+async function handleRequest(
+  req: NextRequest,
+  { params }: { params: Promise<{ path?: string[] }> }
+): Promise<NextResponse> {
   const url = new URL(req.url);
+  const { path } = await params;
 
-  // /api/clerk-proxy 以降のパスを取得（例: /api/clerk-proxy/v1/environment → /v1/environment）
-  const targetPath = url.pathname.slice(ROUTE_PATH_PREFIX.length) || "/";
+  // catch-all params からパスを組み立て（例: ["v1","environment"] → /v1/environment）
+  const targetPath = path && path.length > 0 ? `/${path.join("/")}` : "/";
   const targetUrl = new URL(`https://${CLERK_FAPI_HOST}${targetPath}`);
   targetUrl.search = url.search;
 
@@ -88,8 +89,10 @@ async function handleRequest(req: NextRequest): Promise<NextResponse> {
   });
 }
 
-export const GET = handleRequest;
-export const POST = handleRequest;
-export const PUT = handleRequest;
-export const DELETE = handleRequest;
-export const PATCH = handleRequest;
+type RouteContext = { params: Promise<{ path?: string[] }> };
+
+export const GET    = (req: NextRequest, ctx: RouteContext) => handleRequest(req, ctx);
+export const POST   = (req: NextRequest, ctx: RouteContext) => handleRequest(req, ctx);
+export const PUT    = (req: NextRequest, ctx: RouteContext) => handleRequest(req, ctx);
+export const DELETE = (req: NextRequest, ctx: RouteContext) => handleRequest(req, ctx);
+export const PATCH  = (req: NextRequest, ctx: RouteContext) => handleRequest(req, ctx);
