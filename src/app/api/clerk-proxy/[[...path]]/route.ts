@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const CLERK_FAPI_HOST = "frontend-api.clerk.services";
-const CLERK_INSTANCE_HOST = "clerk.alter-log.com";
+// pk_live_Y2xlcmsuYWx0ZXItbG9nLmNvbSQ をbase64デコードして得たFAPIホスト
+const CLERK_FAPI_HOST = "clerk.alter-log.com";
 const PUBLIC_PROXY_PREFIX = "/__clerk";
 
 // hop-by-hop ヘッダーは転送しない
@@ -36,12 +36,9 @@ async function handleRequest(
     }
   });
 
-  // TLSホストに合わせてHostを設定（clerk.alter-log.comはSSL未発行のためFAPI hostを使用）
   headers.set("Host", CLERK_FAPI_HOST);
   headers.set("X-Forwarded-Host", url.host);
   headers.set("X-Forwarded-Proto", "https");
-  // インスタンス識別のためにカスタムドメインを別ヘッダーで伝える
-  headers.set("Clerk-Domain", CLERK_INSTANCE_HOST);
 
   const hasBody = ["POST", "PUT", "PATCH"].includes(req.method);
 
@@ -77,7 +74,7 @@ async function handleRequest(
   if (location) {
     try {
       const locationUrl = new URL(location);
-      if (locationUrl.host === CLERK_FAPI_HOST || locationUrl.host === CLERK_INSTANCE_HOST) {
+      if (locationUrl.host === CLERK_FAPI_HOST) {
         responseHeaders.set(
           "Location",
           `${url.origin}${PUBLIC_PROXY_PREFIX}${locationUrl.pathname}${locationUrl.search}${locationUrl.hash}`
