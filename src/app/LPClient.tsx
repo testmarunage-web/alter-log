@@ -249,7 +249,7 @@ export default function LPClient() {
                 />
                 <div
                   className="p-6"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}
+                  style={{ borderTop: "1px solid rgba(255,255,255,0.07)", background: "#12141a" }}
                 >
                   <p className="mono text-[#C9A84C] opacity-40 text-[10px] tracking-[0.2em] uppercase mb-2">
                     Feature 01
@@ -276,7 +276,7 @@ export default function LPClient() {
                 />
                 <div
                   className="p-6"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}
+                  style={{ borderTop: "1px solid rgba(255,255,255,0.07)", background: "#12141a" }}
                 >
                   <p className="mono text-[#C9A84C] opacity-40 text-[10px] tracking-[0.2em] uppercase mb-2">
                     Feature 02
@@ -303,7 +303,7 @@ export default function LPClient() {
                 />
                 <div
                   className="p-6"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}
+                  style={{ borderTop: "1px solid rgba(255,255,255,0.07)", background: "#12141a" }}
                 >
                   <p className="mono text-[#C9A84C] opacity-40 text-[10px] tracking-[0.2em] uppercase mb-2">
                     Feature 03
