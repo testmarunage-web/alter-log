@@ -25,13 +25,22 @@ export async function POST() {
   let customerId = user.subscription?.stripeCustomerId;
 
   if (!customerId) {
-    const customer = await stripe.customers.create({
-      metadata: { clerkId: userId },
+    // H-2: 重複作成防止 — DB に記録がなくても Stripe 側に既存 Customer がいる可能性があるため検索を先行する
+    const existing = await stripe.customers.search({
+      query: `metadata["clerkId"]:"${userId}"`,
+      limit: 1,
     });
-    customerId = customer.id;
+    if (existing.data.length > 0) {
+      customerId = existing.data[0].id;
+    } else {
+      const customer = await stripe.customers.create({
+        metadata: { clerkId: userId },
+      });
+      customerId = customer.id;
+    }
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const baseUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
   // JST 2026年4月30日までの期間限定クーポン（初月10%OFF）
   const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000);

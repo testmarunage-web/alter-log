@@ -14,7 +14,12 @@ async function getOrCreateUser() {
   });
 }
 
+const MAX_CONTENT_LENGTH = 8000;
+
 export async function saveChatMessage(content: string) {
+  if (!content || content.length > MAX_CONTENT_LENGTH) {
+    throw new Error(`メッセージは${MAX_CONTENT_LENGTH}文字以内で入力してください。`);
+  }
   const user = await getOrCreateUser();
   const entry = await prisma.journalEntry.create({
     data: { userId: user.id, content },

@@ -11,6 +11,11 @@ export const dynamic = "force-dynamic";
 
 const log = process.env.NODE_ENV !== "production" ? console.log.bind(console) : () => {};
 
+// M-1: インメモリレート制限（Vercelサーバーレスのベストエフォート実装）
+// 同一ユーザーからの呼び出しを1分に1回まで制限する
+const rateLimitMap = new Map<string, number>();
+const RATE_LIMIT_MS = 60_000; // 1分
+
 /** DB上でisActiveかどうかを判定する共通ロジック（layoutと同一ロジック） */
 function checkIsActive(sub: {
   stripeSubscriptionId: string | null;
@@ -25,6 +30,18 @@ function checkIsActive(sub: {
 export async function POST() {
   const { userId: clerkId } = await auth();
   if (!clerkId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // レート制限チェック
+  const now = Date.now();
+  const lastCall = rateLimitMap.get(clerkId);
+  if (lastCall && now - lastCall < RATE_LIMIT_MS) {
+    const retryAfter = Math.ceil((RATE_LIMIT_MS - (now - lastCall)) / 1000);
+    return NextResponse.json(
+      { error: "rate_limited", retryAfter },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } }
+    );
+  }
+  rateLimitMap.set(clerkId, now);
 
   log(`[subscription-activate] start clerkId=${clerkId}`);
 

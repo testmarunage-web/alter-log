@@ -8,7 +8,11 @@ import { generateForDate } from "@/app/actions/generateAlterLog";
 export const dynamic = "force-dynamic";
 
 export async function POST() {
-  if (process.env.NODE_ENV !== "development") {
+  // L-2: NODE_ENV に加えて Vercel 環境も確認（Preview 環境での誤公開防止）
+  const isDevAllowed =
+    process.env.NODE_ENV === "development" ||
+    (process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_VERCEL_ENV !== "production");
+  if (!isDevAllowed) {
     return NextResponse.json({ error: "Dev only" }, { status: 403 });
   }
 
