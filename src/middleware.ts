@@ -20,7 +20,7 @@ export default clerkMiddleware(async (auth, req) => {
     await auth.protect();
   }
 }, {
-  proxyUrl: "https://alter-log.com/__clerk",
+  frontendApiProxy: { enabled: true },
 });
 
 export const config = {
