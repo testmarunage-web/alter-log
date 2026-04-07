@@ -47,7 +47,6 @@ export default async function SubscribePage() {
         <div className="mt-4 space-y-1.5">
           <p className="text-xs text-[#C4A35A]/60 font-medium">7日間返金保証付き</p>
           <p className="text-xs text-[#8A8276]/40">ご満足いただけない場合、7日以内であれば全額返金いたします</p>
-          <p className="text-xs text-[#8A8276]/40">いつでもキャンセル可能</p>
         </div>
 
         {/* ログアウト */}

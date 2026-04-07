@@ -169,7 +169,8 @@ export default function LPClient() {
       {/* ── Hero ── */}
       <section className="relative z-[1] min-h-screen flex items-center px-6 sm:px-10 pt-16">
         <div className="w-full max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-8 lg:gap-6 items-center py-8 sm:py-14">
-          <div>
+          {/* テキスト: スマホ中央揃え、PC左揃え */}
+          <div className="text-center lg:text-left">
             <h1 className="rv">
               <span className="heading block text-[2.6rem] sm:text-[3.6rem] lg:text-[4.6rem] leading-[0.95] text-white">
                 あなた以上に、<br />あなたを知る。
@@ -182,135 +183,127 @@ export default function LPClient() {
               「究極の客観視」を手に入れる。
             </p>
             <p
-              className="mt-8 text-[#6a6358] text-[13px] sm:text-[14px] leading-[2] font-light max-w-md rv"
+              className="mt-6 text-[#6a6358] text-[13px] sm:text-[14px] leading-[2] font-light max-w-md mx-auto lg:mx-0 rv"
               style={{ transitionDelay: "0.2s" }}
             >
               溜め込んだ思考や感情を、そのまま吐き出してみませんか？専属AI「Alter」があなたの言葉を静かに受け止め、無意識のパターンを解き明かします。
             </p>
             <div
-              className="mt-8 flex flex-col items-start rv"
+              className="mt-8 flex flex-col items-center lg:items-start rv"
               style={{ transitionDelay: "0.3s" }}
             >
               <CtaBlock />
             </div>
           </div>
 
-          <div className="relative rv-r" style={{ transitionDelay: "0.3s" }}>
-            <div
-              className="tilt-r rounded-2xl overflow-hidden"
+          {/* Hero画像: PCのみ表示、カード枠なし */}
+          <div className="hidden lg:block relative rv-r" style={{ transitionDelay: "0.3s" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/screenshot-scan-top.jpg"
+              alt="SCAN分析画面"
+              className="w-full"
               style={{
-                background: "#0c0d12",
-                border: "1px solid rgba(255,255,255,0.04)",
-                boxShadow: "0 48px 120px rgba(0,0,0,0.65),inset 0 1px 0 rgba(255,255,255,0.03)",
+                maxHeight: "520px",
+                objectFit: "contain",
+                borderRadius: "16px",
+                boxShadow: "0 48px 120px rgba(0,0,0,0.65)",
               }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/screenshot-scan-top.jpg"
-                alt="SCAN分析画面"
-                className="w-full"
-                style={{ maxHeight: "520px", objectFit: "contain" }}
-              />
-            </div>
+            />
           </div>
         </div>
       </section>
 
       {/* ── Problem ── */}
-      <section className="relative z-[1] py-16 sm:py-32 px-6 sm:px-10">
+      <section className="relative z-[1] py-16 sm:py-28 px-6 sm:px-10">
         <div className="max-w-[580px] mx-auto text-center rv">
           <h2 className="heading text-[1.8rem] sm:text-[2.8rem] text-white leading-[1.15]">
-            「自分の思考」という密室から、<br />抜け出そう。
+            「自分の思考」という<br />
+            <span style={{ whiteSpace: "nowrap" }}>密室から、抜け出そう。</span>
           </h2>
-          <div className="mt-10 space-y-5 text-[13px] sm:text-[14px] text-[#6a6358] leading-[2.2] font-light">
+          <div className="mt-8 space-y-3 text-[13px] sm:text-[14px] text-[#6a6358] leading-[2.2] font-light">
             <p>思考を整理するために日記やジャーナリングを試しても、結局自分の枠を出られない。</p>
             <p>一人で内省を繰り返しても、同じ悩みをループし、自分自身を客観視するには限界がある。</p>
             <p>かといって、プロのコーチングを受けるのはハードルが高い。</p>
           </div>
-          <p className="heading text-[1.3rem] sm:text-[1.9rem] text-[#C9A84C] mt-16 leading-[1.3]">
+          <p className="heading text-[1.3rem] sm:text-[1.9rem] text-[#C9A84C] mt-12 leading-[1.3]">
             Alter Log ── それは「<span style={{ whiteSpace: "nowrap" }}>ジャーナリング2.0</span>」。
           </p>
         </div>
       </section>
 
       {/* ── Features ── */}
-      <section className="relative z-[1] pb-20 px-6 sm:px-10">
+      <section className="relative z-[1] pb-16 px-6 sm:px-10">
         <div className="max-w-[1100px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-          {/* Feature 01: Full bleed image + text */}
-          <div className="mb-32">
-            <div className="rv-s img-card" style={{ boxShadow: "0 40px 100px rgba(0,0,0,0.5)" }}>
+            {/* Feature 01 */}
+            <div className="rv-l img-card">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/images/screenshot-journal.jpg"
                 alt="ジャーナル入力画面"
-                className="w-full block"
+                className="w-full"
+                style={{ height: "280px", objectFit: "cover", objectPosition: "top" }}
               />
-            </div>
-            <div
-              className="mt-10 max-w-xl mx-auto text-center sm:text-left sm:mx-0 rv-l"
-              style={{ transitionDelay: "0.12s" }}
-            >
-              <p className="mono text-[#C9A84C] opacity-25 text-[11px] tracking-[0.2em] uppercase mb-3">
-                Feature 01
-              </p>
-              <h3 className="heading text-[1.5rem] sm:text-[2.2rem] text-white leading-[1.15]">
-                言葉にならないモヤモヤも、
-                <br className="hidden sm:block" />
-                そのまま受け止める。
-              </h3>
-              <p className="mt-4 text-[13px] text-[#6a6358] leading-[2.1] font-light">
-                綺麗な文章を書く必要はありません。思い浮かんだ感情やまとまらない思考、誰かへの不満を、あなたが一番気楽に本音を出せる方法で打ち明けてください。Alterはあなたを許容し、すべてを静かに聞き入れます。
-              </p>
-            </div>
-          </div>
-
-          {/* Feature 02 & 03: Tilted cards side by side */}
-          <div className="mb-20 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-            <div className="rv-l">
-              <div className="tilt-l img-card">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/screenshot-scan-top.jpg"
-                  alt="SCAN分析画面"
-                  className="w-full block"
-                />
-                <div className="p-6 sm:p-8">
-                  <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
-                    Feature 02
-                  </p>
-                  <h3 className="heading text-[1.15rem] sm:text-[1.35rem] text-white leading-[1.2] mb-3">
-                    忖度ゼロの「鏡」が、<br />ハッとする気づきをくれる。
-                  </h3>
-                  <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
-                    Alterにはあなたへの遠慮がありません。何気ない言葉から「無意識のバイアス」を抽出し、あなた自身すら気づいていない真実を突きつけます。
-                  </p>
-                </div>
+              <div className="p-6">
+                <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
+                  Feature 01
+                </p>
+                <h3 className="heading text-[1.1rem] text-white leading-[1.2] mb-3">
+                  言葉にならないモヤモヤも、<br />そのまま受け止める。
+                </h3>
+                <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
+                  綺麗な文章は不要です。思い浮かんだ感情やまとまらない思考を、そのまま打ち明けてください。Alterが静かに聞き入れます。
+                </p>
               </div>
             </div>
-            <div className="rv-r" style={{ transitionDelay: "0.12s" }}>
-              <div className="tilt-r img-card">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/screenshot-alterlog.jpg"
-                  alt="Alter Log観察日記画面"
-                  className="w-full block"
-                />
-                <div className="p-6 sm:p-8">
-                  <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
-                    Feature 03
-                  </p>
-                  <h3 className="heading text-[1.15rem] sm:text-[1.35rem] text-white leading-[1.2] mb-3">
-                    あなたが眠る間に書き上げられる<br />「あなたの観察日記」
-                  </h3>
-                  <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
-                    深夜、Alterは「あなたについての観察日記」を書き上げます。翌朝、自分の脳内を他人のように客観視する未知の体験。
-                  </p>
-                </div>
+
+            {/* Feature 02 */}
+            <div className="rv img-card" style={{ transitionDelay: "0.1s" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/screenshot-scan-top.jpg"
+                alt="SCAN分析画面"
+                className="w-full"
+                style={{ height: "280px", objectFit: "cover", objectPosition: "top" }}
+              />
+              <div className="p-6">
+                <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
+                  Feature 02
+                </p>
+                <h3 className="heading text-[1.1rem] text-white leading-[1.2] mb-3">
+                  忖度ゼロの「鏡」が、<br />ハッとする気づきをくれる。
+                </h3>
+                <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
+                  Alterにはあなたへの遠慮がありません。何気ない言葉から「無意識のバイアス」を抽出し、あなた自身すら気づいていない真実を突きつけます。
+                </p>
               </div>
             </div>
-          </div>
 
+            {/* Feature 03 */}
+            <div className="rv-r img-card" style={{ transitionDelay: "0.2s" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/screenshot-alterlog.jpg"
+                alt="Alter Log観察日記画面"
+                className="w-full"
+                style={{ height: "280px", objectFit: "cover", objectPosition: "top" }}
+              />
+              <div className="p-6">
+                <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
+                  Feature 03
+                </p>
+                <h3 className="heading text-[1.1rem] text-white leading-[1.2] mb-3">
+                  眠る間に書き上げられる<br />「あなたの観察日記」
+                </h3>
+                <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
+                  深夜、Alterは「あなたについての観察日記」を書き上げます。翌朝、自分の脳内を他人のように客観視する未知の体験が始まります。
+                </p>
+              </div>
+            </div>
+
+          </div>
         </div>
       </section>
 
@@ -462,7 +455,8 @@ export default function LPClient() {
       <section className="relative z-[1] py-24 sm:py-40 px-6 sm:px-10 text-center overflow-hidden">
         <div className="relative z-10 max-w-2xl mx-auto rv">
           <h2 className="heading text-[2.4rem] sm:text-[3.5rem] md:text-[4.5rem] text-white leading-[1.05]">
-            本当の自分と、<br />もう一度出会う場所。
+            本当の自分と、<br />
+            <span style={{ whiteSpace: "nowrap" }}>もう一度出会う場所。</span>
           </h2>
           <p className="mt-6 text-[#6a6358] text-[13px] font-light">
             あなたを最も理解するAlterが、ここで待っています。
