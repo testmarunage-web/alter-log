@@ -37,22 +37,32 @@ export async function POST() {
   const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
   const isCouponActive = nowJST < new Date("2026-05-01T00:00:00+09:00");
 
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    client_reference_id: userId, // Clerk userId をセッションに確実に紐付け
-    mode: "subscription",
-    payment_method_types: ["card"],
-    line_items: [
-      {
-        price: process.env.STRIPE_PRICE_ID,
-        quantity: 1,
-      },
-    ],
-    ...(isCouponActive ? { discounts: [{ coupon: "FEwVN2ER" }] } : {}),
-    success_url: `${baseUrl}/payment-pending`,
-    cancel_url: `${baseUrl}/subscribe`,
-    metadata: { clerkId: userId },
-  });
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      client_reference_id: userId, // Clerk userId をセッションに確実に紐付け
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price: process.env.STRIPE_PRICE_ID,
+          quantity: 1,
+        },
+      ],
+      ...(isCouponActive ? { discounts: [{ coupon: "FEwVN2ER" }] } : {}),
+      success_url: `${baseUrl}/payment-pending`,
+      cancel_url: `${baseUrl}/subscribe`,
+      metadata: { clerkId: userId },
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[stripe/checkout] session create failed:", message);
+    return NextResponse.json(
+      { error: "stripe_session_create_failed", detail: message },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ url: session.url });
 }
