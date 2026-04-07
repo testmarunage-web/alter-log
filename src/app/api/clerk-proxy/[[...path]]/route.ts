@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 const CLERK_FAPI_HOST = "frontend-api.clerk.services";
 const CLERK_INSTANCE_HOST = "clerk.alter-log.com";
-const PROXY_PATH_PREFIX = "/__clerk";
+// rewriteで /__clerk/:path* → /api/clerk-proxy/:path* に変換されるため、このプレフィックスを除去する
+const ROUTE_PATH_PREFIX = "/api/clerk-proxy";
+// Location ヘッダーのリライトは外部公開パス（/__clerk）に戻す
+const PUBLIC_PROXY_PREFIX = "/__clerk";
 
 // hop-by-hop ヘッダーは転送しない
 const HOP_BY_HOP_HEADERS = [
@@ -19,8 +22,8 @@ const HOP_BY_HOP_HEADERS = [
 async function handleRequest(req: NextRequest): Promise<NextResponse> {
   const url = new URL(req.url);
 
-  // /__clerk 以降のパスを取得（例: /__clerk/v1/environment → /v1/environment）
-  const targetPath = url.pathname.slice(PROXY_PATH_PREFIX.length) || "/";
+  // /api/clerk-proxy 以降のパスを取得（例: /api/clerk-proxy/v1/environment → /v1/environment）
+  const targetPath = url.pathname.slice(ROUTE_PATH_PREFIX.length) || "/";
   const targetUrl = new URL(`https://${CLERK_FAPI_HOST}${targetPath}`);
   targetUrl.search = url.search;
 
@@ -69,7 +72,7 @@ async function handleRequest(req: NextRequest): Promise<NextResponse> {
       if (locationUrl.host === CLERK_FAPI_HOST || locationUrl.host === CLERK_INSTANCE_HOST) {
         responseHeaders.set(
           "Location",
-          `${url.origin}${PROXY_PATH_PREFIX}${locationUrl.pathname}${locationUrl.search}${locationUrl.hash}`
+          `${url.origin}${PUBLIC_PROXY_PREFIX}${locationUrl.pathname}${locationUrl.search}${locationUrl.hash}`
         );
       }
     } catch {
