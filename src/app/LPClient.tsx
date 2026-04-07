@@ -247,14 +247,17 @@ export default function LPClient() {
                   className="w-full"
                   style={{ aspectRatio: "3/4", objectFit: "cover", objectPosition: "top" }}
                 />
-                <div className="p-6">
-                  <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
+                <div
+                  className="p-6"
+                  style={{ borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}
+                >
+                  <p className="mono text-[#C9A84C] opacity-40 text-[10px] tracking-[0.2em] uppercase mb-2">
                     Feature 01
                   </p>
                   <h3 className="heading text-[1.1rem] text-white leading-[1.2] mb-3">
                     言葉にならないモヤモヤも、<br />そのまま受け止める。
                   </h3>
-                  <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
+                  <p className="text-[12px] text-[#8a8276] leading-[2] font-light">
                     綺麗な文章は不要です。思い浮かんだ感情やまとまらない思考を、そのまま打ち明けてください。Alterが静かに聞き入れます。
                   </p>
                 </div>
@@ -271,14 +274,17 @@ export default function LPClient() {
                   className="w-full"
                   style={{ aspectRatio: "3/4", objectFit: "cover", objectPosition: "top" }}
                 />
-                <div className="p-6">
-                  <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
+                <div
+                  className="p-6"
+                  style={{ borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}
+                >
+                  <p className="mono text-[#C9A84C] opacity-40 text-[10px] tracking-[0.2em] uppercase mb-2">
                     Feature 02
                   </p>
                   <h3 className="heading text-[1.1rem] text-white leading-[1.2] mb-3">
                     忖度ゼロの「鏡」が、<br />ハッとする気づきをくれる。
                   </h3>
-                  <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
+                  <p className="text-[12px] text-[#8a8276] leading-[2] font-light">
                     Alterにはあなたへの遠慮がありません。何気ない言葉から「無意識のバイアス」を抽出し、あなた自身すら気づいていない真実を突きつけます。
                   </p>
                 </div>
@@ -295,14 +301,17 @@ export default function LPClient() {
                   className="w-full"
                   style={{ aspectRatio: "3/4", objectFit: "cover", objectPosition: "top" }}
                 />
-                <div className="p-6">
-                  <p className="mono text-[#C9A84C] opacity-25 text-[10px] tracking-[0.2em] uppercase mb-2">
+                <div
+                  className="p-6"
+                  style={{ borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}
+                >
+                  <p className="mono text-[#C9A84C] opacity-40 text-[10px] tracking-[0.2em] uppercase mb-2">
                     Feature 03
                   </p>
                   <h3 className="heading text-[1.1rem] text-white leading-[1.2] mb-3">
-                    眠る間に書き上げられる<br />「あなたの観察日記」
+                    あなたが眠る間に書き上げられる<br />「あなたの観察日記」
                   </h3>
-                  <p className="text-[12px] text-[#6a6358] leading-[2] font-light">
+                  <p className="text-[12px] text-[#8a8276] leading-[2] font-light">
                     深夜、Alterは「あなたについての観察日記」を書き上げます。翌朝、自分の脳内を他人のように客観視する未知の体験が始まります。
                   </p>
                 </div>
