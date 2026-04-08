@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { saveChatMessage } from "@/app/actions/chat";
 import { AlterIcon } from "../../_components/AlterIcon";
+import { useReadOnly } from "../../_components/ReadOnlyProvider";
 
 // ジャーナルカード用の日時フォーマット
 function formatDateTime(date: Date): string {
@@ -110,6 +111,7 @@ export function ChatInterface({
   const journalListRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
+  const isReadOnly = useReadOnly();
 
   const [journalMessages, setJournalMessages] = useState<JournalMessage[]>(initialJournalMessages);
   const [journalInput, setJournalInput]       = useState("");
@@ -250,7 +252,22 @@ export function ChatInterface({
       {/* ── ジャーナルモード ── */}
       <main className="flex-1 flex flex-col overflow-hidden min-h-0">
 
+        {/* 閲覧モード時: 入力エリアをブロックしてメッセージ表示 */}
+        {isReadOnly && (
+          <div className="flex-none max-w-2xl mx-auto w-full px-4 pt-3 pb-2">
+            <div
+              className="rounded-2xl px-4 py-3 text-center"
+              style={{ background: "rgba(196,163,90,0.06)", border: "1px solid rgba(196,163,90,0.15)" }}
+            >
+              <p className="text-[12px] text-[#C4A35A]/70 leading-relaxed">
+                サブスクリプションの再開が必要です
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* ジャーナルを書くミニバー（入力エリア非表示時） */}
+        {!isReadOnly && (
         <div
           className="flex-none max-w-2xl mx-auto w-full overflow-hidden"
           style={{
@@ -275,8 +292,10 @@ export function ChatInterface({
             </button>
           </div>
         </div>
+        )}
 
         {/* 入力エリア全体（スクロールで非表示・ミニバーで再表示） */}
+        {!isReadOnly && (
         <div
           className="flex-none overflow-hidden"
           style={{
@@ -412,6 +431,7 @@ export function ChatInterface({
             return <PastJournalCard dateStr={pastDateStr} entries={pastJournal.entries} dailyNote={pastJournal.dailyNote} />;
           })()}
         </div>
+        )}
 
         {/* 3. 過去のジャーナルログ（タイムライン・flex-1 スクロール可能） */}
         {journalMessages.length > 0 && (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useCallback, useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { generateDashboardScan } from "@/app/actions/generateAlterLog";
+import { useReadOnly } from "../../_components/ReadOnlyProvider";
 import type { AlterLogInsights } from "@/app/actions/alterLogSchema";
 import { AlterIcon } from "../../_components/AlterIcon";
 
@@ -601,6 +602,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
   const [loadingMsgIdx, setLoadingMsgIdx] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const isReadOnly = useReadOnly();
 
   useEffect(() => {
     if (!isGenerating) { setLoadingMsgIdx(0); return; }
@@ -680,9 +682,9 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
             <button
               type="button"
               onClick={handleGenerate}
-              disabled={!isButtonActive || isGenerating || isPending}
+              disabled={isReadOnly || !isButtonActive || isGenerating || isPending}
               className={`w-full min-h-[56px] flex items-center justify-center py-4 px-5 rounded-lg font-mono ${
-                isButtonActive && !isGenerating && !isPending
+                !isReadOnly && isButtonActive && !isGenerating && !isPending
                   ? "bg-[#8BA89E]/15 border border-[#8BA89E]/40 text-[#8BA89E] hover:bg-[#8BA89E]/25 hover:border-[#8BA89E]/60 hover:shadow-[0_0_20px_rgba(139,168,158,0.3)]"
                   : "bg-white/[0.02] border border-white/[0.05] text-white/20 cursor-not-allowed"
               }`}
@@ -693,10 +695,12 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                   <span className="text-[11px] font-mono text-[#C4A35A]/70 tracking-widest">{LOADING_MESSAGES[loadingMsgIdx]}</span>
                 </div>
               ) : (
-                <span className="text-[13px] font-mono tracking-[0.14em]">{buttonLabel}</span>
+                <span className="text-[13px] font-mono tracking-[0.14em]">
+                  {isReadOnly ? "SCAN  —  サブスクリプションの再開が必要です" : buttonLabel}
+                </span>
               )}
             </button>
-            {helperText && !isGenerating && !isPending && (
+            {!isReadOnly && helperText && !isGenerating && !isPending && (
               <p className="mt-1.5 text-[10px] font-mono text-white/20 text-center tracking-wide">{helperText}</p>
             )}
             {error && (
