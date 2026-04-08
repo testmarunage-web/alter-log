@@ -158,6 +158,19 @@ export async function POST(req: Request) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const priceId = subscription.items.data[0]?.price.id ?? null;
+
+        // cancel_at_period_end=true の場合：期間末解約済みとして即座にCANCELEDに変更。
+        // Stripeは期間終了まで status="active" のままにするが、
+        // 解約操作後に閲覧モードを発動させるためにDB側で先行してCANCELEDとする。
+        if (subscription.cancel_at_period_end) {
+          log(`[stripe webhook] cancel_at_period_end detected, setting CANCELED: subId=${subscription.id}`);
+          await prisma.subscription.updateMany({
+            where: { stripeSubscriptionId: subscription.id },
+            data: { status: "CANCELED" },
+          });
+          break;
+        }
+
         // dahlia API: current_period_end は Subscription 型から削除。latest_invoice の line items から取得。
         const retrievedSub = await stripe.subscriptions.retrieve(subscription.id, {
           expand: ["latest_invoice"],
@@ -192,11 +205,10 @@ export async function POST(req: Request) {
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
 
+        // stripeSubscriptionId は再課金時の照合のために保持する（nullにしない）
         await prisma.subscription.updateMany({
           where: { stripeSubscriptionId: subscription.id },
           data: {
-            stripeSubscriptionId: null,
-            stripePriceId: null,
             status: "CANCELED",
             currentPeriodEnd: null,
           },

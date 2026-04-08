@@ -36,12 +36,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect("/subscribe");
   }
 
-  // currentPeriodEndはStripe APIで取得値が不安定なため判定から除外。
-  // サブスクリプションのライフサイクル管理はStripe側のstatusに完全に委任する。
+  // statusのみで判定する（stripeSubscriptionIdへの依存を排除）。
+  // CANCELED/INACTIVE はstripeSubscriptionIdの有無に関わらず非アクティブとして扱う。
   const isActive =
     process.env.NODE_ENV === "development" ||
-    (!!sub.stripeSubscriptionId &&
-      (sub.status === "ACTIVE" || sub.status === "PAST_DUE"));
+    sub.status === "ACTIVE" ||
+    sub.status === "PAST_DUE";
 
   // サブスクリプションは存在するが非アクティブ（解約後など）→ 閲覧モード
   const isReadOnly = !isActive;
