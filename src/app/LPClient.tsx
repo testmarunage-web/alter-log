@@ -36,6 +36,9 @@ function CtaBlock() {
         <p className="text-[10px] text-[#4a4438] mt-1">
           ※初月10%OFFは4月中のお申し込み限定。次月以降は月額¥2,980。
         </p>
+        <p className="text-[10px] text-[#4a4438] mt-0.5">
+          返金をご希望の場合は support@alter-log.com までご連絡ください。
+        </p>
       </div>
     </>
   );
@@ -386,7 +389,7 @@ export default function LPClient() {
               <span className="text-[15px] text-[#E2D1A0] font-bold tracking-[0.04em]">7日間全額返金保証</span>
             </div>
             <p className="mt-4 text-[13px] text-[#6a6358] font-light">
-              お申し込みから7日以内にご満足いただけなければ、理由を問わず全額返金いたします。
+              お申し込みから7日以内にご満足いただけなければ、理由を問わず全額返金いたします。返金をご希望の場合は support@alter-log.com までご連絡ください。
             </p>
           </div>
         </div>
