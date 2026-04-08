@@ -5,7 +5,8 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-const log = process.env.NODE_ENV !== "production" ? console.log.bind(console) : () => {};
+// 本番でも全ログを出力する（デバッグ・運用監視のため）
+const log = console.log.bind(console);
 
 /** Stripe の current_period_end (Unix秒) を安全に Date に変換する。
  *  undefined / null / NaN の場合は null を返す。 */
@@ -158,43 +159,56 @@ export async function POST(req: Request) {
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const priceId = subscription.items.data[0]?.price.id ?? null;
-        // stripeCustomerId を取得（stripeSubscriptionId が一致しない場合のフォールバック用）
         const subCustomerId =
           typeof subscription.customer === "string"
             ? subscription.customer
             : (subscription.customer as Stripe.Customer | null)?.id ?? null;
 
-        // cancel_at_period_end=true の場合：期間末解約済みとして即座にCANCELEDに変更。
-        // Stripeは期間終了まで status="active" のままにするが、
-        // 解約操作後に閲覧モードを発動させるためにDB側で先行してCANCELEDとする。
-        if (subscription.cancel_at_period_end) {
-          // stripeSubscriptionId または stripeCustomerId で照合（いずれかにマッチすれば更新）
+        // 受信内容を必ずログ出力（Vercelで可視化）
+        console.log("[stripe webhook] subscription.updated fields", {
+          subId: subscription.id,
+          stripeStatus: subscription.status,
+          cancel_at_period_end: subscription.cancel_at_period_end,
+          cancel_at: subscription.cancel_at,
+          customerId: subCustomerId,
+        });
+
+        const orConditions: { stripeSubscriptionId?: string; stripeCustomerId?: string }[] = [
+          { stripeSubscriptionId: subscription.id },
+          ...(subCustomerId ? [{ stripeCustomerId: subCustomerId }] : []),
+        ];
+        const whereClause = { OR: orConditions };
+
+        // 解約検知：cancel_at_period_end=true または cancel_at が設定済み
+        // （Stripe の新旧 API どちらにも対応）
+        const isCanceling =
+          subscription.cancel_at_period_end === true ||
+          subscription.cancel_at != null;
+
+        if (isCanceling) {
           const cancelResult = await prisma.subscription.updateMany({
-            where: {
-              OR: [
-                { stripeSubscriptionId: subscription.id },
-                ...(subCustomerId ? [{ stripeCustomerId: subCustomerId }] : []),
-              ],
-            },
+            where: whereClause,
             data: { status: "CANCELED" },
           });
+          console.log("[stripe webhook] cancellation detected → CANCELED", {
+            count: cancelResult.count,
+            subId: subscription.id,
+          });
           if (cancelResult.count === 0) {
-            console.error("[stripe webhook] cancel_at_period_end: NO rows updated", {
+            console.error("[stripe webhook] cancellation: NO rows matched", {
               subId: subscription.id,
               customerId: subCustomerId,
             });
-          } else {
-            log(`[stripe webhook] cancel_at_period_end: updated ${cancelResult.count} row(s) to CANCELED subId=${subscription.id}`);
           }
           break;
         }
 
-        // dahlia API: current_period_end は Subscription 型から削除。latest_invoice の line items から取得。
+        // 通常の updated（解約なし）
+        // dahlia API: current_period_end は latest_invoice line items から取得
         const retrievedSub = await stripe.subscriptions.retrieve(subscription.id, {
           expand: ["latest_invoice"],
         });
         const updatedInvoice = retrievedSub.latest_invoice as Stripe.Invoice | null;
-        // lines.data[0].period.end がサブスクリプション期間の正しい終了日時（UNIX秒）
         const periodEnd = toPeriodEnd(updatedInvoice?.lines?.data[0]?.period?.end);
 
         const statusMap: Record<string, "ACTIVE" | "INACTIVE" | "PAST_DUE" | "CANCELED"> = {
@@ -207,26 +221,39 @@ export async function POST(req: Request) {
           unpaid: "PAST_DUE",
           paused: "INACTIVE",
         };
-        const status = statusMap[subscription.status] ?? "INACTIVE";
+        const newStatus = statusMap[subscription.status] ?? "INACTIVE";
+
+        // CANCELED 状態のレコードを ACTIVE に戻さない
+        // （解約イベントの後に続く routine update で上書きされるのを防ぐ）
+        // 再開（reactivation）の場合は Stripe が cancel_at_period_end=false かつ
+        // previous_attributes.cancel_at_period_end=true を送るので別途対応が必要な場合は追加する
+        const prevAttrs = event.data.previous_attributes as Record<string, unknown> | undefined;
+        const wasReactivated = prevAttrs?.cancel_at_period_end === true || prevAttrs?.cancel_at != null;
 
         const updateResult = await prisma.subscription.updateMany({
           where: {
-            OR: [
-              { stripeSubscriptionId: subscription.id },
-              ...(subCustomerId ? [{ stripeCustomerId: subCustomerId }] : []),
-            ],
+            ...whereClause,
+            // CANCELED → ACTIVE の上書きは再開(reactivation)時のみ許可
+            ...(newStatus === "ACTIVE" && !wasReactivated
+              ? { NOT: { status: "CANCELED" } }
+              : {}),
           },
           data: {
             stripePriceId: priceId,
-            status,
+            status: newStatus,
             currentPeriodEnd: periodEnd,
           },
         });
+        console.log("[stripe webhook] subscription.updated → status updated", {
+          count: updateResult.count,
+          newStatus,
+          wasReactivated,
+        });
         if (updateResult.count === 0) {
-          console.error("[stripe webhook] subscription.updated: NO rows updated", {
+          console.error("[stripe webhook] subscription.updated: NO rows matched", {
             subId: subscription.id,
             customerId: subCustomerId,
-            status,
+            newStatus,
           });
         }
         break;
