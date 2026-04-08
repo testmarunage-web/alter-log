@@ -81,6 +81,15 @@ export default async function SettingsPage() {
           </SignOutButton>
         </div>
 
+        {/* アカウント削除案内 */}
+        <p className="mt-6 text-center text-[11px] text-white/25 leading-relaxed">
+          アカウントを削除したい場合は{" "}
+          <a href="mailto:support@alter-log.com" className="underline underline-offset-2 hover:text-white/40 transition-colors">
+            support@alter-log.com
+          </a>{" "}
+          までご連絡ください。
+        </p>
+
         {/* フッター：リーガルリンク（中央寄せ） */}
         <footer className="mt-10 flex flex-wrap justify-center gap-x-5 gap-y-2 pb-4">
           <a href="/terms" className="text-[10px] text-white/20 hover:text-white/38 transition-colors">利用規約</a>
