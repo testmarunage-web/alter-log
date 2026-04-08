@@ -41,7 +41,14 @@ export default async function AlterLogPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+  const user = await prisma.user.findUnique({
+    where: { clerkId: userId },
+    include: { subscription: { select: { status: true } } },
+  });
+
+  const subStatus = user?.subscription?.status;
+  const isReadOnly =
+    subStatus === "CANCELED" || subStatus === "INACTIVE" || subStatus == null;
 
   // 今日のJST日付範囲（UTC）
   const nowJstDate = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
@@ -204,8 +211,8 @@ export default async function AlterLogPage() {
                 </div>
               </div>
 
-              {/* 今夜の予告：今日ジャーナルを書いたがまだAlterLogがない場合 */}
-              {todayJournalCount > 0 && !hasTodayLog && (
+              {/* 今夜の予告：今日ジャーナルを書いたがまだAlterLogがない場合（閲覧モード時は非表示） */}
+              {!isReadOnly && todayJournalCount > 0 && !hasTodayLog && (
                 <div className="mt-10 flex items-center gap-3 py-3 px-4 border border-white/[0.05] rounded-lg">
                   <span
                     className="w-1.5 h-1.5 rounded-full flex-shrink-0"
