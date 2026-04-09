@@ -854,7 +854,7 @@ export function ChatInterface({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-[#C4A35A] tracking-wide mb-0.5">1. ジャーナル（点の記録）</p>
-                    <p className="text-xs text-[#9A9488] leading-relaxed">日々感じたことやモヤモヤを、ありのままテキストで吐き出します。すべての起点となります。</p>
+                    <p className="text-xs text-[#9A9488] leading-relaxed">日々感じたことやモヤモヤを、音声やテキストでそのまま吐き出します。すべての起点となります。</p>
                   </div>
                 </div>
 
