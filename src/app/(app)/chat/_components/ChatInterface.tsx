@@ -728,8 +728,8 @@ export function ChatInterface({
                     style={{ height: "120px" }}
                   />
                   {journalInput.length > 0 && (
-                    <span className="absolute bottom-3 right-4 text-[10px] text-[#8A8276]/40 font-mono pointer-events-none">
-                      {journalInput.length}
+                    <span className={`absolute bottom-3 right-4 text-[10px] font-mono pointer-events-none transition-colors ${journalInput.length >= 7500 ? "text-red-400/70" : "text-[#8A8276]/40"}`}>
+                      {journalInput.length.toLocaleString()} / 8,000
                     </span>
                   )}
                 </div>
