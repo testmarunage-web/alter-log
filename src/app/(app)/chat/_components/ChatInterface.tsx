@@ -383,7 +383,89 @@ export function ChatInterface({
         >
           {/* 1. 入力エリア＋送信ボタン */}
           <div className="max-w-2xl mx-auto w-full px-4 pt-3 pb-2">
+
+            {/* フロー説明 */}
+            <div className="flex items-center justify-center gap-1.5 mb-3">
+              <span className={`text-[10px] font-mono transition-colors ${isRecording ? "text-red-400/70" : isTranscribing ? "text-[#C4A35A]/60" : "text-[#8A8276]/35"}`}>① 話すかテキスト入力</span>
+              <span className="text-[10px] text-[#8A8276]/20">→</span>
+              <span className={`text-[10px] font-mono transition-colors ${journalInput.trim() && !isRecording && !isTranscribing ? "text-[#8A8276]/50" : "text-[#8A8276]/20"}`}>② 内容を確認</span>
+              <span className="text-[10px] text-[#8A8276]/20">→</span>
+              <span className={`text-[10px] font-mono transition-colors ${journalInput.trim() && !isRecording && !isTranscribing ? "text-[#C4A35A]/50" : "text-[#8A8276]/20"}`}>③ 保存</span>
+            </div>
+
             <form onSubmit={submitJournal}>
+              {/* ① マイクボタン（主役） */}
+              <button
+                type="button"
+                onClick={handleMicToggle}
+                disabled={isTranscribing || isSaving}
+                aria-label={isRecording ? "録音を停止" : "音声入力を開始"}
+                className={`relative w-full py-5 rounded-2xl font-bold text-[15px] tracking-wide flex items-center justify-center gap-3 transition-all duration-200
+                  ${isRecording
+                    ? "bg-red-500 text-white active:scale-[0.98]"
+                    : isTranscribing
+                      ? "bg-white/[0.05] border border-[#C4A35A]/25 text-[#C4A35A]/70 cursor-not-allowed"
+                      : "bg-white/[0.05] border border-white/[0.10] text-[#E8E3D8]/70 hover:bg-white/[0.08] hover:border-white/[0.18] hover:text-[#E8E3D8] active:scale-[0.98]"
+                  } ${isSaving ? "opacity-40 cursor-not-allowed" : ""}`}
+              >
+                {/* 録音中パルスリング */}
+                {isRecording && (
+                  <span className="absolute inset-0 rounded-2xl border-2 border-red-400/40 animate-ping" />
+                )}
+
+                {isTranscribing ? (
+                  <>
+                    <span className="w-5 h-5 border-2 border-[#C4A35A]/50 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                    音声を変換中...
+                  </>
+                ) : isRecording ? (
+                  <>
+                    {/* 停止アイコン（四角） */}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="flex-shrink-0">
+                      <rect x="5" y="5" width="14" height="14" rx="2" />
+                    </svg>
+                    タップして停止
+                  </>
+                ) : (
+                  <>
+                    {/* マイクアイコン */}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="23" />
+                      <line x1="8" y1="23" x2="16" y2="23" />
+                    </svg>
+                    音声で話す
+                  </>
+                )}
+              </button>
+
+              {/* マイクエラー表示 */}
+              {micError && (
+                <div className="mt-2 rounded-xl px-4 py-2.5 bg-red-500/10 border border-red-500/25 flex items-center justify-between gap-3">
+                  <p className="text-[12px] text-red-400/80 leading-snug">{micError}</p>
+                  <button
+                    type="button"
+                    onClick={() => setMicError(null)}
+                    className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0"
+                    aria-label="閉じる"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* 区切り線（or テキストで入力） */}
+              <div className="flex items-center gap-3 my-3">
+                <div className="flex-1 h-px bg-white/[0.05]" />
+                <span className="text-[10px] text-[#8A8276]/30 font-mono">またはテキストで入力</span>
+                <div className="flex-1 h-px bg-white/[0.05]" />
+              </div>
+
+              {/* ① テキストエリア（② 内容確認も兼ねる） */}
               <div className="relative">
                 <textarea
                   ref={textareaRef}
@@ -394,7 +476,7 @@ export function ChatInterface({
                   onBlur={handleTextareaBlur}
                   placeholder="今日あったこと、感じたこと、モヤモヤ…なんでもどうぞ。"
                   className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
-                  style={{ height: "140px" }}
+                  style={{ height: "120px" }}
                 />
                 {journalInput.length > 0 && (
                   <span className="absolute bottom-3 right-4 text-[10px] text-[#8A8276]/40 font-mono pointer-events-none">
@@ -402,111 +484,28 @@ export function ChatInterface({
                   </span>
                 )}
               </div>
-              {/* 送信ボタン + マイクボタン */}
-              <div className="mt-2.5 flex gap-2">
-                {/* マイクボタン */}
-                <button
-                  type="button"
-                  onClick={handleMicToggle}
-                  disabled={isTranscribing || isSaving}
-                  aria-label={isRecording ? "録音を停止" : "音声入力を開始"}
-                  className={`relative flex-shrink-0 w-[52px] rounded-2xl flex items-center justify-center transition-all duration-200
-                    ${isRecording
-                      ? "bg-red-500/15 border border-red-500/40 text-red-400"
-                      : isTranscribing
-                        ? "bg-white/[0.04] border border-white/[0.10] text-[#C4A35A]"
-                        : "bg-white/[0.03] border border-white/[0.07] text-[#8A8276]/60 hover:text-[#8A8276] hover:border-white/[0.12] hover:bg-white/[0.05]"
-                    } ${(isTranscribing || isSaving) ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  {/* 録音中パルスリング */}
-                  {isRecording && (
-                    <span className="absolute inset-0 rounded-2xl border border-red-500/30 animate-ping" />
-                  )}
-                  {isTranscribing ? (
-                    <span className="w-4 h-4 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin" />
-                  ) : isRecording ? (
-                    /* 録音停止アイコン（四角） */
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                      <rect x="5" y="5" width="14" height="14" rx="2" />
-                    </svg>
-                  ) : (
-                    /* マイクアイコン */
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                      <line x1="12" y1="19" x2="12" y2="23" />
-                      <line x1="8" y1="23" x2="16" y2="23" />
-                    </svg>
-                  )}
-                </button>
 
-                {/* 送信ボタン */}
-                <button
-                  type="submit"
-                  disabled={!journalInput.trim() || isSaving}
-                  className={`flex-1 py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2
-                    ${journalInput.trim() && !isSaving
-                      ? "bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.3)] active:scale-[0.98]"
-                      : "bg-white/[0.03] border border-white/[0.06] text-[#8A8276]/30 cursor-not-allowed"
-                    }`}
-                >
-                  {isSaving ? (
-                    <span className="w-4 h-4 border border-[#8A8276]/60 border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                  )}
-                  {isSaving ? "保存中..." : "ジャーナルを記録する"}
-                </button>
-              </div>
-            </form>
-
-            {/* マイクエラー表示 */}
-            {micError && (
-              <div className="mt-2 rounded-xl px-4 py-2.5 bg-red-500/10 border border-red-500/25 flex items-center justify-between gap-3">
-                <p className="text-[12px] text-red-400/80 leading-snug">{micError}</p>
-                <button
-                  type="button"
-                  onClick={() => setMicError(null)}
-                  className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0"
-                  aria-label="閉じる"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
+              {/* ③ 送信ボタン */}
+              <button
+                type="submit"
+                disabled={!journalInput.trim() || isSaving}
+                className={`mt-2.5 w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2
+                  ${journalInput.trim() && !isSaving
+                    ? "bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.3)] active:scale-[0.98]"
+                    : "bg-white/[0.03] border border-white/[0.06] text-[#8A8276]/30 cursor-not-allowed"
+                  }`}
+              >
+                {isSaving ? (
+                  <span className="w-4 h-4 border border-[#8A8276]/60 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                   </svg>
-                </button>
-              </div>
-            )}
-
-            {/* 音声文字起こし中インジケーター */}
-            {isTranscribing && (
-              <div className="mt-2 rounded-xl px-4 py-2 bg-[#C4A35A]/08 border border-[#C4A35A]/20">
-                <p className="text-[11px] text-[#C4A35A]/60 text-center">音声を文字に変換しています...</p>
-              </div>
-            )}
-
-            {/* 録音中インジケーター */}
-            {isRecording && (
-              <div className="mt-2 rounded-xl px-4 py-2 bg-red-500/08 border border-red-500/20 flex items-center justify-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                <p className="text-[11px] text-red-400/70">録音中... もう一度タップで停止</p>
-              </div>
-            )}
-
-            {/* フォーカス時ヒント（既存音声ヒントを削除済み・非表示） */}
-            {showFocusTooltip && false && (
-              <div className="mt-2 rounded-xl px-4 py-2.5 bg-[#C4A35A]/10 border border-[#C4A35A]/30 flex items-center justify-between gap-3">
-                <p className="text-[12px] text-white/60 leading-snug">
-                  左のマイクボタンで音声入力できます
-                </p>
-                <button type="button" onClick={handleTooltipDismiss} className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0" aria-label="閉じる">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                </button>
-              </div>
-            )}
+                )}
+                {isSaving ? "保存中..." : "ジャーナルを記録する"}
+              </button>
+            </form>
           </div>
 
           {/* 2. ヒントアコーディオン（今日の投稿が0件のときのみ表示） */}
