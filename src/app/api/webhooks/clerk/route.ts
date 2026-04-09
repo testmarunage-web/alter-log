@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { Webhook } from "svix";
 import { WebhookEvent } from "@clerk/nextjs/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -32,11 +33,22 @@ export async function POST(req: Request) {
     return new Response("Invalid webhook signature", { status: 400 });
   }
 
-  // ユーザー作成時に DB へ同期
+  // ユーザー作成時に DB へ同期（Webhook の重複発火によるレースコンディション対策）
   if (evt.type === "user.created") {
-    await prisma.user.create({
-      data: { clerkId: evt.data.id },
-    });
+    try {
+      await prisma.user.upsert({
+        where:  { clerkId: evt.data.id },
+        update: {},
+        create: { clerkId: evt.data.id },
+      });
+    } catch (err) {
+      // 並行リクエストによる一意制約違反は無視して 200 を返す
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+        console.warn("[clerk webhook] P2002 ignored for clerkId:", evt.data.id);
+      } else {
+        throw err;
+      }
+    }
   }
 
   // ユーザー削除時に DB からも削除（Cascade でプロフィール等も削除される）
