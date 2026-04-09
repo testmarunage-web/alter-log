@@ -493,15 +493,6 @@ export function ChatInterface({
           {/* 1. 入力エリア＋送信ボタン */}
           <div className="max-w-2xl mx-auto w-full px-4 pt-3 pb-2">
 
-            {/* フロー説明 */}
-            <div className="flex items-center justify-center gap-1.5 mb-3">
-              <span className={`text-[10px] font-mono transition-colors ${isRecording ? "text-red-400/70" : isTranscribing ? "text-[#C4A35A]/60" : "text-[#8A8276]/35"}`}>① 話すかテキスト入力</span>
-              <span className="text-[10px] text-[#8A8276]/20">→</span>
-              <span className={`text-[10px] font-mono transition-colors ${journalInput.trim() && !isRecording && !isTranscribing ? "text-[#8A8276]/50" : "text-[#8A8276]/20"}`}>② 内容を確認</span>
-              <span className="text-[10px] text-[#8A8276]/20">→</span>
-              <span className={`text-[10px] font-mono transition-colors ${journalInput.trim() && !isRecording && !isTranscribing ? "text-[#C4A35A]/50" : "text-[#8A8276]/20"}`}>③ 保存</span>
-            </div>
-
             <form onSubmit={submitJournal}>
               {/* ① マイクボタン（主役） */}
               <button
@@ -575,12 +566,8 @@ export function ChatInterface({
                 </div>
               )}
 
-              {/* 区切り線（or テキストで入力） */}
-              <div className="flex items-center gap-3 my-3">
-                <div className="flex-1 h-px bg-white/[0.05]" />
-                <span className="text-[10px] text-[#8A8276]/30 font-mono">またはテキストで入力</span>
-                <div className="flex-1 h-px bg-white/[0.05]" />
-              </div>
+              {/* 区切り */}
+              <p className="text-center text-[11px] text-[#8A8276]/25 my-2.5">または</p>
 
               {/* ① テキストエリア（② 内容確認も兼ねる） */}
               <div className="relative">
