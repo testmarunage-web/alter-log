@@ -125,6 +125,7 @@ export function ChatInterface({
   const [isRecording, setIsRecording]         = useState(false);
   const [isTranscribing, setIsTranscribing]   = useState(false);
   const [micError, setMicError]               = useState<string | null>(null);
+  const [textInputOpen, setTextInputOpen]     = useState(false);
   const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
   const audioChunksRef    = useRef<Blob[]>([]);
   const audioContextRef   = useRef<AudioContext | null>(null);
@@ -328,7 +329,8 @@ export function ChatInterface({
           const { text } = await res.json() as { text: string };
           if (text?.trim()) {
             setJournalInput((prev) => prev ? `${prev}\n${text.trim()}` : text.trim());
-            // テキストエリアにフォーカスを戻す
+            // テキストエリアを開いてフォーカスを戻す
+            setTextInputOpen(true);
             setTimeout(() => textareaRef.current?.focus(), 100);
           }
         } else {
@@ -589,48 +591,88 @@ export function ChatInterface({
               )}
 
               {/* 区切り */}
-              <p className="text-center text-[11px] text-[#8A8276]/25 my-2.5">または</p>
+              <p className="text-center text-[11px] text-[#8A8276]/20 my-2.5">または</p>
 
-              {/* ① テキストエリア（② 内容確認も兼ねる） */}
-              <div className="relative">
-                <textarea
-                  ref={textareaRef}
-                  value={journalInput}
-                  onChange={handleJournalInputChange}
-                  onKeyDown={(e) => handleKeyDown(e, () => submitJournal())}
-                  onFocus={handleTextareaFocus}
-                  onBlur={handleTextareaBlur}
-                  placeholder="今日あったこと、感じたこと、モヤモヤ…なんでもどうぞ。"
-                  className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
-                  style={{ height: "120px" }}
-                />
-                {journalInput.length > 0 && (
-                  <span className="absolute bottom-3 right-4 text-[10px] text-[#8A8276]/40 font-mono pointer-events-none">
-                    {journalInput.length}
-                  </span>
-                )}
-              </div>
-
-              {/* ③ 送信ボタン */}
+              {/* テキストで入力 トグルボタン */}
               <button
-                type="submit"
-                disabled={!journalInput.trim() || isSaving}
-                className={`mt-2.5 w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2
-                  ${journalInput.trim() && !isSaving
-                    ? "bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.3)] active:scale-[0.98]"
-                    : "bg-white/[0.03] border border-white/[0.06] text-[#8A8276]/30 cursor-not-allowed"
+                type="button"
+                onClick={() => {
+                  const next = !textInputOpen;
+                  setTextInputOpen(next);
+                  if (next) setTimeout(() => textareaRef.current?.focus(), 50);
+                }}
+                className={`w-full py-3.5 rounded-2xl text-sm font-medium flex items-center justify-center gap-2.5 transition-all duration-200
+                  ${textInputOpen
+                    ? "border border-white/[0.10] bg-white/[0.04] text-[#E8E3D8]/60"
+                    : "border border-white/[0.08] bg-transparent text-[#8A8276]/50 hover:text-[#8A8276]/80 hover:border-white/[0.13] hover:bg-white/[0.03]"
                   }`}
               >
-                {isSaving ? (
-                  <span className="w-4 h-4 border border-[#8A8276]/60 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                )}
-                {isSaving ? "保存中..." : "ジャーナルを記録する"}
+                {/* 鉛筆アイコン */}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                テキストで入力
+                {/* 開閉シェブロン */}
+                <svg
+                  width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  className="flex-shrink-0 transition-transform duration-200"
+                  style={{ transform: textInputOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
               </button>
+
+              {/* テキストエリア（アニメーション付き開閉） */}
+              <div
+                className="overflow-hidden"
+                style={{
+                  maxHeight: textInputOpen ? "200px" : "0px",
+                  transition: "max-height 0.3s cubic-bezier(0.4,0,0.2,1)",
+                }}
+              >
+                <div className="relative pt-2">
+                  <textarea
+                    ref={textareaRef}
+                    value={journalInput}
+                    onChange={handleJournalInputChange}
+                    onKeyDown={(e) => handleKeyDown(e, () => submitJournal())}
+                    onFocus={handleTextareaFocus}
+                    onBlur={handleTextareaBlur}
+                    placeholder="今日あったこと、感じたこと、モヤモヤ…"
+                    className="w-full resize-none bg-white/[0.025] border border-white/[0.07] focus:border-[#C4A35A]/35 rounded-2xl px-5 py-4 text-sm leading-relaxed text-[#E8E3D8] placeholder:text-[#8A8276]/40 focus:outline-none transition-colors"
+                    style={{ height: "120px" }}
+                  />
+                  {journalInput.length > 0 && (
+                    <span className="absolute bottom-3 right-4 text-[10px] text-[#8A8276]/40 font-mono pointer-events-none">
+                      {journalInput.length}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* 送信ボタン（テキストがある、またはテキストエリアが開いているときに表示） */}
+              {(textInputOpen || journalInput.trim()) && (
+                <button
+                  type="submit"
+                  disabled={!journalInput.trim() || isSaving}
+                  className={`mt-2.5 w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2
+                    ${journalInput.trim() && !isSaving
+                      ? "bg-[#C4A35A] text-[#0B0E13] hover:bg-[#D4B36A] hover:shadow-[0_0_20px_rgba(196,163,90,0.3)] active:scale-[0.98]"
+                      : "bg-white/[0.03] border border-white/[0.06] text-[#8A8276]/30 cursor-not-allowed"
+                    }`}
+                >
+                  {isSaving ? (
+                    <span className="w-4 h-4 border border-[#8A8276]/60 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                  )}
+                  {isSaving ? "保存中..." : "ジャーナルを記録する"}
+                </button>
+              )}
             </form>
           </div>
 
