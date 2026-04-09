@@ -136,6 +136,7 @@ export function ChatInterface({
   const waveCanvasRef     = useRef<HTMLCanvasElement | null>(null);
   const elapsedTimerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoStopTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoStoppedRef    = useRef(false); // onstop の stale closure 対策
 
   const MAX_REC_SEC = 300; // 5分
 
@@ -317,7 +318,8 @@ export function ChatInterface({
     }
 
     const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
-    const recorder = new MediaRecorder(stream, { mimeType });
+    // 64kbps に制限: 5分 × 64000bps / 8 ≈ 2.4MB（Whisper 25MB 上限に余裕）
+    const recorder = new MediaRecorder(stream, { mimeType, audioBitsPerSecond: 64000 });
     audioChunksRef.current = [];
 
     recorder.ondataavailable = (e) => {
@@ -325,20 +327,27 @@ export function ChatInterface({
     };
 
     recorder.onstop = async () => {
+      // autoStoppedRef で stale closure を回避
+      const wasAutoStopped = autoStoppedRef.current;
       stopRecordingResources();
       stream.getTracks().forEach((t) => t.stop());
       setIsRecording(false);
 
       const blob = new Blob(audioChunksRef.current, { type: mimeType });
+      const blobSizeMB = (blob.size / 1024 / 1024).toFixed(2);
+      console.log(`[recording] onstop blob size=${blobSizeMB}MB chunks=${audioChunksRef.current.length} autoStopped=${wasAutoStopped}`);
+
       if (blob.size < 200) {
         setRecElapsed(0);
+        autoStoppedRef.current = false;
         return;
       }
 
       setIsTranscribing(true);
       try {
+        const ext = mimeType.includes("webm") ? "webm" : "mp4";
         const fd = new FormData();
-        fd.append("audio", blob, `audio.${mimeType.includes("webm") ? "webm" : "mp4"}`);
+        fd.append("audio", blob, `audio.${ext}`);
         const res = await fetch("/api/transcribe", { method: "POST", body: fd });
 
         if (res.ok) {
@@ -348,25 +357,39 @@ export function ChatInterface({
             setTextInputOpen(true);
             setTimeout(() => textareaRef.current?.focus(), 100);
           }
+          // 自動停止の場合は続きを促すメッセージを表示（エラーではなく通知）
+          if (wasAutoStopped) {
+            setMicError("5分経過のため録音を終了しました。続きがある場合はもう一度録音してください。");
+          }
         } else {
           const errBody = await res.json().catch(() => ({ error: "不明なエラー" }));
-          setMicError(`音声の変換に失敗しました。お手数ですが、短めに区切って再度お試しください。${errBody.error ? `（${errBody.error}）` : ""}`);
+          if (wasAutoStopped) {
+            setMicError("録音を終了しました。続きがある場合はもう一度マイクボタンを押してお話しください。");
+          } else {
+            setMicError(`音声の変換に失敗しました。お手数ですが、短めに区切って再度お試しください。${errBody.error ? `（${errBody.error}）` : ""}`);
+          }
         }
       } catch {
-        setMicError("音声の送信に失敗しました。接続を確認してください。");
+        setMicError(wasAutoStopped
+          ? "録音を終了しました。続きがある場合はもう一度マイクボタンを押してお話しください。"
+          : "音声の送信に失敗しました。接続を確認してください。"
+        );
       } finally {
         setIsTranscribing(false);
         setAutoStopped(false);
+        autoStoppedRef.current = false;
         setRecElapsed(0);
       }
     };
 
     mediaRecorderRef.current = recorder;
-    recorder.start();
+    // timeslice 250ms: 定期的に ondataavailable を発火させてデータロスを防ぐ
+    recorder.start(250);
 
     // 経過秒数カウンター（1秒ごと）
     setRecElapsed(0);
     setAutoStopped(false);
+    autoStoppedRef.current = false;
     elapsedTimerRef.current = setInterval(() => {
       setRecElapsed((prev) => prev + 1);
     }, 1000);
@@ -374,6 +397,7 @@ export function ChatInterface({
     // 5分自動停止タイマー
     autoStopTimerRef.current = setTimeout(() => {
       if (mediaRecorderRef.current?.state === "recording") {
+        autoStoppedRef.current = true;
         setAutoStopped(true);
         mediaRecorderRef.current.stop();
       }
