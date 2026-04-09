@@ -125,8 +125,12 @@ export function ChatInterface({
   const [isRecording, setIsRecording]         = useState(false);
   const [isTranscribing, setIsTranscribing]   = useState(false);
   const [micError, setMicError]               = useState<string | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef   = useRef<Blob[]>([]);
+  const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
+  const audioChunksRef    = useRef<Blob[]>([]);
+  const audioContextRef   = useRef<AudioContext | null>(null);
+  const analyserRef       = useRef<AnalyserNode | null>(null);
+  const animFrameRef      = useRef<number | null>(null);
+  const waveCanvasRef     = useRef<HTMLCanvasElement | null>(null);
 
   // 初回のみウェルカムモーダルを表示
   useEffect(() => {
@@ -137,12 +141,14 @@ export function ChatInterface({
     } catch { /* localStorage unavailable */ }
   }, []);
 
-  // コンポーネントアンマウント時に録音を停止
+  // コンポーネントアンマウント時に録音・AudioContextをクリーンアップ
   useEffect(() => {
     return () => {
       if (mediaRecorderRef.current?.state === "recording") {
         mediaRecorderRef.current.stop();
       }
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      audioContextRef.current?.close();
     };
   }, []);
 
@@ -169,11 +175,95 @@ export function ChatInterface({
   }
 
   // ── 音声入力（Whisper API） ──────────────────────────────────────────────
+
+  /** AudioContext / AnalyserNode を停止・解放する */
+  function stopAudioVisualizer() {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    audioContextRef.current?.close();
+    audioContextRef.current = null;
+    analyserRef.current = null;
+    // canvas をクリア
+    const canvas = waveCanvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      ctx?.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  /** AnalyserNode から周波数データを取得してキャンバスに描画 */
+  function startWaveDrawLoop() {
+    const draw = () => {
+      const canvas = waveCanvasRef.current;
+      const analyser = analyserRef.current;
+      if (!canvas || !analyser) return;
+
+      // キャンバスの内部解像度を表示サイズに同期（初回 & リサイズ対応）
+      const dpr = window.devicePixelRatio || 1;
+      const displayW = canvas.clientWidth;
+      const displayH = canvas.clientHeight;
+      if (canvas.width !== Math.round(displayW * dpr) || canvas.height !== Math.round(displayH * dpr)) {
+        canvas.width = Math.round(displayW * dpr);
+        canvas.height = Math.round(displayH * dpr);
+      }
+
+      const ctx2d = canvas.getContext("2d");
+      if (!ctx2d) return;
+
+      // 毎フレームリセット（transform の積み上がり防止）
+      ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx2d.clearRect(0, 0, displayW, displayH);
+
+      const BAR_COUNT = 8;
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(dataArray);
+
+      // 声帯域（低〜中周波数の前半）を使用
+      const voiceBins = Math.floor(analyser.frequencyBinCount * 0.45);
+
+      const gap = 4;
+      const totalGap = gap * (BAR_COUNT - 1);
+      const barW = (displayW - totalGap) / BAR_COUNT;
+      const minBarH = 4;
+
+      for (let i = 0; i < BAR_COUNT; i++) {
+        const sampleIdx = Math.floor((i / BAR_COUNT) * voiceBins);
+        const v = dataArray[sampleIdx] / 255; // 0〜1
+        const barH = minBarH + v * (displayH - minBarH * 2);
+        const x = i * (barW + gap);
+        const y = (displayH - barH) / 2;
+        const r = Math.min(barW / 2, 4);
+
+        ctx2d.globalAlpha = 0.35 + v * 0.65;
+        ctx2d.fillStyle = "#C9A84C";
+
+        // 角丸バー（quadraticCurveTo で描画）
+        ctx2d.beginPath();
+        ctx2d.moveTo(x + r, y);
+        ctx2d.lineTo(x + barW - r, y);
+        ctx2d.quadraticCurveTo(x + barW, y, x + barW, y + r);
+        ctx2d.lineTo(x + barW, y + barH - r);
+        ctx2d.quadraticCurveTo(x + barW, y + barH, x + barW - r, y + barH);
+        ctx2d.lineTo(x + r, y + barH);
+        ctx2d.quadraticCurveTo(x, y + barH, x, y + barH - r);
+        ctx2d.lineTo(x, y + r);
+        ctx2d.quadraticCurveTo(x, y, x + r, y);
+        ctx2d.closePath();
+        ctx2d.fill();
+      }
+
+      animFrameRef.current = requestAnimationFrame(draw);
+    };
+    animFrameRef.current = requestAnimationFrame(draw);
+  }
+
   async function handleMicToggle() {
     setMicError(null);
 
     if (isRecording) {
-      // 録音停止
+      // 録音停止（onstop でビジュアライザーも止まる）
       mediaRecorderRef.current?.stop();
       return;
     }
@@ -196,6 +286,8 @@ export function ChatInterface({
     };
 
     recorder.onstop = async () => {
+      // ビジュアライザー停止
+      stopAudioVisualizer();
       // マイクストリームを解放
       stream.getTracks().forEach((t) => t.stop());
       setIsRecording(false);
@@ -229,6 +321,23 @@ export function ChatInterface({
 
     mediaRecorderRef.current = recorder;
     recorder.start();
+
+    // AudioContext + AnalyserNode を録音ストリームに接続
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const AudioCtxClass = window.AudioContext ?? (window as any).webkitAudioContext;
+      const audioCtx = new AudioCtxClass() as AudioContext;
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;            // 32 bins — 軽量
+      analyser.smoothingTimeConstant = 0.75;
+      audioCtx.createMediaStreamSource(stream).connect(analyser);
+      audioContextRef.current = audioCtx;
+      analyserRef.current = analyser;
+      startWaveDrawLoop();
+    } catch {
+      // AudioContext が使えない環境でも録音は続行
+    }
+
     setIsRecording(true);
   }
 
@@ -400,12 +509,12 @@ export function ChatInterface({
                 onClick={handleMicToggle}
                 disabled={isTranscribing || isSaving}
                 aria-label={isRecording ? "録音を停止" : "音声入力を開始"}
-                className={`relative w-full py-5 rounded-2xl font-bold text-[15px] tracking-wide flex items-center justify-center gap-3 transition-all duration-200
+                className={`relative w-full rounded-2xl font-bold text-[15px] tracking-wide flex flex-col items-center justify-center gap-0 transition-all duration-200
                   ${isRecording
-                    ? "bg-red-500 text-white active:scale-[0.98]"
+                    ? "bg-red-500 text-white active:scale-[0.98] pt-4 pb-3"
                     : isTranscribing
-                      ? "bg-white/[0.05] border border-[#C4A35A]/25 text-[#C4A35A]/70 cursor-not-allowed"
-                      : "bg-white/[0.05] border border-white/[0.10] text-[#E8E3D8]/70 hover:bg-white/[0.08] hover:border-white/[0.18] hover:text-[#E8E3D8] active:scale-[0.98]"
+                      ? "bg-white/[0.05] border border-[#C4A35A]/25 text-[#C4A35A]/70 cursor-not-allowed py-5"
+                      : "bg-white/[0.05] border border-white/[0.10] text-[#E8E3D8]/70 hover:bg-white/[0.08] hover:border-white/[0.18] hover:text-[#E8E3D8] active:scale-[0.98] py-5"
                   } ${isSaving ? "opacity-40 cursor-not-allowed" : ""}`}
               >
                 {/* 録音中パルスリング */}
@@ -414,20 +523,28 @@ export function ChatInterface({
                 )}
 
                 {isTranscribing ? (
-                  <>
+                  <span className="flex items-center gap-3">
                     <span className="w-5 h-5 border-2 border-[#C4A35A]/50 border-t-transparent rounded-full animate-spin flex-shrink-0" />
                     音声を変換中...
-                  </>
+                  </span>
                 ) : isRecording ? (
                   <>
-                    {/* 停止アイコン（四角） */}
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="flex-shrink-0">
-                      <rect x="5" y="5" width="14" height="14" rx="2" />
-                    </svg>
-                    タップして停止
+                    {/* 停止アイコン + テキスト */}
+                    <span className="flex items-center gap-2.5 mb-2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="flex-shrink-0">
+                        <rect x="5" y="5" width="14" height="14" rx="2" />
+                      </svg>
+                      タップして停止
+                    </span>
+                    {/* ウェーブフォームキャンバス */}
+                    <canvas
+                      ref={waveCanvasRef}
+                      className="w-full rounded-sm"
+                      style={{ height: "32px", display: "block", pointerEvents: "none" }}
+                    />
                   </>
                 ) : (
-                  <>
+                  <span className="flex items-center gap-3">
                     {/* マイクアイコン */}
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
                       <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
@@ -436,7 +553,7 @@ export function ChatInterface({
                       <line x1="8" y1="23" x2="16" y2="23" />
                     </svg>
                     音声で話す
-                  </>
+                  </span>
                 )}
               </button>
 
