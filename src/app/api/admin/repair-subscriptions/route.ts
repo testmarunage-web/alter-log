@@ -54,16 +54,27 @@ export async function POST(req: Request) {
   for (const row of nullRows) {
     const subId = row.stripeSubscriptionId!;
     try {
-      const sub = await stripe.subscriptions.retrieve(subId);
+      // latest_invoice を展開して period.end を取得（Webhookハンドラと同じロジック）
+      const sub = await stripe.subscriptions.retrieve(subId, {
+        expand: ["latest_invoice"],
+      });
       const priceId = sub.items.data[0]?.price.id ?? null;
-      const periodEnd = toPeriodEnd((sub as unknown as { current_period_end: number }).current_period_end);
+
+      // periodEnd の取得: 複数の場所を順番に試す
+      // 1. latest_invoice.lines.data[0].period.end（Webhookハンドラと同じ）
+      // 2. sub.current_period_end（旧API / フォールバック）
+      const invoice = sub.latest_invoice as import("stripe").Stripe.Invoice | null;
+      const periodEndFromInvoice = toPeriodEnd(invoice?.lines?.data[0]?.period?.end);
+      const periodEndFromSub = toPeriodEnd((sub as unknown as { current_period_end?: number }).current_period_end);
+      const periodEnd = periodEndFromInvoice ?? periodEndFromSub;
+
+      console.log(`[repair] subId=${subId} priceId=${priceId} periodEndInvoice=${periodEndFromInvoice?.toISOString()} periodEndSub=${periodEndFromSub?.toISOString()}`);
 
       await prisma.subscription.update({
         where: { id: row.id },
         data: {
           stripePriceId: priceId,
           currentPeriodEnd: periodEnd,
-          // キャンセル済みは ACTIVE に戻さない
           ...(sub.status === "active" || sub.status === "trialing"
             ? { status: "ACTIVE" }
             : sub.status === "canceled"
