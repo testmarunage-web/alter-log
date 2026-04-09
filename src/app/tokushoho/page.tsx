@@ -20,7 +20,7 @@ export default function TokushohoPage() {
       {/* コンテンツ */}
       <div className="max-w-3xl mx-auto px-6 py-16">
         <h1 className="text-2xl font-black text-[#C4A35A] mb-2 tracking-tight">特定商取引法に基づく表記</h1>
-        <p className="text-xs text-[#8A8276] mb-12">最終更新日：2026年3月31日</p>
+        <p className="text-xs text-[#8A8276] mb-12">最終更新日：2026年4月9日</p>
 
         <div className="space-y-0 text-sm">
           {[
