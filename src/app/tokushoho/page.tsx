@@ -25,9 +25,9 @@ export default function TokushohoPage() {
         <div className="space-y-0 text-sm">
           {[
             ["販売業者", "株式会社シュババ"],
-            ["運営責任者", "請求があれば遅滞なく開示いたします"],
+            ["運営責任者", "柴戸 祐貴"],
             ["所在地", "〒107-0062 東京都港区南青山2-2-15 ウィン青山942"],
-            ["お問い合わせ", "Email: support@alter-log.com"],
+            ["お問い合わせ", "Email: support@alter-log.com\nサポート対応時間：平日 10:00〜18:00"],
             ["サービス名称", "Alter Log"],
             ["サービス内容", "AIを活用した思考分析・内省支援サブスクリプションサービス"],
             ["販売価格", "月額2,980円（税込）※期間限定で初月10%OFF（2,682円）のキャンペーンを実施する場合があります"],
@@ -35,12 +35,12 @@ export default function TokushohoPage() {
             ["支払い時期", "お申し込み時に初回課金。以降、お申し込み日を起算日として毎月同日に自動課金されます"],
             ["サービス提供時期", "お申し込み・決済完了後、直ちにご利用いただけます"],
             ["解約・キャンセルについて", "いつでも解約可能です。解約後は、現在の請求期間の終了日まで引き続きご利用いただけます。終了日以降の課金は発生しません。"],
-            ["返金ポリシー", "お申し込みから7日以内にご満足いただけない場合、理由を問わず全額返金いたします。返金をご希望の場合は、カスタマーサポートまでご連絡ください。"],
+            ["返金ポリシー", "お申し込みから7日以内にご満足いただけない場合、理由を問わず全額返金いたします。返金をご希望の場合は、support@alter-log.com までご連絡ください。"],
             ["動作環境", "推奨ブラウザ：Google Chrome / Safari / Firefox / Microsoft Edge（いずれも最新版）。スマートフォン：iOS 16以上 / Android 12以上推奨。"],
           ].map(([label, value]) => (
             <div key={label} className="flex flex-col sm:flex-row border-b border-white/[0.06] py-5 gap-1 sm:gap-8">
               <dt className="font-medium text-[#E8E3D8] sm:w-48 flex-shrink-0">{label}</dt>
-              <dd className="text-[#8A8276] sm:flex-1">{value}</dd>
+              <dd className="text-[#8A8276] sm:flex-1 whitespace-pre-line">{value}</dd>
             </div>
           ))}
         </div>
