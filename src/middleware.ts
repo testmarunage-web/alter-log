@@ -13,6 +13,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/cron(.*)",
   "/api/subscription-status(.*)",
   "/api/subscription-activate(.*)",
+  "/api/admin(.*)",
   "/opengraph-image",
 ]);
 
