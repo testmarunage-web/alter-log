@@ -20,8 +20,8 @@ model User {
 
   lastDashboardScanAt DateTime? // SCANボタン最終実行日時
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt     @db.Timestamptz
 
   // リレーション
   profile        UserProfile?
@@ -53,8 +53,8 @@ model UserProfile {
   // AIが参照する人格プロンプト（アンケート回答から自動生成して保存）
   aiPersonaPrompt String @db.Text
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt     @db.Timestamptz
 
   @@map("user_profiles")
 }
@@ -75,8 +75,8 @@ model Subscription {
   isEarlyBird      Boolean            @default(false) // アーリーバード永続フラグ
   currentPeriodEnd DateTime?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt     @db.Timestamptz
 
   @@map("subscriptions")
 }
@@ -104,8 +104,8 @@ model Session {
 
   messages Message[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt     @db.Timestamptz
 
   @@unique([userId, date]) // 1ユーザー1日1セッション
   @@map("sessions")
@@ -125,7 +125,7 @@ model Message {
   // RAG用ベクトル（pgvector: 1536次元 = text-embedding-3-small）
   embedding Unsupported("vector(1536)")?
 
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz
 
   @@map("messages")
 }
@@ -153,7 +153,7 @@ model WeeklyReport {
   // 例: { "sessionCount": 5, "topThemes": [...], "moodTrend": [...] }
   chartData Json
 
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz
 
   @@unique([userId, weekStart])
   @@map("weekly_reports")
@@ -169,8 +169,8 @@ model JournalEntry {
 
   content String @db.Text
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt     @db.Timestamptz
 
   @@map("journal_entries")
 }
@@ -186,7 +186,7 @@ model CoachMessage {
   role    String // "user" または "ai"
   content String @db.Text
 
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz
 
   @@map("coach_messages")
 }
@@ -204,7 +204,7 @@ model AlterLog {
   insights Json // 分析データ（項目の増減に柔軟対応）
   thoughtProfile String? // 思考プロファイル（例: 「慎重すぎる参謀型マーケター」）
 
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz
 
   @@unique([userId, date]) // 同一ユーザー・同一日付の重複生成を防止
   @@map("alter_logs")
@@ -222,8 +222,8 @@ model ScanResult {
   insights       Json     // 全分析データ（fact_emotion_ratio, cognitive_bias_detected, etc.）
   thoughtProfile String?  // 思考プロファイル（例: 「慎重すぎる参謀型マーケター」）
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt     @db.Timestamptz
 
   @@unique([userId, date])
   @@map("scan_results")
