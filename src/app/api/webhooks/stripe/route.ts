@@ -89,6 +89,19 @@ export async function POST(req: Request) {
           break;
         }
 
+        // Stripe API からサブスクリプション詳細を即時取得（invoice.payment_succeeded 待ち不要）
+        let priceId: string | null = null;
+        let periodEnd: Date | null = null;
+        try {
+          const sub = await stripe.subscriptions.retrieve(subscriptionId);
+          priceId = sub.items.data[0]?.price.id ?? null;
+          // current_period_end を直接参照（Unix秒）
+          periodEnd = toPeriodEnd((sub as unknown as { current_period_end: number }).current_period_end);
+          log(`[stripe webhook] subscription retrieved priceId=${priceId} periodEnd=${periodEnd?.toISOString()} t=+${Date.now() - webhookStart}ms`);
+        } catch (subErr) {
+          console.error("[stripe webhook] subscription retrieve failed (will save without price/period):", subErr);
+        }
+
         // User をDBに確保（clerkIdで紐付け）
         let user: { id: string };
         try {
@@ -103,7 +116,7 @@ export async function POST(req: Request) {
           throw dbErr;
         }
 
-        // Subscription をACTIVEで保存（periodEndはinvoice.payment_succeededで後から更新される）
+        // 全フィールドを一括で保存
         try {
           await prisma.subscription.upsert({
             where: { userId: user.id },
@@ -111,17 +124,19 @@ export async function POST(req: Request) {
               userId: user.id,
               stripeCustomerId: customerId,
               stripeSubscriptionId: subscriptionId,
-              stripePriceId: null,
+              stripePriceId: priceId,
               status: "ACTIVE",
-              currentPeriodEnd: null,
+              currentPeriodEnd: periodEnd,
             },
             update: {
               stripeCustomerId: customerId,
               stripeSubscriptionId: subscriptionId,
+              stripePriceId: priceId,
               status: "ACTIVE",
+              currentPeriodEnd: periodEnd,
             },
           });
-          log(`[stripe webhook] checkout.session.completed: DB updated clerkId=${clerkId} t=+${Date.now() - webhookStart}ms`);
+          log(`[stripe webhook] checkout.session.completed: DB updated clerkId=${clerkId} priceId=${priceId} t=+${Date.now() - webhookStart}ms`);
         } catch (dbErr) {
           console.error("[stripe webhook] subscription upsert failed:", dbErr);
           throw dbErr;
@@ -131,21 +146,30 @@ export async function POST(req: Request) {
 
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
-        // dahlia API: subscription は invoice.parent.subscription_details.subscription に移動
-        const subDetails = invoice.parent?.subscription_details;
-        const subscriptionId =
-          typeof subDetails?.subscription === "string"
+
+        // 新旧 Stripe API 両方に対応してsubscriptionIdを取得
+        // 新API (Stripe API 2024+): invoice.parent.subscription_details.subscription
+        // 旧API: invoice.subscription
+        const subDetails = (invoice as unknown as { parent?: { subscription_details?: { subscription?: string | { id: string } } } }).parent?.subscription_details;
+        const subscriptionId: string | null =
+          (typeof subDetails?.subscription === "string"
             ? subDetails.subscription
-            : subDetails?.subscription?.id ?? null;
-        if (!subscriptionId) break;
+            : subDetails?.subscription?.id)
+          ?? (typeof (invoice as unknown as { subscription?: string | { id: string } }).subscription === "string"
+            ? (invoice as unknown as { subscription: string }).subscription
+            : ((invoice as unknown as { subscription?: { id: string } }).subscription?.id ?? null));
+
+        if (!subscriptionId) {
+          log("[stripe webhook] invoice.payment_succeeded: no subscriptionId, skipping");
+          break;
+        }
 
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0]?.price.id ?? null;
-        // dahlia API: invoice.period_end はインボイス作成時刻を返すバグがある。
-        // lines.data[0].period.end がサブスクリプション期間の正しい終了日時（UNIX秒）。
+        // lines.data[0].period.end がサブスクリプション期間の正しい終了日時（UNIX秒）
         const periodEnd = toPeriodEnd(invoice.lines.data[0]?.period?.end);
 
-        await prisma.subscription.updateMany({
+        const result = await prisma.subscription.updateMany({
           where: { stripeSubscriptionId: subscriptionId },
           data: {
             stripePriceId: priceId,
@@ -153,6 +177,7 @@ export async function POST(req: Request) {
             currentPeriodEnd: periodEnd,
           },
         });
+        log(`[stripe webhook] invoice.payment_succeeded: updated ${result.count} rows priceId=${priceId} periodEnd=${periodEnd?.toISOString()}`);
         break;
       }
 
