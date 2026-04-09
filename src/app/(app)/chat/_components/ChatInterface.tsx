@@ -126,12 +126,18 @@ export function ChatInterface({
   const [isTranscribing, setIsTranscribing]   = useState(false);
   const [micError, setMicError]               = useState<string | null>(null);
   const [textInputOpen, setTextInputOpen]     = useState(false);
+  const [recElapsed, setRecElapsed]           = useState(0);   // 録音経過秒数
+  const [autoStopped, setAutoStopped]         = useState(false); // 5分自動停止フラグ
   const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
   const audioChunksRef    = useRef<Blob[]>([]);
   const audioContextRef   = useRef<AudioContext | null>(null);
   const analyserRef       = useRef<AnalyserNode | null>(null);
   const animFrameRef      = useRef<number | null>(null);
   const waveCanvasRef     = useRef<HTMLCanvasElement | null>(null);
+  const elapsedTimerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoStopTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const MAX_REC_SEC = 300; // 5分
 
   // 初回のみウェルカムモーダルを表示
   useEffect(() => {
@@ -142,13 +148,15 @@ export function ChatInterface({
     } catch { /* localStorage unavailable */ }
   }, []);
 
-  // コンポーネントアンマウント時に録音・AudioContextをクリーンアップ
+  // コンポーネントアンマウント時に録音・AudioContext・タイマーをクリーンアップ
   useEffect(() => {
     return () => {
       if (mediaRecorderRef.current?.state === "recording") {
         mediaRecorderRef.current.stop();
       }
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
+      if (autoStopTimerRef.current) clearTimeout(autoStopTimerRef.current);
       audioContextRef.current?.close();
     };
   }, []);
@@ -177,16 +185,23 @@ export function ChatInterface({
 
   // ── 音声入力（Whisper API） ──────────────────────────────────────────────
 
-  /** AudioContext / AnalyserNode を停止・解放する */
-  function stopAudioVisualizer() {
+  /** 録音に紐づくすべてのタイマー・AudioContext を停止・解放する */
+  function stopRecordingResources() {
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = null;
     }
+    if (elapsedTimerRef.current) {
+      clearInterval(elapsedTimerRef.current);
+      elapsedTimerRef.current = null;
+    }
+    if (autoStopTimerRef.current) {
+      clearTimeout(autoStopTimerRef.current);
+      autoStopTimerRef.current = null;
+    }
     audioContextRef.current?.close();
     audioContextRef.current = null;
     analyserRef.current = null;
-    // canvas をクリア
     const canvas = waveCanvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext("2d");
@@ -287,7 +302,7 @@ export function ChatInterface({
     setMicError(null);
 
     if (isRecording) {
-      // 録音停止（onstop でビジュアライザーも止まる）
+      // 手動停止
       mediaRecorderRef.current?.stop();
       return;
     }
@@ -310,14 +325,15 @@ export function ChatInterface({
     };
 
     recorder.onstop = async () => {
-      // ビジュアライザー停止
-      stopAudioVisualizer();
-      // マイクストリームを解放
+      stopRecordingResources();
       stream.getTracks().forEach((t) => t.stop());
       setIsRecording(false);
 
       const blob = new Blob(audioChunksRef.current, { type: mimeType });
-      if (blob.size < 200) return; // 録音が短すぎる場合はスキップ
+      if (blob.size < 200) {
+        setRecElapsed(0);
+        return;
+      }
 
       setIsTranscribing(true);
       try {
@@ -329,23 +345,39 @@ export function ChatInterface({
           const { text } = await res.json() as { text: string };
           if (text?.trim()) {
             setJournalInput((prev) => prev ? `${prev}\n${text.trim()}` : text.trim());
-            // テキストエリアを開いてフォーカスを戻す
             setTextInputOpen(true);
             setTimeout(() => textareaRef.current?.focus(), 100);
           }
         } else {
-          const { error } = await res.json().catch(() => ({ error: "不明なエラー" }));
-          setMicError(`音声の変換に失敗しました。${error ?? ""}`);
+          const errBody = await res.json().catch(() => ({ error: "不明なエラー" }));
+          setMicError(`音声の変換に失敗しました。お手数ですが、短めに区切って再度お試しください。${errBody.error ? `（${errBody.error}）` : ""}`);
         }
       } catch {
         setMicError("音声の送信に失敗しました。接続を確認してください。");
       } finally {
         setIsTranscribing(false);
+        setAutoStopped(false);
+        setRecElapsed(0);
       }
     };
 
     mediaRecorderRef.current = recorder;
     recorder.start();
+
+    // 経過秒数カウンター（1秒ごと）
+    setRecElapsed(0);
+    setAutoStopped(false);
+    elapsedTimerRef.current = setInterval(() => {
+      setRecElapsed((prev) => prev + 1);
+    }, 1000);
+
+    // 5分自動停止タイマー
+    autoStopTimerRef.current = setTimeout(() => {
+      if (mediaRecorderRef.current?.state === "recording") {
+        setAutoStopped(true);
+        mediaRecorderRef.current.stop();
+      }
+    }, MAX_REC_SEC * 1000);
 
     // AudioContext + AnalyserNode を録音ストリームに接続
     try {
@@ -353,17 +385,23 @@ export function ChatInterface({
       const AudioCtxClass = window.AudioContext ?? (window as any).webkitAudioContext;
       const audioCtx = new AudioCtxClass() as AudioContext;
       const analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 64;            // 32 bins — 軽量
-      analyser.smoothingTimeConstant = 0.88; // 高めにして動きを滑らかに
+      analyser.fftSize = 64;
+      analyser.smoothingTimeConstant = 0.88;
       audioCtx.createMediaStreamSource(stream).connect(analyser);
       audioContextRef.current = audioCtx;
       analyserRef.current = analyser;
-      // ドローループは useEffect([isRecording]) で開始（canvas が DOM に現れた後）
     } catch {
       // AudioContext が使えない環境でも録音は続行
     }
 
     setIsRecording(true);
+  }
+
+  /** mm:ss フォーマット */
+  function fmtTime(sec: number): string {
+    const m = Math.floor(sec / 60).toString().padStart(1, "0");
+    const s = (sec % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
   }
 
   // 過去ジャーナルのスクロール検知 → 入力エリアの表示/非表示
@@ -549,6 +587,12 @@ export function ChatInterface({
                       <rect x="5" y="5" width="14" height="14" rx="2" />
                     </svg>
                     タップして停止
+                    {/* 経過時間カウンター */}
+                    <span
+                      className={`ml-1 font-mono text-[13px] font-normal transition-colors ${recElapsed >= MAX_REC_SEC - 30 ? "text-red-200" : "text-white/70"}`}
+                    >
+                      {fmtTime(recElapsed)} / {fmtTime(MAX_REC_SEC)}
+                    </span>
                   </>
                 ) : (
                   <>
@@ -563,13 +607,29 @@ export function ChatInterface({
                 )}
               </button>
 
+              {/* 録音開始直後: 上限案内 */}
+              {isRecording && (
+                <p className="mt-1.5 text-center text-[10px] text-white/30 font-mono">
+                  最大5分まで録音できます
+                </p>
+              )}
+
               {/* ウェーブフォームキャンバス（録音中のみボタン下に表示） */}
               {isRecording && (
                 <canvas
                   ref={waveCanvasRef}
-                  className="w-full mt-2 rounded-lg"
+                  className="w-full mt-1.5 rounded-lg"
                   style={{ height: "36px", display: "block" }}
                 />
+              )}
+
+              {/* 5分自動停止メッセージ */}
+              {autoStopped && isTranscribing && (
+                <div className="mt-2 rounded-xl px-4 py-2.5 bg-[#C4A35A]/08 border border-[#C4A35A]/20">
+                  <p className="text-[12px] text-[#C4A35A]/70 text-center">
+                    録音時間の上限に達したため停止しました。内容を変換しています...
+                  </p>
+                </div>
               )}
 
               {/* マイクエラー表示 */}
