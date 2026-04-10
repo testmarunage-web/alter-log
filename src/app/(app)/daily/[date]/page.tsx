@@ -71,22 +71,10 @@ export default async function DailyPage({
 
   if (journals.length === 0 && !alterLog) notFound();
 
-  // Alter Log のインサイト解析
+  // Alter Log のインサイト解析（daily_note と is_insufficient_data のみ使用）
   let insights: Partial<{
     daily_note: string;
     is_insufficient_data: boolean;
-    fact_emotion_ratio: { fact_percentage: number; emotion_percentage: number; analysis: string };
-    cognitive_bias_detected: { bias_name: string; description: string };
-    passive_voice_status: string;
-    passive_voice_title: string | null;
-    observed_loops: string | null;
-    observed_loops_title: string | null;
-    blind_spots: string | null;
-    blind_spots_title: string | null;
-    pending_decisions: string | null;
-    pending_decisions_title: string | null;
-    positive_observation: string | null;
-    positive_observation_title: string | null;
   }> | null = null;
 
   if (alterLog) {
@@ -108,43 +96,10 @@ export default async function DailyPage({
   const hasJournals      = journals.length > 0;
   const hasInsights      = !!insights;
 
-  // Alter Log 全体コピーテキストを事前構築
-  const alterLogCopyText = (() => {
-    if (!insights) return "";
-    const parts: string[] = [];
-    if (insights.daily_note && insights.daily_note !== "INSUFFICIENT_DATA") parts.push(insights.daily_note);
-    if (!insights.is_insufficient_data) {
-      if (insights.fact_emotion_ratio) {
-        parts.push(`【事実・感情バランス】FACT ${insights.fact_emotion_ratio.fact_percentage}% / EMOTION ${insights.fact_emotion_ratio.emotion_percentage}%`);
-        if (insights.fact_emotion_ratio.analysis) parts.push(insights.fact_emotion_ratio.analysis);
-      }
-      if (insights.cognitive_bias_detected?.bias_name && insights.cognitive_bias_detected.bias_name !== "INSUFFICIENT_DATA") {
-        parts.push(`【認知バイアス検知】「${insights.cognitive_bias_detected.bias_name}」`);
-        if (insights.cognitive_bias_detected.description) parts.push(insights.cognitive_bias_detected.description);
-      }
-      if (insights.passive_voice_status) {
-        parts.push(`【意思決定の主体性】${insights.passive_voice_title ? `「${insights.passive_voice_title}」` : ""}`);
-        parts.push(insights.passive_voice_status);
-      }
-      if (insights.observed_loops) {
-        parts.push(`【思考ループ観測】${insights.observed_loops_title ? `「${insights.observed_loops_title}」` : ""}`);
-        parts.push(insights.observed_loops);
-      }
-      if (insights.blind_spots) {
-        parts.push(`【盲点エリア】${insights.blind_spots_title ? `「${insights.blind_spots_title}」` : ""}`);
-        parts.push(insights.blind_spots);
-      }
-      if (insights.pending_decisions) {
-        parts.push(`【保留リスト】${insights.pending_decisions_title ? `「${insights.pending_decisions_title}」` : ""}`);
-        parts.push(insights.pending_decisions);
-      }
-      if (insights.positive_observation) {
-        parts.push(`【ポジティブな観測】${insights.positive_observation_title ? `「${insights.positive_observation_title}」` : ""}`);
-        parts.push(insights.positive_observation);
-      }
-    }
-    return parts.filter(Boolean).join("\n\n");
-  })();
+  const dailyNote = insights?.daily_note && insights.daily_note !== "INSUFFICIENT_DATA"
+    ? insights.daily_note
+    : null;
+  const isInsufficient = insights?.is_insufficient_data ?? false;
 
   return (
     <div className="bg-[#0B0E13] min-h-screen px-4 py-8 pb-24">
@@ -214,90 +169,15 @@ export default async function DailyPage({
                 <span className="text-[9px] text-[#8A8276]/30 font-mono">— Alterの観測日記</span>
               </div>
               <div className="rounded-xl border border-[#C4A35A]/15 overflow-hidden" style={{ background: "rgba(196,163,90,0.025)" }}>
-                {insights.daily_note && insights.daily_note !== "INSUFFICIENT_DATA" && (
-                  <div className="px-5 py-5 border-b border-[#C4A35A]/10">
-                    <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">{insights.daily_note}</p>
+                {dailyNote ? (
+                  <div className="px-5 py-5">
+                    <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">{dailyNote}</p>
                   </div>
-                )}
-                {insights.is_insufficient_data && (
-                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                ) : isInsufficient ? (
+                  <div className="px-5 py-4">
                     <p className="font-mono text-[11px] text-white/30">— 情報量不足のため解析できません</p>
                   </div>
-                )}
-                {!insights.is_insufficient_data && insights.fact_emotion_ratio && (
-                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-2">事実・感情バランス</p>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                        <div className="h-full rounded-full" style={{ width: `${insights.fact_emotion_ratio.fact_percentage}%`, background: "rgba(196,163,90,0.60)" }} />
-                      </div>
-                      <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums flex-shrink-0">FACT {insights.fact_emotion_ratio.fact_percentage}%</span>
-                    </div>
-                    {insights.fact_emotion_ratio.analysis && (
-                      <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.fact_emotion_ratio.analysis}</p>
-                    )}
-                  </div>
-                )}
-                {!insights.is_insufficient_data && insights.cognitive_bias_detected && (
-                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">認知バイアス検知</p>
-                    {insights.cognitive_bias_detected.bias_name && insights.cognitive_bias_detected.bias_name !== "INSUFFICIENT_DATA" ? (
-                      <>
-                        <p className="font-mono text-[14px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.cognitive_bias_detected.bias_name}」</p>
-                        {insights.cognitive_bias_detected.description && (
-                          <p className="text-[13px] text-[#E8E3D8]/50 leading-relaxed">{insights.cognitive_bias_detected.description}</p>
-                        )}
-                      </>
-                    ) : (
-                      <p className="font-mono text-[11px] text-white/30">偏りなし</p>
-                    )}
-                  </div>
-                )}
-                {!insights.is_insufficient_data && insights.passive_voice_status && (
-                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">意思決定の主体性</p>
-                    {insights.passive_voice_title && (
-                      <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.passive_voice_title}」</p>
-                    )}
-                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.passive_voice_status}</p>
-                  </div>
-                )}
-                {insights.observed_loops && (
-                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">思考ループ観測</p>
-                    {insights.observed_loops_title && (
-                      <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.observed_loops_title}」</p>
-                    )}
-                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.observed_loops}</p>
-                  </div>
-                )}
-                {insights.blind_spots && (
-                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">盲点エリア</p>
-                    {insights.blind_spots_title && (
-                      <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.blind_spots_title}」</p>
-                    )}
-                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.blind_spots}</p>
-                  </div>
-                )}
-                {insights.pending_decisions && (
-                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">保留リスト</p>
-                    {insights.pending_decisions_title && (
-                      <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.pending_decisions_title}」</p>
-                    )}
-                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.pending_decisions}</p>
-                  </div>
-                )}
-                {!insights.is_insufficient_data && insights.positive_observation && (
-                  <div className="px-5 py-4">
-                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">ポジティブな観測</p>
-                    {insights.positive_observation_title && (
-                      <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.positive_observation_title}」</p>
-                    )}
-                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.positive_observation}</p>
-                  </div>
-                )}
+                ) : null}
               </div>
             </section>
           </DailyAccordion>
@@ -351,129 +231,25 @@ export default async function DailyPage({
               <AlterIcon size={11} />
               <span className="font-mono text-[9px] tracking-[0.2em] text-[#C4A35A]/60 uppercase">Alter Log</span>
               <span className="text-[9px] text-[#8A8276]/30 font-mono">— Alterの観測日記</span>
-              {alterLogCopyText && (
+              {dailyNote && (
                 <span className="ml-auto">
-                  <CopyButton text={alterLogCopyText} />
+                  <CopyButton text={dailyNote} />
                 </span>
               )}
             </div>
 
             <div className="rounded-xl border border-[#C4A35A]/15 overflow-hidden" style={{ background: "rgba(196,163,90,0.025)" }}>
-
-              {/* daily_note */}
-              {insights.daily_note && insights.daily_note !== "INSUFFICIENT_DATA" && (
-                <div className="px-5 py-5 border-b border-[#C4A35A]/10">
+              {dailyNote ? (
+                <div className="px-5 py-5">
                   <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">
-                    {insights.daily_note}
+                    {dailyNote}
                   </p>
                 </div>
-              )}
-
-              {/* 情報量不足 */}
-              {insights.is_insufficient_data && (
-                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+              ) : isInsufficient ? (
+                <div className="px-5 py-4">
                   <p className="font-mono text-[11px] text-white/30">— 情報量不足のため解析できません</p>
                 </div>
-              )}
-
-              {/* 事実・感情バランス */}
-              {!insights.is_insufficient_data && insights.fact_emotion_ratio && (
-                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-2">事実・感情バランス</p>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${insights.fact_emotion_ratio.fact_percentage}%`, background: "rgba(196,163,90,0.60)" }}
-                      />
-                    </div>
-                    <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums flex-shrink-0">
-                      FACT {insights.fact_emotion_ratio.fact_percentage}%
-                    </span>
-                  </div>
-                  {insights.fact_emotion_ratio.analysis && (
-                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">
-                      {insights.fact_emotion_ratio.analysis}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* 認知バイアス検知 */}
-              {!insights.is_insufficient_data && insights.cognitive_bias_detected && (
-                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">認知バイアス検知</p>
-                  {insights.cognitive_bias_detected.bias_name && insights.cognitive_bias_detected.bias_name !== "INSUFFICIENT_DATA" ? (
-                    <>
-                      <p className="font-mono text-[14px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">
-                        「{insights.cognitive_bias_detected.bias_name}」
-                      </p>
-                      {insights.cognitive_bias_detected.description && (
-                        <p className="text-[13px] text-[#E8E3D8]/50 leading-relaxed">
-                          {insights.cognitive_bias_detected.description}
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <p className="font-mono text-[11px] text-white/30">偏りなし</p>
-                  )}
-                </div>
-              )}
-
-              {/* 意思決定の主体性 */}
-              {!insights.is_insufficient_data && insights.passive_voice_status && (
-                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">意思決定の主体性</p>
-                  {insights.passive_voice_title && (
-                    <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.passive_voice_title}」</p>
-                  )}
-                  <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.passive_voice_status}</p>
-                </div>
-              )}
-
-              {/* 思考ループ観測 */}
-              {insights.observed_loops && (
-                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">思考ループ観測</p>
-                  {insights.observed_loops_title && (
-                    <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.observed_loops_title}」</p>
-                  )}
-                  <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.observed_loops}</p>
-                </div>
-              )}
-
-              {/* 盲点エリア */}
-              {insights.blind_spots && (
-                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">盲点エリア</p>
-                  {insights.blind_spots_title && (
-                    <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.blind_spots_title}」</p>
-                  )}
-                  <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.blind_spots}</p>
-                </div>
-              )}
-
-              {/* 保留リスト */}
-              {insights.pending_decisions && (
-                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">保留リスト</p>
-                  {insights.pending_decisions_title && (
-                    <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.pending_decisions_title}」</p>
-                  )}
-                  <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.pending_decisions}</p>
-                </div>
-              )}
-
-              {/* ポジティブな観測 */}
-              {!insights.is_insufficient_data && insights.positive_observation && (
-                <div className="px-5 py-4">
-                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">ポジティブな観測</p>
-                  {insights.positive_observation_title && (
-                    <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.positive_observation_title}」</p>
-                  )}
-                  <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.positive_observation}</p>
-                </div>
-              )}
+              ) : null}
             </div>
           </section>
         )}
