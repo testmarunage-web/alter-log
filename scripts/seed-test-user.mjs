@@ -101,7 +101,7 @@ const JOURNALS = [
 const DAYS = [
   {
     date: "2026-04-07",
-    thoughtProfile: "自己評価が揺れやすい完璧主義タイプ。批判を全人格への否定として受け取る傾向があるが、時間をおくと事実ベースで立て直せる内省力を持つ。",
+    thoughtProfile: "批判に過剰反応するが1日で立て直せる感情型実務家",
     insights: {
       is_insufficient_data: false,
       fact_emotion_ratio: {
@@ -128,7 +128,7 @@ const DAYS = [
   },
   {
     date: "2026-04-08",
-    thoughtProfile: "自己批判が強いが、行動に移ると結果を出せる実行型。感情と仕事を混同する局面と、切り分けられる局面が交互に現れる。",
+    thoughtProfile: "思い込みを自力で外せる再フレーミング型の行動者",
     insights: {
       is_insufficient_data: false,
       fact_emotion_ratio: {
@@ -155,7 +155,7 @@ const DAYS = [
   },
   {
     date: "2026-04-09",
-    thoughtProfile: "他者への影響に敏感で、自分の言動がチームに与える作用を観察できる。転職という人生選択を定期的に検討するが、その動機の精査を先送りにする傾向がある。",
+    thoughtProfile: "場の空気を読む優しさが自分の決断を後回しにする観察者",
     insights: {
       is_insufficient_data: false,
       fact_emotion_ratio: {
@@ -182,7 +182,7 @@ const DAYS = [
   },
   {
     date: "2026-04-10",
-    thoughtProfile: "外部との対話で自分の思考が整理されるタイプ。一人で抱え込む傾向があるが、他者への意識が高まると急速にパフォーマンスが改善する。",
+    thoughtProfile: "対話の中でこそ力を発揮する、一人で抱え込みがちな共鳴型リーダー",
     insights: {
       is_insufficient_data: false,
       fact_emotion_ratio: {
@@ -209,7 +209,7 @@ const DAYS = [
   },
   {
     date: "2026-04-11",
-    thoughtProfile: "週単位で感情と行動のパターンを俯瞰できる構造的思考者。自己評価は保守的だが、外部フィードバックによって客観的な自己像を更新できる柔軟性を持つ。",
+    thoughtProfile: "成長を自覚しないまま変化し続ける謙遜型の内省家",
     insights: {
       is_insufficient_data: false,
       fact_emotion_ratio: {
