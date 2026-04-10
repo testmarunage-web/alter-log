@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AlterIcon } from "@/app/(app)/_components/AlterIcon";
 import { alterLogSchema } from "@/app/actions/alterLogSchema";
+import { DailyAccordion } from "./_components/DailyAccordion";
 
 export const dynamic = "force-dynamic";
 
@@ -155,39 +156,103 @@ export default async function DailyPage({
           </section>
         )}
 
-        {/* from=journal → Alter Logを折りたたみリンクで案内 */}
+        {/* from=journal → Alter Logをアコーディオンで表示 */}
         {from === "journal" && hasInsights && (
-          <div className="mb-6">
-            <Link
-              href={`/daily/${date}`}
-              className="flex items-center gap-2 text-[10px] text-[#C4A35A]/50 hover:text-[#C4A35A]/80 transition-colors font-mono tracking-wide group"
-            >
-              <AlterIcon size={10} />
-              この日のAlter Logも見る
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-0.5 transition-transform">
-                <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-              </svg>
-            </Link>
-          </div>
+          <DailyAccordion label="この日のAlter Logを見る" accent="alterlog">
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <AlterIcon size={11} />
+                <span className="font-mono text-[9px] tracking-[0.2em] text-[#C4A35A]/60 uppercase">Alter Log</span>
+                <span className="text-[9px] text-[#8A8276]/30 font-mono">— Alterの観測日記</span>
+              </div>
+              <div className="rounded-xl border border-[#C4A35A]/15 overflow-hidden" style={{ background: "rgba(196,163,90,0.025)" }}>
+                {insights.daily_note && insights.daily_note !== "INSUFFICIENT_DATA" && (
+                  <div className="px-5 py-5 border-b border-[#C4A35A]/10">
+                    <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">{insights.daily_note}</p>
+                  </div>
+                )}
+                {insights.is_insufficient_data && (
+                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                    <p className="font-mono text-[11px] text-white/30">— 情報量不足のため解析できません</p>
+                  </div>
+                )}
+                {!insights.is_insufficient_data && insights.fact_emotion_ratio && (
+                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-2">事実・感情バランス</p>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                        <div className="h-full rounded-full" style={{ width: `${insights.fact_emotion_ratio.fact_percentage}%`, background: "rgba(196,163,90,0.60)" }} />
+                      </div>
+                      <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums flex-shrink-0">FACT {insights.fact_emotion_ratio.fact_percentage}%</span>
+                    </div>
+                    {insights.fact_emotion_ratio.analysis && (
+                      <p className="text-[12px] text-[#E8E3D8]/55 leading-relaxed">{insights.fact_emotion_ratio.analysis}</p>
+                    )}
+                  </div>
+                )}
+                {!insights.is_insufficient_data && insights.cognitive_bias_detected && (
+                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">認知バイアス検知</p>
+                    {insights.cognitive_bias_detected.bias_name && insights.cognitive_bias_detected.bias_name !== "INSUFFICIENT_DATA" ? (
+                      <>
+                        <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.cognitive_bias_detected.bias_name}」</p>
+                        {insights.cognitive_bias_detected.description && (
+                          <p className="text-[12px] text-[#E8E3D8]/50 leading-relaxed">{insights.cognitive_bias_detected.description}</p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="font-mono text-[11px] text-white/30">偏りなし</p>
+                    )}
+                  </div>
+                )}
+                {!insights.is_insufficient_data && insights.passive_voice_status && (
+                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">意思決定の主体性</p>
+                    <p className="text-[12px] text-[#E8E3D8]/55 leading-relaxed">{insights.passive_voice_status}</p>
+                  </div>
+                )}
+                {[
+                  { key: "observed_loops",    label: "思考ループ観測", value: insights.observed_loops },
+                  { key: "blind_spots",       label: "盲点エリア",     value: insights.blind_spots },
+                  { key: "pending_decisions", label: "保留リスト",     value: insights.pending_decisions },
+                ].filter((x) => x.value).map(({ key, label, value }) => (
+                  <div key={key} className="px-5 py-4 border-b border-[#C4A35A]/10 last:border-b-0">
+                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">{label}</p>
+                    <p className="text-[12px] text-[#E8E3D8]/55 leading-relaxed">{value}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </DailyAccordion>
         )}
 
-        {/* from=alterlog → ジャーナルを折りたたみリンクで案内 */}
+        {/* from=alterlog → ジャーナルをアコーディオンで表示 */}
         {from === "alterlog" && hasJournals && (
-          <div className="mb-6">
-            <Link
-              href={`/daily/${date}`}
-              className="flex items-center gap-2 text-[10px] text-[#8A8276]/50 hover:text-[#8A8276]/80 transition-colors font-mono tracking-wide group"
-            >
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-              この日のジャーナルも見る
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-0.5 transition-transform">
-                <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-              </svg>
-            </Link>
-          </div>
+          <DailyAccordion label="この日のジャーナルを見る" accent="journal">
+            <section className="mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8A8276]/60">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                <span className="font-mono text-[9px] tracking-[0.2em] text-[#8A8276]/50 uppercase">Journal</span>
+                <span className="font-mono text-[9px] text-[#8A8276]/30">{journals.length}件</span>
+              </div>
+              <div className="space-y-3">
+                {journals.map((entry, i) => (
+                  <div key={entry.id} className="rounded-xl px-4 py-4 border border-white/[0.06]" style={{ background: "rgba(255,255,255,0.018)" }}>
+                    {journals.length > 1 && (
+                      <p className="font-mono text-[9px] text-[#8A8276]/35 mb-2">
+                        {toTimeStr(entry.createdAt)}
+                        <span className="ml-2 text-[#8A8276]/20">— {i + 1}/{journals.length}</span>
+                      </p>
+                    )}
+                    <p className="text-[13px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap">{entry.content}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </DailyAccordion>
         )}
 
         {/* ── セパレーター（両方フル表示の場合のみ） ── */}

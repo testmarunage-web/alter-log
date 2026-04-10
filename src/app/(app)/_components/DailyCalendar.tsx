@@ -24,6 +24,11 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
 
   const markedSet = new Set(markedDates);
 
+  // 最古データ月（遡り下限）
+  const minDateStr = markedDates.length > 0 ? markedDates.reduce((a, b) => (a < b ? a : b)) : null;
+  const minYear  = minDateStr ? Number(minDateStr.slice(0, 4)) : year;
+  const minMonth = minDateStr ? Number(minDateStr.slice(5, 7)) - 1 : month; // 0-indexed
+
   // グリッドセルを構築
   const firstDow   = new Date(year, month, 1).getDay(); // 0=日
   const totalDays  = new Date(year, month + 1, 0).getDate();
@@ -34,9 +39,11 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
   while (cells.length % 7 !== 0) cells.push(null);
 
   const todayStr = `${nowJst.getFullYear()}-${String(nowJst.getMonth() + 1).padStart(2, "0")}-${String(nowJst.getDate()).padStart(2, "0")}`;
-  const isCurrentMonth = year === nowJst.getFullYear() && month === nowJst.getMonth();
+  const isCurrentMonth  = year === nowJst.getFullYear() && month === nowJst.getMonth();
+  const isEarliestMonth = year === minYear && month === minMonth;
 
   function prevMonth() {
+    if (isEarliestMonth) return;
     if (month === 0) { setYear((y) => y - 1); setMonth(11); }
     else setMonth((m) => m - 1);
   }
@@ -53,7 +60,8 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
         <button
           type="button"
           onClick={prevMonth}
-          className="w-6 h-6 flex items-center justify-center rounded-md text-[#8A8276]/40 hover:text-[#E8E3D8]/70 hover:bg-white/[0.05] transition-colors"
+          disabled={isEarliestMonth}
+          className="w-6 h-6 flex items-center justify-center rounded-md text-[#8A8276]/40 hover:text-[#E8E3D8]/70 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-default"
           aria-label="前月"
         >
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

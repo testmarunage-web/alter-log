@@ -67,7 +67,6 @@ export default async function AlterLogPage() {
       ? prisma.alterLog.findMany({
           where: { userId: user.id },
           orderBy: { createdAt: "desc" },
-          take: 20,
         })
       : Promise.resolve([]),
     user
