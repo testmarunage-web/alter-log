@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { saveChatMessage } from "@/app/actions/chat";
 import { AlterIcon } from "../../_components/AlterIcon";
 import { useReadOnly } from "../../_components/ReadOnlyProvider";
+import { DailyCalendar } from "../../_components/DailyCalendar";
 
 // ジャーナルカード用の日時フォーマット
 function formatDateTime(date: Date): string {
@@ -35,6 +36,7 @@ interface Props {
   userName: string;
   hasTodayJournal: boolean;
   pastJournal: PastJournalEntry | null;
+  journalDates: string[]; // YYYY-MM-DD（カレンダー用）
 }
 
 // ── 「あの時のあなた」カード ────────────────────────────────────────────────
@@ -105,6 +107,7 @@ export function ChatInterface({
   userName,
   hasTodayJournal,
   pastJournal,
+  journalDates,
 }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -825,6 +828,13 @@ export function ChatInterface({
             return <PastJournalCard dateStr={pastDateStr} entries={pastJournal.entries} dailyNote={pastJournal.dailyNote} />;
           })()}
         </div>
+        )}
+
+        {/* カレンダー（入力エリア直下、ジャーナルが1件以上ある場合に表示） */}
+        {journalDates.length > 0 && (
+          <div className="flex-none max-w-2xl mx-auto w-full px-4 py-3 border-t border-white/[0.04]">
+            <DailyCalendar markedDates={journalDates} label="過去の記録" />
+          </div>
         )}
 
         {/* 3. 過去のジャーナルログ（タイムライン・flex-1 スクロール可能） */}

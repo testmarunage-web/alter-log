@@ -63,6 +63,16 @@ export default async function ChatPage({
     createdAt: e.createdAt,
   }));
 
+  // カレンダー用: ジャーナルが存在する日付を YYYY-MM-DD で収集（重複除去）
+  const journalDateSet = new Set<string>();
+  for (const e of journalEntries) {
+    const d = new Date(e.createdAt.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+    journalDateSet.add(
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+    );
+  }
+  const journalDates = [...journalDateSet];
+
   // ── 「あの時のあなた」カード用：30日以上前のジャーナルからランダム1件
   const thirtyDaysAgoForPast = new Date();
   thirtyDaysAgoForPast.setDate(thirtyDaysAgoForPast.getDate() - 30);
@@ -122,6 +132,7 @@ export default async function ChatPage({
       userName={userName}
       hasTodayJournal={hasTodayJournal}
       pastJournal={pastJournal}
+      journalDates={journalDates}
     />
   );
 }

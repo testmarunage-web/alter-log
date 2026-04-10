@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { alterLogSchema } from "@/app/actions/alterLogSchema";
 import { DevBatchButton } from "./_components/DevBatchButton";
+import { DailyCalendar } from "../_components/DailyCalendar";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // コンパスアイコン（SVG）
@@ -85,6 +86,12 @@ export default async function AlterLogPage() {
     return logDateJst === todayJstLocale;
   });
 
+  // カレンダー用: 全 AlterLog の日付を YYYY-MM-DD で収集
+  const alterLogDates = rawLogs.map((log) => {
+    const d = log.date;
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+  });
+
   const entries: Entry[] = rawLogs.flatMap((log) => {
     try {
       const insights = alterLogSchema.partial().parse(log.insights);
@@ -131,24 +138,14 @@ export default async function AlterLogPage() {
               Alterが裏側で記録している、あなたに関する密かな観測日記
             </p>
             <div className="mt-3 h-px bg-gradient-to-r from-[#C4A35A]/30 via-[#C4A35A]/10 to-transparent" />
-
-            {/* 過去参照導線 */}
-            <Link
-              href="/dashboard"
-              className="mt-4 flex items-center gap-2 text-[10px] text-[#8A8276]/50 hover:text-[#C4A35A]/60 transition-colors font-mono tracking-wide group"
-            >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-              ムードマップで過去を振り返る
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 group-hover:translate-x-0.5 transition-transform">
-                <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-              </svg>
-            </Link>
           </div>
+
+          {/* カレンダー（AlterLogが1件以上ある場合に表示） */}
+          {alterLogDates.length > 0 && (
+            <div className="mb-8">
+              <DailyCalendar markedDates={alterLogDates} label="観測日" />
+            </div>
+          )}
 
           {/* 分岐ロジック */}
           {entries.length === 0 && journalCount === 0 ? (
