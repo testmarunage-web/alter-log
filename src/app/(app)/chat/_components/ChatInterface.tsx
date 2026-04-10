@@ -130,7 +130,8 @@ export function ChatInterface({
   const [micError, setMicError]               = useState<string | null>(null);
   const [textInputOpen, setTextInputOpen]     = useState(false);
   const [recElapsed, setRecElapsed]           = useState(0);   // 録音経過秒数
-  const [autoStopped, setAutoStopped]         = useState(false); // 15分自動停止フラグ
+  const [autoStopped, setAutoStopped]         = useState(false); // 5分自動停止フラグ
+  const [sizeStopped, setSizeStopped]         = useState(false); // 20MB超過自動停止フラグ
   const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
   const audioChunksRef    = useRef<Blob[]>([]);
   const audioContextRef   = useRef<AudioContext | null>(null);
@@ -140,8 +141,9 @@ export function ChatInterface({
   const elapsedTimerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoStopTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoStoppedRef    = useRef(false); // onstop の stale closure 対策
+  const sizeLimitStoppedRef = useRef(false); // 20MB超過フラグ（stale closure 対策）
 
-  const MAX_REC_SEC = 900; // 15分
+  const MAX_REC_SEC = 300; // 5分
 
   // 初回のみウェルカムモーダルを表示
   useEffect(() => {
@@ -326,12 +328,24 @@ export function ChatInterface({
     audioChunksRef.current = [];
 
     recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      if (e.data.size > 0) {
+        audioChunksRef.current.push(e.data);
+        // 20MB超えたら自動停止（iOSでビットレートが高い場合の安全策）
+        const totalSize = audioChunksRef.current.reduce((sum, b) => sum + b.size, 0);
+        if (totalSize > 20 * 1024 * 1024 && mediaRecorderRef.current?.state === "recording") {
+          sizeLimitStoppedRef.current = true;
+          autoStoppedRef.current = true;
+          setSizeStopped(true);
+          setAutoStopped(true);
+          mediaRecorderRef.current.stop();
+        }
+      }
     };
 
     recorder.onstop = async () => {
       // autoStoppedRef で stale closure を回避
       const wasAutoStopped = autoStoppedRef.current;
+      const wasSizeStopped = sizeLimitStoppedRef.current;
       stopRecordingResources();
       stream.getTracks().forEach((t) => t.stop());
       setIsRecording(false);
@@ -361,12 +375,14 @@ export function ChatInterface({
             setTimeout(() => textareaRef.current?.focus(), 100);
           }
           // 自動停止の場合は続きを促すメッセージを表示（エラーではなく通知）
-          if (wasAutoStopped) {
-            setMicError("15分経過のため録音を終了しました。続きがある場合はもう一度録音してください。");
+          if (wasAutoStopped && !wasSizeStopped) {
+            setMicError("5分経過のため録音を終了しました。続きがある場合はもう一度録音してください。");
           }
         } else {
           const errBody = await res.json().catch(() => ({ error: "不明なエラー" }));
-          if (wasAutoStopped) {
+          if (errBody.error === "file_too_large") {
+            setMicError("録音ファイルが大きすぎます。短めに区切って再度お試しください。");
+          } else if (wasAutoStopped) {
             setMicError("録音を終了しました。続きがある場合はもう一度マイクボタンを押してお話しください。");
           } else {
             setMicError(`音声の変換に失敗しました。お手数ですが、短めに区切って再度お試しください。${errBody.error ? `（${errBody.error}）` : ""}`);
@@ -381,6 +397,8 @@ export function ChatInterface({
         setIsTranscribing(false);
         setAutoStopped(false);
         autoStoppedRef.current = false;
+        setSizeStopped(false);
+        sizeLimitStoppedRef.current = false;
         setRecElapsed(0);
       }
     };
@@ -397,7 +415,7 @@ export function ChatInterface({
       setRecElapsed((prev) => prev + 1);
     }, 1000);
 
-    // 15分自動停止タイマー
+    // 5分自動停止タイマー
     autoStopTimerRef.current = setTimeout(() => {
       if (mediaRecorderRef.current?.state === "recording") {
         autoStoppedRef.current = true;
@@ -637,7 +655,7 @@ export function ChatInterface({
               {/* 録音開始直後: 上限案内 */}
               {isRecording && (
                 <p className="mt-1.5 text-center text-[10px] text-white/30 font-mono">
-                  最大15分まで録音できます
+                  最大5分まで録音できます
                 </p>
               )}
 
@@ -650,11 +668,19 @@ export function ChatInterface({
                 />
               )}
 
-              {/* 15分自動停止メッセージ */}
-              {autoStopped && isTranscribing && (
+              {/* 5分自動停止メッセージ */}
+              {autoStopped && !sizeStopped && isTranscribing && (
                 <div className="mt-2 rounded-xl px-4 py-2.5 bg-[#C4A35A]/08 border border-[#C4A35A]/20">
                   <p className="text-[12px] text-[#C4A35A]/70 text-center">
                     録音時間の上限に達したため停止しました。内容を変換しています...
+                  </p>
+                </div>
+              )}
+              {/* 20MB超過自動停止メッセージ */}
+              {sizeStopped && isTranscribing && (
+                <div className="mt-2 rounded-xl px-4 py-2.5 bg-[#C4A35A]/08 border border-[#C4A35A]/20">
+                  <p className="text-[12px] text-[#C4A35A]/70 text-center">
+                    録音データの上限に達したため停止しました。そこまでの内容を変換しています...
                   </p>
                 </div>
               )}

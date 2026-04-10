@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
-// Whisper API は最大 25MB / 約8分。10分音声の変換に60秒以上かかるため300秒に設定
+// Whisper API は最大 25MB。5分音声の変換に最大60秒程度かかるため300秒に設定
 // Vercel Pro は最大 300 秒まで対応
 export const maxDuration = 300;
 
