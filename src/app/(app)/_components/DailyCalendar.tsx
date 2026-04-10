@@ -24,10 +24,9 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
 
   const markedSet = new Set(markedDates);
 
-  // 最古データ月（遡り下限）
-  const minDateStr = markedDates.length > 0 ? markedDates.reduce((a, b) => (a < b ? a : b)) : null;
-  const minYear  = minDateStr ? Number(minDateStr.slice(0, 4)) : year;
-  const minMonth = minDateStr ? Number(minDateStr.slice(5, 7)) - 1 : month; // 0-indexed
+  // サービス開始月（遡り下限）
+  const minYear  = 2026;
+  const minMonth = 0; // 1月 (0-indexed)
 
   // グリッドセルを構築
   const firstDow   = new Date(year, month, 1).getDay(); // 0=日
