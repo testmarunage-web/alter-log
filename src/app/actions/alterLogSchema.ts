@@ -15,19 +15,19 @@ export const alterLogSchema = z.object({
   }),
 
   passive_voice_status: z.string(),
-  passive_voice_title:  z.string().nullable(),
+  passive_voice_title:  z.string().nullable().catch(null),
 
   observed_loops:       z.string().nullable(),
-  observed_loops_title: z.string().nullable(),
+  observed_loops_title: z.string().nullable().catch(null),
 
   blind_spots:       z.string().nullable(),
-  blind_spots_title: z.string().nullable(),
+  blind_spots_title: z.string().nullable().catch(null),
 
   pending_decisions:       z.string().nullable(),
-  pending_decisions_title: z.string().nullable(),
+  pending_decisions_title: z.string().nullable().catch(null),
 
-  positive_observation:       z.string().nullable(),
-  positive_observation_title: z.string().nullable(),
+  positive_observation:       z.string().nullable().catch(null),
+  positive_observation_title: z.string().nullable().catch(null),
 
   daily_note: z.string(),
 });

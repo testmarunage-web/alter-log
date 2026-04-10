@@ -876,26 +876,25 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
             </HudCard>
           </div>
 
-          <div className="hl-enter hl-d5">
-            <HudCard
-              label="ポジティブな観測"
-              tag="+"
-              description="ジャーナルから事実として観察できるポジティブな行動・思考・変化です。お世辞ではなく実際の観察として記録されています。"
-            >
-              {!log || isInsufficient ? (
-                <p className="font-mono text-[11px] text-white/18">
-                  {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
-                </p>
-              ) : positiveObservation ? (
-                <>
-                  {positiveObservationTitle && <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{positiveObservationTitle}」</p>}
-                  <TextBlock text={positiveObservation} className="text-[14px] text-white/55 leading-relaxed" />
-                </>
-              ) : (
-                <p className="font-mono text-[11px] text-white/25">—</p>
-              )}
-            </HudCard>
-          </div>
+          {(!log || isInsufficient || positiveObservation) && (
+            <div className="hl-enter hl-d5">
+              <HudCard
+                label="ポジティブな観測"
+                description="ジャーナルから事実として観察できるポジティブな行動・思考・変化です。お世辞ではなく実際の観察として記録されています。"
+              >
+                {!log || isInsufficient ? (
+                  <p className="font-mono text-[11px] text-white/18">
+                    {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
+                  </p>
+                ) : (
+                  <>
+                    {positiveObservationTitle && <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{positiveObservationTitle}」</p>}
+                    <TextBlock text={positiveObservation} className="text-[14px] text-white/55 leading-relaxed" />
+                  </>
+                )}
+              </HudCard>
+            </div>
+          )}
 
           {/* ─── ② PROFILE ── */}
           <div className="hl-enter hl-d6 flex items-center gap-3 pt-2">
