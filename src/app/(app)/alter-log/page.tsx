@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { alterLogSchema } from "@/app/actions/alterLogSchema";
 import { DevBatchButton } from "./_components/DevBatchButton";
 import { DailyCalendar } from "../_components/DailyCalendar";
+import { CopyButton } from "../_components/CopyButton";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // コンパスアイコン（SVG）
@@ -202,32 +203,40 @@ export default async function AlterLogPage() {
                       />
 
                       {/* カード（日付ページへのリンク） */}
-                      <Link
-                        href={`/daily/${entry.dateStr}`}
-                        className="block bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl p-5 mb-1 hover:bg-white/[0.035] hover:border-[#C4A35A]/25 transition-colors group"
-                      >
-                        {/* タイムスタンプ + 矢印 */}
-                        <div className="flex items-center justify-between gap-2 mb-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[#C4A35A]/60" aria-hidden="true">
-                              <IcCompass />
-                            </span>
-                            <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums">
-                              {entry.jst}
-                            </span>
+                      <div className="relative">
+                        <Link
+                          href={`/daily/${entry.dateStr}`}
+                          className="block bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl p-5 mb-1 hover:bg-white/[0.035] hover:border-[#C4A35A]/25 transition-colors group"
+                        >
+                          {/* タイムスタンプ + 矢印 */}
+                          <div className="flex items-center justify-between gap-2 mb-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[#C4A35A]/60" aria-hidden="true">
+                                <IcCompass />
+                              </span>
+                              <span className="font-mono text-[11px] text-[#C4A35A]/70 tabular-nums">
+                                {entry.jst}
+                              </span>
+                            </div>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#8A8276]/25 group-hover:text-[#C4A35A]/40 transition-colors flex-shrink-0">
+                              <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                            </svg>
                           </div>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#8A8276]/25 group-hover:text-[#C4A35A]/40 transition-colors flex-shrink-0">
-                            <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
-                          </svg>
-                        </div>
 
-                        {/* 観察日記 本文 */}
+                          {/* 観察日記 本文 */}
+                          {entry.logEntry && (
+                            <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap pr-6">
+                              {entry.logEntry}
+                            </p>
+                          )}
+                        </Link>
+                        {/* コピーボタン（Link の外に配置して interactive 要素の入れ子を避ける） */}
                         {entry.logEntry && (
-                          <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">
-                            {entry.logEntry}
-                          </p>
+                          <div className="absolute top-4 right-4 z-10">
+                            <CopyButton text={entry.logEntry} />
+                          </div>
                         )}
-                      </Link>
+                      </div>
                     </div>
                   ))}
                 </div>

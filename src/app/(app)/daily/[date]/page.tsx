@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { AlterIcon } from "@/app/(app)/_components/AlterIcon";
 import { alterLogSchema } from "@/app/actions/alterLogSchema";
 import { DailyAccordion } from "./_components/DailyAccordion";
+import { CopyButton } from "@/app/(app)/_components/CopyButton";
 
 export const dynamic = "force-dynamic";
 
@@ -80,6 +81,7 @@ export default async function DailyPage({
     observed_loops: string | null;
     blind_spots: string | null;
     pending_decisions: string | null;
+    positive_observation: string | null;
   }> | null = null;
 
   if (alterLog) {
@@ -138,16 +140,19 @@ export default async function DailyPage({
               {journals.map((entry, i) => (
                 <div
                   key={entry.id}
-                  className="rounded-xl px-4 py-4 border border-white/[0.06]"
+                  className="relative rounded-xl px-4 py-4 border border-white/[0.06]"
                   style={{ background: "rgba(255,255,255,0.018)" }}
                 >
+                  <div className="absolute top-3 right-3">
+                    <CopyButton text={entry.content} />
+                  </div>
                   {journals.length > 1 && (
                     <p className="font-mono text-[9px] text-[#8A8276]/35 mb-2">
                       {toTimeStr(entry.createdAt)}
                       <span className="ml-2 text-[#8A8276]/20">— {i + 1}/{journals.length}</span>
                     </p>
                   )}
-                  <p className="text-[13px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap">
+                  <p className="text-[14px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap pr-6">
                     {entry.content}
                   </p>
                 </div>
@@ -168,7 +173,7 @@ export default async function DailyPage({
               <div className="rounded-xl border border-[#C4A35A]/15 overflow-hidden" style={{ background: "rgba(196,163,90,0.025)" }}>
                 {insights.daily_note && insights.daily_note !== "INSUFFICIENT_DATA" && (
                   <div className="px-5 py-5 border-b border-[#C4A35A]/10">
-                    <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">{insights.daily_note}</p>
+                    <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">{insights.daily_note}</p>
                   </div>
                 )}
                 {insights.is_insufficient_data && (
@@ -186,7 +191,7 @@ export default async function DailyPage({
                       <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums flex-shrink-0">FACT {insights.fact_emotion_ratio.fact_percentage}%</span>
                     </div>
                     {insights.fact_emotion_ratio.analysis && (
-                      <p className="text-[12px] text-[#E8E3D8]/55 leading-relaxed">{insights.fact_emotion_ratio.analysis}</p>
+                      <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.fact_emotion_ratio.analysis}</p>
                     )}
                   </div>
                 )}
@@ -195,9 +200,9 @@ export default async function DailyPage({
                     <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">認知バイアス検知</p>
                     {insights.cognitive_bias_detected.bias_name && insights.cognitive_bias_detected.bias_name !== "INSUFFICIENT_DATA" ? (
                       <>
-                        <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.cognitive_bias_detected.bias_name}」</p>
+                        <p className="font-mono text-[14px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.cognitive_bias_detected.bias_name}」</p>
                         {insights.cognitive_bias_detected.description && (
-                          <p className="text-[12px] text-[#E8E3D8]/50 leading-relaxed">{insights.cognitive_bias_detected.description}</p>
+                          <p className="text-[13px] text-[#E8E3D8]/50 leading-relaxed">{insights.cognitive_bias_detected.description}</p>
                         )}
                       </>
                     ) : (
@@ -208,7 +213,7 @@ export default async function DailyPage({
                 {!insights.is_insufficient_data && insights.passive_voice_status && (
                   <div className="px-5 py-4 border-b border-[#C4A35A]/10">
                     <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">意思決定の主体性</p>
-                    <p className="text-[12px] text-[#E8E3D8]/55 leading-relaxed">{insights.passive_voice_status}</p>
+                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.passive_voice_status}</p>
                   </div>
                 )}
                 {[
@@ -216,11 +221,17 @@ export default async function DailyPage({
                   { key: "blind_spots",       label: "盲点エリア",     value: insights.blind_spots },
                   { key: "pending_decisions", label: "保留リスト",     value: insights.pending_decisions },
                 ].filter((x) => x.value).map(({ key, label, value }) => (
-                  <div key={key} className="px-5 py-4 border-b border-[#C4A35A]/10 last:border-b-0">
-                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">{label}</p>
-                    <p className="text-[12px] text-[#E8E3D8]/55 leading-relaxed">{value}</p>
+                  <div key={key} className="px-5 py-4 border-b border-[#C4A35A]/10">
+                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widests mb-1">{label}</p>
+                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{value}</p>
                   </div>
                 ))}
+                {!insights.is_insufficient_data && insights.positive_observation && (
+                  <div className="px-5 py-4">
+                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">ポジティブな観測</p>
+                    <p className="text-[13px] text-[#C4A35A]/75 leading-relaxed">{insights.positive_observation}</p>
+                  </div>
+                )}
               </div>
             </section>
           </DailyAccordion>
@@ -240,14 +251,17 @@ export default async function DailyPage({
               </div>
               <div className="space-y-3">
                 {journals.map((entry, i) => (
-                  <div key={entry.id} className="rounded-xl px-4 py-4 border border-white/[0.06]" style={{ background: "rgba(255,255,255,0.018)" }}>
+                  <div key={entry.id} className="relative rounded-xl px-4 py-4 border border-white/[0.06]" style={{ background: "rgba(255,255,255,0.018)" }}>
+                    <div className="absolute top-3 right-3">
+                      <CopyButton text={entry.content} />
+                    </div>
                     {journals.length > 1 && (
                       <p className="font-mono text-[9px] text-[#8A8276]/35 mb-2">
                         {toTimeStr(entry.createdAt)}
                         <span className="ml-2 text-[#8A8276]/20">— {i + 1}/{journals.length}</span>
                       </p>
                     )}
-                    <p className="text-[13px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap">{entry.content}</p>
+                    <p className="text-[14px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap pr-6">{entry.content}</p>
                   </div>
                 ))}
               </div>
@@ -278,7 +292,7 @@ export default async function DailyPage({
               {/* daily_note */}
               {insights.daily_note && insights.daily_note !== "INSUFFICIENT_DATA" && (
                 <div className="px-5 py-5 border-b border-[#C4A35A]/10">
-                  <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">
+                  <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">
                     {insights.daily_note}
                   </p>
                 </div>
@@ -307,7 +321,7 @@ export default async function DailyPage({
                     </span>
                   </div>
                   {insights.fact_emotion_ratio.analysis && (
-                    <p className="text-[12px] text-[#E8E3D8]/55 leading-relaxed">
+                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">
                       {insights.fact_emotion_ratio.analysis}
                     </p>
                   )}
@@ -320,11 +334,11 @@ export default async function DailyPage({
                   <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">認知バイアス検知</p>
                   {insights.cognitive_bias_detected.bias_name && insights.cognitive_bias_detected.bias_name !== "INSUFFICIENT_DATA" ? (
                     <>
-                      <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">
+                      <p className="font-mono text-[14px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">
                         「{insights.cognitive_bias_detected.bias_name}」
                       </p>
                       {insights.cognitive_bias_detected.description && (
-                        <p className="text-[12px] text-[#E8E3D8]/50 leading-relaxed">
+                        <p className="text-[13px] text-[#E8E3D8]/50 leading-relaxed">
                           {insights.cognitive_bias_detected.description}
                         </p>
                       )}
@@ -339,7 +353,7 @@ export default async function DailyPage({
               {!insights.is_insufficient_data && insights.passive_voice_status && (
                 <div className="px-5 py-4 border-b border-[#C4A35A]/10">
                   <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">意思決定の主体性</p>
-                  <p className="text-[12px] text-[#E8E3D8]/55 leading-relaxed">{insights.passive_voice_status}</p>
+                  <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.passive_voice_status}</p>
                 </div>
               )}
 
@@ -349,11 +363,19 @@ export default async function DailyPage({
                 { key: "blind_spots",       label: "盲点エリア",     value: insights.blind_spots },
                 { key: "pending_decisions", label: "保留リスト",     value: insights.pending_decisions },
               ].filter((x) => x.value).map(({ key, label, value }) => (
-                <div key={key} className="px-5 py-4 border-b border-[#C4A35A]/10 last:border-b-0">
+                <div key={key} className="px-5 py-4 border-b border-[#C4A35A]/10">
                   <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">{label}</p>
-                  <p className="text-[12px] text-[#E8E3D8]/55 leading-relaxed">{value}</p>
+                  <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{value}</p>
                 </div>
               ))}
+
+              {/* ポジティブな観測 */}
+              {!insights.is_insufficient_data && insights.positive_observation && (
+                <div className="px-5 py-4">
+                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">ポジティブな観測</p>
+                  <p className="text-[13px] text-[#C4A35A]/75 leading-relaxed">{insights.positive_observation}</p>
+                </div>
+              )}
             </div>
           </section>
         )}

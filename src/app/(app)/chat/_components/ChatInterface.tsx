@@ -6,6 +6,7 @@ import { saveChatMessage } from "@/app/actions/chat";
 import { AlterIcon } from "../../_components/AlterIcon";
 import { useReadOnly } from "../../_components/ReadOnlyProvider";
 import { DailyCalendar } from "../../_components/DailyCalendar";
+import { CopyButton } from "../../_components/CopyButton";
 
 // ジャーナルカード用の日時フォーマット
 function formatDateTime(date: Date): string {
@@ -49,47 +50,54 @@ function PastJournalCard({ dateStr, entries, dailyNote }: {
   const firstEntry = entries[0];
   const preview = firstEntry?.content.slice(0, 100) ?? "";
   const hasMore = (firstEntry?.content.length ?? 0) > 100 || entries.length > 1;
+  const allText = entries.map((e) => e.content).join("\n\n");
 
   return (
     <div className="max-w-2xl mx-auto w-full px-4 pb-3">
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        className="w-full text-left"
-        style={{ opacity: 0.5 }}
-      >
-        <div
-          className="rounded-xl px-4 py-3 border border-white/[0.06]"
-          style={{ background: "rgba(255,255,255,0.012)" }}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="w-full text-left"
+          style={{ opacity: 0.5 }}
         >
-          <p className="font-mono text-[9px] tracking-[0.2em] text-white/30 uppercase mb-1.5">
-            あの時のあなた — {dateStr}
-          </p>
-          {!expanded ? (
-            <p className="text-[11.5px] text-white/55 leading-relaxed">
-              {preview}
-              {hasMore && <span className="text-white/25">...</span>}
+          <div
+            className="rounded-xl px-4 py-3 border border-white/[0.06]"
+            style={{ background: "rgba(255,255,255,0.012)" }}
+          >
+            <p className="font-mono text-[9px] tracking-[0.2em] text-white/30 uppercase mb-1.5">
+              あの時のあなた — {dateStr}
             </p>
-          ) : (
-            <div className="space-y-3">
-              {entries.map((entry, i) => (
-                <div key={i}>
-                  {i > 0 && <div className="border-t border-white/[0.05] pt-3" />}
-                  {entries.length > 1 && (
-                    <p className="font-mono text-[8px] text-white/20 mb-1">{entry.timeStr}</p>
-                  )}
-                  <p className="text-[11.5px] text-white/55 leading-relaxed">{entry.content}</p>
-                </div>
-              ))}
-              {dailyNote && (
-                <p className="mt-1 pt-2 border-t border-white/[0.05] text-[10.5px] text-[#C4A35A]/45 leading-relaxed italic">
-                  {dailyNote.slice(0, 120)}
-                </p>
-              )}
-            </div>
-          )}
+            {!expanded ? (
+              <p className="text-[13px] text-white/55 leading-relaxed pr-6">
+                {preview}
+                {hasMore && <span className="text-white/25">...</span>}
+              </p>
+            ) : (
+              <div className="space-y-3 pr-6">
+                {entries.map((entry, i) => (
+                  <div key={i}>
+                    {i > 0 && <div className="border-t border-white/[0.05] pt-3" />}
+                    {entries.length > 1 && (
+                      <p className="font-mono text-[8px] text-white/20 mb-1">{entry.timeStr}</p>
+                    )}
+                    <p className="text-[13px] text-white/55 leading-relaxed">{entry.content}</p>
+                  </div>
+                ))}
+                {dailyNote && (
+                  <p className="mt-1 pt-2 border-t border-white/[0.05] text-[11px] text-[#C4A35A]/45 leading-relaxed italic">
+                    {dailyNote.slice(0, 120)}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </button>
+        {/* コピーボタン（button の外に配置して interactive 要素の入れ子を避ける） */}
+        <div className="absolute top-3 right-3 z-10" style={{ opacity: 1 }}>
+          <CopyButton text={allText} />
         </div>
-      </button>
+      </div>
     </div>
   );
 }

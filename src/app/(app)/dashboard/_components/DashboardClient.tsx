@@ -256,8 +256,8 @@ function FactEmotionBar({ factPct, emotionPct }: { factPct: number; emotionPct: 
         <div className="transition-all duration-700" style={{ width: `${emotionPct}%`, background: "rgba(255,255,255,0.10)" }} />
       </div>
       <div className="flex justify-between">
-        <span className="font-mono text-[9px] text-[#C4A35A]/70 tracking-widest">FACT {factPct}%</span>
-        <span className="font-mono text-[9px] text-white/25 tracking-widest">EMOTION {emotionPct}%</span>
+        <span className="font-mono text-[10px] text-[#C4A35A]/70 tracking-widest">FACT {factPct}%</span>
+        <span className="font-mono text-[10px] text-white/25 tracking-widest">EMOTION {emotionPct}%</span>
       </div>
     </div>
   );
@@ -300,7 +300,7 @@ function ProfileCard({ label, value, description }: { label: string; value: stri
           </p>
         </div>
       ) : (
-        <p className="text-[12.5px] text-white/65 leading-relaxed">{value}</p>
+        <p className="text-[14px] text-white/65 leading-relaxed">{value}</p>
       )}
     </div>
   );
@@ -695,9 +695,10 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
   const biasName        = log?.cognitive_bias_detected?.bias_name      ?? null;
   const biasDescription = log?.cognitive_bias_detected?.description    ?? null;
   const passiveStatus   = log?.passive_voice_status                    ?? null;
-  const observedLoops    = log?.observed_loops     ?? null;
-  const blindSpots       = log?.blind_spots        ?? null;
-  const pendingDecisions = log?.pending_decisions  ?? null;
+  const observedLoops       = log?.observed_loops       ?? null;
+  const blindSpots          = log?.blind_spots          ?? null;
+  const pendingDecisions    = log?.pending_decisions    ?? null;
+  const positiveObservation = log?.positive_observation ?? null;
 
   return (
     <>
@@ -810,7 +811,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               ) : (
                 <>
                   <FactEmotionBar factPct={factPct} emotionPct={emotionPct} />
-                  {ratioAnalysis && <p className="mt-3 text-[12.5px] text-white/55 leading-relaxed">{ratioAnalysis}</p>}
+                  {ratioAnalysis && <p className="mt-3 text-[14px] text-white/55 leading-relaxed">{ratioAnalysis}</p>}
                 </>
               )}
             </HudCard>
@@ -830,7 +831,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               ) : (
                 <>
                   <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{biasName}」</p>
-                  {biasDescription && <p className="text-[12.5px] text-white/50 leading-relaxed">{biasDescription}</p>}
+                  {biasDescription && <p className="text-[14px] text-white/50 leading-relaxed">{biasDescription}</p>}
                 </>
               )}
             </HudCard>
@@ -846,8 +847,26 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                   {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
                 </p>
               ) : passiveStatus ? (
-                <p className="text-[12.5px] text-white/55 leading-relaxed">{passiveStatus}</p>
+                <p className="text-[14px] text-white/55 leading-relaxed">{passiveStatus}</p>
               ) : null}
+            </HudCard>
+          </div>
+
+          <div className="hl-enter hl-d5">
+            <HudCard
+              label="ポジティブな観測"
+              tag="+"
+              description="ジャーナルから事実として観察できるポジティブな行動・思考・変化です。お世辞ではなく実際の観察として記録されています。"
+            >
+              {!log || isInsufficient ? (
+                <p className="font-mono text-[11px] text-white/18">
+                  {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
+                </p>
+              ) : positiveObservation ? (
+                <p className="text-[14px] text-[#C4A35A]/75 leading-relaxed">{positiveObservation}</p>
+              ) : (
+                <p className="font-mono text-[11px] text-white/25">—</p>
+              )}
             </HudCard>
           </div>
 

@@ -16,9 +16,11 @@ export const alterLogSchema = z.object({
 
   passive_voice_status: z.string(),
 
-  observed_loops:    z.string().nullable(),
-  blind_spots:       z.string().nullable(),
-  pending_decisions: z.string().nullable(),
+  observed_loops:       z.string().nullable(),
+  blind_spots:          z.string().nullable(),
+  pending_decisions:    z.string().nullable(),
+
+  positive_observation: z.string().nullable(),
 
   daily_note: z.string(),
 });
