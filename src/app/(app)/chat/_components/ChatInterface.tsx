@@ -130,7 +130,7 @@ export function ChatInterface({
   const [micError, setMicError]               = useState<string | null>(null);
   const [textInputOpen, setTextInputOpen]     = useState(false);
   const [recElapsed, setRecElapsed]           = useState(0);   // 録音経過秒数
-  const [autoStopped, setAutoStopped]         = useState(false); // 10分自動停止フラグ
+  const [autoStopped, setAutoStopped]         = useState(false); // 15分自動停止フラグ
   const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
   const audioChunksRef    = useRef<Blob[]>([]);
   const audioContextRef   = useRef<AudioContext | null>(null);
@@ -141,7 +141,7 @@ export function ChatInterface({
   const autoStopTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoStoppedRef    = useRef(false); // onstop の stale closure 対策
 
-  const MAX_REC_SEC = 600; // 10分
+  const MAX_REC_SEC = 900; // 15分
 
   // 初回のみウェルカムモーダルを表示
   useEffect(() => {
@@ -362,7 +362,7 @@ export function ChatInterface({
           }
           // 自動停止の場合は続きを促すメッセージを表示（エラーではなく通知）
           if (wasAutoStopped) {
-            setMicError("10分経過のため録音を終了しました。続きがある場合はもう一度録音してください。");
+            setMicError("15分経過のため録音を終了しました。続きがある場合はもう一度録音してください。");
           }
         } else {
           const errBody = await res.json().catch(() => ({ error: "不明なエラー" }));
@@ -397,7 +397,7 @@ export function ChatInterface({
       setRecElapsed((prev) => prev + 1);
     }, 1000);
 
-    // 10分自動停止タイマー
+    // 15分自動停止タイマー
     autoStopTimerRef.current = setTimeout(() => {
       if (mediaRecorderRef.current?.state === "recording") {
         autoStoppedRef.current = true;
@@ -637,7 +637,7 @@ export function ChatInterface({
               {/* 録音開始直後: 上限案内 */}
               {isRecording && (
                 <p className="mt-1.5 text-center text-[10px] text-white/30 font-mono">
-                  最大10分まで録音できます
+                  最大15分まで録音できます
                 </p>
               )}
 
@@ -650,7 +650,7 @@ export function ChatInterface({
                 />
               )}
 
-              {/* 10分自動停止メッセージ */}
+              {/* 15分自動停止メッセージ */}
               {autoStopped && isTranscribing && (
                 <div className="mt-2 rounded-xl px-4 py-2.5 bg-[#C4A35A]/08 border border-[#C4A35A]/20">
                   <p className="text-[12px] text-[#C4A35A]/70 text-center">
