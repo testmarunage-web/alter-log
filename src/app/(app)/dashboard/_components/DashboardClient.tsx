@@ -337,7 +337,7 @@ function ThoughtProfileCard({ profile }: { profile: string }) {
 // ムードマップ（感情天気図）
 // ─────────────────────────────────────────────────────────────────────────────
 function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayCount: number }) {
-  const [selectedDay, setSelectedDay] = useState<WeatherDay | null>(null);
+  const router = useRouter();
   const [infoOpen, setInfoOpen] = useState(false);
   const isLocked = journalDayCount < 3;
   const daysNeeded = Math.max(0, 3 - journalDayCount);
@@ -381,7 +381,6 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
               const prevDay = idx > 0 ? displayDays[idx - 1] : null;
               const showMonth = !prevDay || day.month !== prevDay.month;
               const hasJournal = !!(day.journalEntries && day.journalEntries.length > 0);
-              const isSelected = selectedDay?.dateStr === day.dateStr;
 
               return (
                 <button
@@ -389,11 +388,11 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
                   type="button"
                   onClick={() => {
                     if (!hasJournal) return;
-                    setSelectedDay(isSelected ? null : day as WeatherDay);
+                    router.push(`/daily/${day.dateStr}`);
                   }}
                   className={`flex flex-col items-center py-2.5 rounded transition-colors ${
                     hasJournal ? "hover:bg-white/[0.04] cursor-pointer" : "cursor-default"
-                  } ${isSelected ? "bg-white/[0.06]" : ""}`}
+                  }`}
                 >
                   <span className={`text-[11px] mb-1 font-mono leading-none ${showMonth ? "text-[#C4A35A]/60" : "text-white/25"}`}>
                     {showMonth ? `${day.month}/${day.day}` : day.day}
@@ -408,28 +407,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
             })}
           </div>
 
-          {/* 選択日のジャーナル展開 */}
-          {selectedDay && !isLocked && selectedDay.journalEntries && (
-            <div className="mt-3 pt-3 border-t border-white/[0.06]">
-              <p className="font-mono text-[9px] text-white/25 mb-2">
-                {selectedDay.month}/{selectedDay.day}
-                {selectedDay.factPct !== null && (
-                  <span className="ml-2 text-[#C4A35A]/50">FACT {selectedDay.factPct}%</span>
-                )}
-              </p>
-              <div className="space-y-3">
-                {selectedDay.journalEntries.map((entry, i) => (
-                  <div key={i}>
-                    {i > 0 && <div className="border-t border-white/[0.05] mb-3" />}
-                    {selectedDay.journalEntries!.length > 1 && (
-                      <p className="font-mono text-[8px] text-white/20 mb-1">{entry.timeStr}</p>
-                    )}
-                    <p className="text-[11.5px] text-white/50 leading-relaxed">{entry.content.slice(0, 200)}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+
         </div>
 
         {/* ロックオーバーレイ */}

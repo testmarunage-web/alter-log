@@ -1,0 +1,233 @@
+import { auth } from "@clerk/nextjs/server";
+import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { AlterIcon } from "@/app/(app)/_components/AlterIcon";
+import { alterLogSchema } from "@/app/actions/alterLogSchema";
+
+export const dynamic = "force-dynamic";
+
+// YYYY-MM-DD の簡易バリデーション
+function isValidDate(s: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s));
+}
+
+// YYYY-MM-DD → JST 範囲の UTC 境界を返す
+function jstDayBounds(dateStr: string): { start: Date; end: Date } {
+  return {
+    start: new Date(`${dateStr}T00:00:00+09:00`),
+    end:   new Date(`${dateStr}T23:59:59+09:00`),
+  };
+}
+
+// YYYY-MM-DD → 「2026年4月9日（水）」
+function formatDateJa(dateStr: string): string {
+  const d = new Date(`${dateStr}T12:00:00+09:00`);
+  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${weekdays[d.getDay()]}）`;
+}
+
+// HH:MM フォーマット
+function toTimeStr(d: Date): string {
+  // createdAt は UTC で保存されているので JST に変換
+  const jst = new Date(d.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+  return `${String(jst.getHours()).padStart(2, "0")}:${String(jst.getMinutes()).padStart(2, "0")}`;
+}
+
+export default async function DailyPage({ params }: { params: Promise<{ date: string }> }) {
+  const { date } = await params;
+
+  if (!isValidDate(date)) notFound();
+
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in");
+
+  const user = await prisma.user.findUnique({ where: { clerkId: userId } });
+  if (!user) redirect("/sign-in");
+
+  const { start, end } = jstDayBounds(date);
+
+  const [journals, alterLog] = await Promise.all([
+    prisma.journalEntry.findMany({
+      where: { userId: user.id, createdAt: { gte: start, lte: end } },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.alterLog.findFirst({
+      where: {
+        userId: user.id,
+        date: { gte: start, lte: end },
+      },
+    }),
+  ]);
+
+  if (journals.length === 0 && !alterLog) notFound();
+
+  // Alter Log のインサイト解析
+  let insights: Partial<{
+    daily_note: string;
+    fact_emotion_ratio: { fact_percentage: number; analysis: string };
+    cognitive_bias_detected: { bias_name: string; description: string };
+    observed_loops: string | null;
+    blind_spots: string | null;
+    pending_decisions: string | null;
+  }> | null = null;
+
+  if (alterLog) {
+    try {
+      insights = alterLogSchema.partial().parse(alterLog.insights);
+    } catch {
+      insights = null;
+    }
+  }
+
+  const dateLabel = formatDateJa(date);
+
+  return (
+    <div className="bg-[#0B0E13] min-h-screen px-4 py-8 pb-24">
+      <div className="max-w-xl mx-auto">
+
+        {/* ── ヘッダー ── */}
+        <div className="flex items-center gap-3 mb-8">
+          <Link
+            href="/dashboard"
+            className="w-8 h-8 flex items-center justify-center rounded-xl text-[#8A8276] hover:text-[#E8E3D8] hover:bg-white/[0.05] transition-colors flex-shrink-0"
+            aria-label="ダッシュボードへ戻る"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 3L5 8l5 5" />
+            </svg>
+          </Link>
+          <div>
+            <h1 className="text-base font-semibold text-[#E8E3D8] tracking-wide">{dateLabel}</h1>
+            <p className="text-[10px] text-[#8A8276]/50 font-mono mt-0.5">DAILY LOG</p>
+          </div>
+        </div>
+
+        {/* ── ジャーナル ── */}
+        {journals.length > 0 && (
+          <section className="mb-8">
+            <div className="flex items-center gap-2 mb-3">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8A8276]/60">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              <span className="font-mono text-[9px] tracking-[0.2em] text-[#8A8276]/50 uppercase">Journal</span>
+              <span className="font-mono text-[9px] text-[#8A8276]/30">{journals.length}件</span>
+            </div>
+
+            <div className="space-y-3">
+              {journals.map((entry, i) => (
+                <div
+                  key={entry.id}
+                  className="rounded-xl px-4 py-4 border border-white/[0.06]"
+                  style={{ background: "rgba(255,255,255,0.018)" }}
+                >
+                  {journals.length > 1 && (
+                    <p className="font-mono text-[9px] text-[#8A8276]/35 mb-2">
+                      {toTimeStr(entry.createdAt)}
+                      <span className="ml-2 text-[#8A8276]/20">— {i + 1}/{journals.length}</span>
+                    </p>
+                  )}
+                  <p className="text-[13px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap">
+                    {entry.content}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── セパレーター（両方ある場合） ── */}
+        {journals.length > 0 && insights && (
+          <div className="flex items-center gap-3 mb-8">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#C4A35A]/20 to-transparent" />
+            <AlterIcon size={14} />
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#C4A35A]/20 to-transparent" />
+          </div>
+        )}
+
+        {/* ── Alter Log ── */}
+        {insights && (
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <AlterIcon size={11} />
+              <span className="font-mono text-[9px] tracking-[0.2em] text-[#C4A35A]/60 uppercase">Alter Log</span>
+              <span className="text-[9px] text-[#8A8276]/30 font-mono">— Alterの観測日記</span>
+            </div>
+
+            <div className="rounded-xl border border-[#C4A35A]/15 overflow-hidden" style={{ background: "rgba(196,163,90,0.025)" }}>
+
+              {/* daily_note */}
+              {insights.daily_note && insights.daily_note !== "INSUFFICIENT_DATA" && (
+                <div className="px-5 py-5 border-b border-[#C4A35A]/10">
+                  <p className="font-mono text-[11.5px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">
+                    {insights.daily_note}
+                  </p>
+                </div>
+              )}
+
+              {/* fact/emotion ratio */}
+              {insights.fact_emotion_ratio && (
+                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                  <p className="font-mono text-[9px] text-[#C4A35A]/50 uppercase tracking-widest mb-2">Fact / Emotion</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#C4A35A]/60"
+                        style={{ width: `${insights.fact_emotion_ratio.fact_percentage}%` }}
+                      />
+                    </div>
+                    <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums flex-shrink-0">
+                      事実 {insights.fact_emotion_ratio.fact_percentage}%
+                    </span>
+                  </div>
+                  {insights.fact_emotion_ratio.analysis && (
+                    <p className="text-[11px] text-[#8A8276]/60 leading-relaxed">
+                      {insights.fact_emotion_ratio.analysis}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* cognitive bias */}
+              {insights.cognitive_bias_detected && (
+                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                  <p className="font-mono text-[9px] text-[#C4A35A]/50 uppercase tracking-widest mb-1">Cognitive Bias</p>
+                  <p className="text-[11px] font-medium text-[#E8E3D8]/70 mb-1">
+                    {insights.cognitive_bias_detected.bias_name}
+                  </p>
+                  <p className="text-[11px] text-[#8A8276]/60 leading-relaxed">
+                    {insights.cognitive_bias_detected.description}
+                  </p>
+                </div>
+              )}
+
+              {/* loops / blind spots / pending */}
+              {[
+                { key: "observed_loops",    label: "Observed Loops",    value: insights.observed_loops },
+                { key: "blind_spots",       label: "Blind Spots",       value: insights.blind_spots },
+                { key: "pending_decisions", label: "Pending Decisions",  value: insights.pending_decisions },
+              ].filter((x) => x.value).map(({ key, label, value }) => (
+                <div key={key} className="px-5 py-4 border-b border-[#C4A35A]/10 last:border-b-0">
+                  <p className="font-mono text-[9px] text-[#C4A35A]/50 uppercase tracking-widest mb-1">{label}</p>
+                  <p className="text-[11px] text-[#8A8276]/60 leading-relaxed">{value}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Alter Log なし、ジャーナルはある場合 */}
+        {!insights && journals.length > 0 && (
+          <div className="flex items-center gap-3 py-4 px-4 border border-white/[0.05] rounded-lg mt-2">
+            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "rgba(196,163,90,0.3)" }} />
+            <p className="font-mono text-[10px] text-[#8A8276]/40 tracking-wide">
+              この日のAlter Logはまだ生成されていません
+            </p>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
