@@ -34,8 +34,15 @@ function toTimeStr(d: Date): string {
   return `${String(jst.getHours()).padStart(2, "0")}:${String(jst.getMinutes()).padStart(2, "0")}`;
 }
 
-export default async function DailyPage({ params }: { params: Promise<{ date: string }> }) {
+export default async function DailyPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ date: string }>;
+  searchParams: Promise<{ from?: string }>;
+}) {
   const { date } = await params;
+  const { from } = await searchParams;
 
   if (!isValidDate(date)) notFound();
 
@@ -84,6 +91,15 @@ export default async function DailyPage({ params }: { params: Promise<{ date: st
 
   const dateLabel = formatDateJa(date);
 
+  // from パラメータによる表示制御
+  // "journal"  → ジャーナルをメイン表示、Alter Log は折りたたみリンク
+  // "alterlog" → Alter Log をメイン表示、ジャーナルは折りたたみリンク
+  // undefined  → 両方フル表示（ムードマップからの遷移等）
+  const showJournalMain  = !from || from === "journal";
+  const showAlterMain    = !from || from === "alterlog";
+  const hasJournals      = journals.length > 0;
+  const hasInsights      = !!insights;
+
   return (
     <div className="bg-[#0B0E13] min-h-screen px-4 py-8 pb-24">
       <div className="max-w-xl mx-auto">
@@ -106,7 +122,7 @@ export default async function DailyPage({ params }: { params: Promise<{ date: st
         </div>
 
         {/* ── ジャーナル ── */}
-        {journals.length > 0 && (
+        {hasJournals && showJournalMain && (
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-3">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8A8276]/60">
@@ -139,8 +155,43 @@ export default async function DailyPage({ params }: { params: Promise<{ date: st
           </section>
         )}
 
-        {/* ── セパレーター（両方ある場合） ── */}
-        {journals.length > 0 && insights && (
+        {/* from=journal → Alter Logを折りたたみリンクで案内 */}
+        {from === "journal" && hasInsights && (
+          <div className="mb-6">
+            <Link
+              href={`/daily/${date}`}
+              className="flex items-center gap-2 text-[10px] text-[#C4A35A]/50 hover:text-[#C4A35A]/80 transition-colors font-mono tracking-wide group"
+            >
+              <AlterIcon size={10} />
+              この日のAlter Logも見る
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-0.5 transition-transform">
+                <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
+          </div>
+        )}
+
+        {/* from=alterlog → ジャーナルを折りたたみリンクで案内 */}
+        {from === "alterlog" && hasJournals && (
+          <div className="mb-6">
+            <Link
+              href={`/daily/${date}`}
+              className="flex items-center gap-2 text-[10px] text-[#8A8276]/50 hover:text-[#8A8276]/80 transition-colors font-mono tracking-wide group"
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              この日のジャーナルも見る
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-0.5 transition-transform">
+                <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
+          </div>
+        )}
+
+        {/* ── セパレーター（両方フル表示の場合のみ） ── */}
+        {!from && hasJournals && hasInsights && (
           <div className="flex items-center gap-3 mb-8">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#C4A35A]/20 to-transparent" />
             <AlterIcon size={14} />
@@ -149,7 +200,7 @@ export default async function DailyPage({ params }: { params: Promise<{ date: st
         )}
 
         {/* ── Alter Log ── */}
-        {insights && (
+        {hasInsights && showAlterMain && (
           <section>
             <div className="flex items-center gap-2 mb-4">
               <AlterIcon size={11} />
@@ -242,8 +293,8 @@ export default async function DailyPage({ params }: { params: Promise<{ date: st
           </section>
         )}
 
-        {/* Alter Log なし、ジャーナルはある場合 */}
-        {!insights && journals.length > 0 && (
+        {/* Alter Log なし、ジャーナルはある場合（fromなし or from=journal のとき） */}
+        {!hasInsights && hasJournals && showJournalMain && (
           <div className="flex items-center gap-3 py-4 px-4 border border-white/[0.05] rounded-lg mt-2">
             <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "rgba(196,163,90,0.3)" }} />
             <p className="font-mono text-[10px] text-[#8A8276]/40 tracking-wide">

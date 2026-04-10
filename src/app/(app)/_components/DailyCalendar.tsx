@@ -10,9 +10,11 @@ interface Props {
   markedDates: string[];
   /** カレンダー上部のラベル（省略可） */
   label?: string;
+  /** /daily/[date]?from=xxx のクエリパラメータ（省略時はパラメータなし） */
+  from?: string;
 }
 
-export function DailyCalendar({ markedDates, label }: Props) {
+export function DailyCalendar({ markedDates, label, from }: Props) {
   const router = useRouter();
 
   // 現在の JST 日付を初期値にする
@@ -109,7 +111,7 @@ export function DailyCalendar({ markedDates, label }: Props) {
             <button
               key={dateStr}
               type="button"
-              onClick={() => hasData && router.push(`/daily/${dateStr}`)}
+              onClick={() => hasData && router.push(`/daily/${dateStr}${from ? `?from=${from}` : ""}`)}
               className={`h-8 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-colors
                 ${hasData ? "hover:bg-white/[0.05] cursor-pointer" : "cursor-default"}
               `}

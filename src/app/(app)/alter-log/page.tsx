@@ -143,7 +143,7 @@ export default async function AlterLogPage() {
           {/* カレンダー（AlterLogが1件以上ある場合に表示） */}
           {alterLogDates.length > 0 && (
             <div className="mb-8">
-              <DailyCalendar markedDates={alterLogDates} label="観測日" />
+              <DailyCalendar markedDates={alterLogDates} label="観測日" from="alterlog" />
             </div>
           )}
 

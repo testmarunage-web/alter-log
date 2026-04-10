@@ -336,32 +336,52 @@ function ThoughtProfileCard({ profile }: { profile: string }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ムードマップ（感情天気図）
 // ─────────────────────────────────────────────────────────────────────────────
+const WEEKDAYS_JP = ["日", "月", "火", "水", "木", "金", "土"];
+const DUMMY_FACT_PCT = [null, 70, null, 50, null, 35, 20, null, 60, null, 45, null, 55, 30, null, null, 65, null, 40, 25, null, 75, null, 50, 60, null, 35, 70, null, 40, 30];
+
 function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayCount: number }) {
   const router = useRouter();
   const [infoOpen, setInfoOpen] = useState(false);
   const isLocked = journalDayCount < 3;
   const daysNeeded = Math.max(0, 3 - journalDayCount);
 
-  const dummyDays = Array.from({ length: 30 }, (_, i) => ({
-    dateStr: `dummy-${i}`,
-    day: i + 1,
-    month: 3,
-    factPct: [70, 50, 35, 20, 10, 60, 45][i % 7] as number | null,
-    journalEntries: i % 3 !== 0 ? [{ content: "dummy", timeStr: "09:00" }] : null,
-  }));
+  // 月ナビゲーション（JST現在月を初期値）
+  const nowJst = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+  const [year, setYear]   = useState(nowJst.getFullYear());
+  const [month, setMonth] = useState(nowJst.getMonth()); // 0-indexed
+  const isCurrentMonth = year === nowJst.getFullYear() && month === nowJst.getMonth();
+  const todayStr = `${nowJst.getFullYear()}-${String(nowJst.getMonth() + 1).padStart(2, "0")}-${String(nowJst.getDate()).padStart(2, "0")}`;
 
-  const displayDays = isLocked ? dummyDays : days;
+  function prevMonth() {
+    if (month === 0) { setYear((y) => y - 1); setMonth(11); }
+    else setMonth((m) => m - 1);
+  }
+  function nextMonth() {
+    if (isCurrentMonth) return;
+    if (month === 11) { setYear((y) => y + 1); setMonth(0); }
+    else setMonth((m) => m + 1);
+  }
+
+  // データルックアップ
+  const dayMap = new Map(days.map((d) => [d.dateStr, d]));
+
+  // 選択月のカレンダーグリッドを生成
+  const firstDow  = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+  const cells: (string | null)[] = [
+    ...Array<null>(firstDow).fill(null),
+    ...Array.from({ length: totalDays }, (_, i) =>
+      `${year}-${String(month + 1).padStart(2, "0")}-${String(i + 1).padStart(2, "0")}`
+    ),
+  ];
+  while (cells.length % 7 !== 0) cells.push(null);
 
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       {/* ヘッダー */}
       <div className="flex items-center mb-1">
         <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase">ムードマップ</span>
-        <button
-          type="button"
-          onClick={() => setInfoOpen((v) => !v)}
-          className="text-white/20 hover:text-white/40 transition-colors ml-1"
-        >
+        <button type="button" onClick={() => setInfoOpen((v) => !v)} className="text-white/20 hover:text-white/40 transition-colors ml-1">
           <IcInfo />
         </button>
       </div>
@@ -376,38 +396,88 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
 
       <div className="relative">
         <div className={isLocked ? "opacity-20 pointer-events-none" : ""}>
-          <div className="grid grid-cols-7 gap-1">
-            {displayDays.map((day, idx) => {
-              const prevDay = idx > 0 ? displayDays[idx - 1] : null;
-              const showMonth = !prevDay || day.month !== prevDay.month;
-              const hasJournal = !!(day.journalEntries && day.journalEntries.length > 0);
+
+          {/* 月ナビゲーション */}
+          <div className="flex items-center justify-between mb-2">
+            <button
+              type="button"
+              onClick={prevMonth}
+              className="w-6 h-6 flex items-center justify-center rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
+              aria-label="前月"
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <span className="font-mono text-[10px] text-white/35 tracking-wide">{year}年{month + 1}月</span>
+            <button
+              type="button"
+              onClick={nextMonth}
+              disabled={isCurrentMonth}
+              className="w-6 h-6 flex items-center justify-center rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-default"
+              aria-label="翌月"
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </div>
+
+          {/* 曜日ヘッダー */}
+          <div className="grid grid-cols-7 mb-0.5">
+            {WEEKDAYS_JP.map((d, i) => (
+              <span key={d} className={`text-center font-mono text-[8px] ${i === 0 ? "text-red-400/30" : "text-white/18"}`}>{d}</span>
+            ))}
+          </div>
+
+          {/* 日付グリッド */}
+          <div className="grid grid-cols-7">
+            {cells.map((dateStr, idx) => {
+              if (!dateStr) return <div key={`e-${idx}`} className="h-9" />;
+
+              const dayNum = parseInt(dateStr.split("-")[2]);
+              const isToday = dateStr === todayStr;
+
+              // ロック中はダミー表示
+              if (isLocked) {
+                const dummyFactPct = DUMMY_FACT_PCT[(dayNum - 1) % DUMMY_FACT_PCT.length];
+                const hasDummy = dummyFactPct !== null;
+                return (
+                  <div key={dateStr} className="h-9 flex flex-col items-center justify-center gap-0.5">
+                    <span className={`font-mono text-[10px] leading-none ${hasDummy ? "text-white/40" : "text-white/15"}`}>{dayNum}</span>
+                    {hasDummy
+                      ? <WeatherIcon factPct={dummyFactPct} />
+                      : <div className="w-[18px] h-[18px] flex items-center justify-center"><div className="w-1.5 h-px bg-white/10" /></div>
+                    }
+                  </div>
+                );
+              }
+
+              const data = dayMap.get(dateStr);
+              const hasJournal = !!(data?.journalEntries);
 
               return (
                 <button
-                  key={day.dateStr}
+                  key={dateStr}
                   type="button"
-                  onClick={() => {
-                    if (!hasJournal) return;
-                    router.push(`/daily/${day.dateStr}`);
-                  }}
-                  className={`flex flex-col items-center py-2.5 rounded transition-colors ${
+                  onClick={() => hasJournal && router.push(`/daily/${dateStr}`)}
+                  className={`h-9 flex flex-col items-center justify-center gap-0.5 rounded-lg transition-colors ${
                     hasJournal ? "hover:bg-white/[0.04] cursor-pointer" : "cursor-default"
                   }`}
                 >
-                  <span className={`text-[11px] mb-1 font-mono leading-none ${showMonth ? "text-[#C4A35A]/60" : "text-white/25"}`}>
-                    {showMonth ? `${day.month}/${day.day}` : day.day}
+                  <span className={`font-mono text-[10px] leading-none ${
+                    isToday ? "text-[#C4A35A]" : hasJournal ? "text-white/55" : "text-white/18"
+                  }`}>
+                    {dayNum}
                   </span>
-                  {hasJournal ? (
-                    <WeatherIcon factPct={day.factPct} />
-                  ) : (
-                    <div className="w-2 h-px bg-white/10 mt-1" />
-                  )}
+                  {hasJournal
+                    ? <WeatherIcon factPct={data?.factPct ?? null} />
+                    : <div className="w-[18px] h-[18px] flex items-center justify-center"><div className="w-1.5 h-px bg-white/10" /></div>
+                  }
                 </button>
               );
             })}
           </div>
-
-
         </div>
 
         {/* ロックオーバーレイ */}

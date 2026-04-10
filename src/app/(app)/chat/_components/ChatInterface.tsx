@@ -812,15 +812,7 @@ export function ChatInterface({
 
           {/* 「あの時のあなた」カード */}
           {(() => {
-            if (!pastJournal) {
-              return (
-                <div className="max-w-2xl mx-auto w-full px-4 pb-3">
-                  <p className="text-[10px] text-white/[0.18] font-mono tracking-wide text-center">
-                    30日後、過去のあなたと再会できます
-                  </p>
-                </div>
-              );
-            }
+            if (!pastJournal) return null;
             const pastDate = new Date(pastJournal.createdAt);
             const pastDateStr = pastDate.toLocaleDateString("ja-JP", {
               timeZone: "Asia/Tokyo", year: "numeric", month: "2-digit", day: "2-digit",
@@ -833,7 +825,7 @@ export function ChatInterface({
         {/* カレンダー（入力エリア直下、ジャーナルが1件以上ある場合に表示） */}
         {journalDates.length > 0 && (
           <div className="flex-none max-w-2xl mx-auto w-full px-4 py-3 border-t border-white/[0.04]">
-            <DailyCalendar markedDates={journalDates} label="過去の記録" />
+            <DailyCalendar markedDates={journalDates} label="過去の記録" from="journal" />
           </div>
         )}
 

@@ -58,11 +58,18 @@ export default async function DashboardPage() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
     thirtyDaysAgo.setHours(0, 0, 0, 0);
 
+    // ムードマップ用: 6ヶ月前の月初から取得
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
     const [
       totalJournalCount,
       newJournalCount,
-      recentScanResults,
+      allScanResults,
       recentJournals,
+      allJournalDates,
       totalScanCount,
       latestScanRecord,
     ] = await Promise.all([
@@ -72,14 +79,22 @@ export default async function DashboardPage() {
             where: { userId: user.id, createdAt: { gt: user.lastDashboardScanAt } },
           })
         : Promise.resolve(0),
+      // 6ヶ月分のSCAN結果（ムードマップ用）
       prisma.scanResult.findMany({
-        where: { userId: user.id, date: { gte: thirtyDaysAgo } },
+        where: { userId: user.id, date: { gte: sixMonthsAgo } },
         select: { date: true, insights: true },
         orderBy: { date: "asc" },
       }),
+      // 30日分のジャーナル（ワードクラウド + journalDayCount用）
       prisma.journalEntry.findMany({
         where: { userId: user.id, createdAt: { gte: thirtyDaysAgo } },
         select: { createdAt: true, content: true },
+        orderBy: { createdAt: "asc" },
+      }),
+      // 6ヶ月分のジャーナル日付（ムードマップ用・内容不要）
+      prisma.journalEntry.findMany({
+        where: { userId: user.id, createdAt: { gte: sixMonthsAgo } },
+        select: { createdAt: true },
         orderBy: { createdAt: "asc" },
       }),
       prisma.scanResult.count({ where: { userId: user.id } }),
@@ -102,50 +117,51 @@ export default async function DashboardPage() {
       buttonState = newJournalCount >= 1 ? "C" : "D";
     }
 
-    // ── 感情天気図：scanResult date → factPct マップ ──────────────────────────
-    const alterLogMap: Record<string, number> = {};
-    for (const scan of recentScanResults) {
+    // ── ムードマップ用: 6ヶ月分のSCANマップ ────────────────────────────────
+    const scanMap: Record<string, number> = {};
+    for (const scan of allScanResults) {
       const d = new Date(new Date(scan.date).toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
       const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const ins = scan.insights as { fact_emotion_ratio?: { fact_percentage?: number } };
-      if (ins?.fact_emotion_ratio?.fact_percentage != null) {
-        alterLogMap[ds] = ins.fact_emotion_ratio.fact_percentage;
-      }
+      if (ins?.fact_emotion_ratio?.fact_percentage != null) scanMap[ds] = ins.fact_emotion_ratio.fact_percentage;
     }
 
-    // ── ジャーナル日付 → エントリ（内容+時刻）マップ ──────────────────────
-    const journalsByDay: Record<string, { content: string; timeStr: string }[]> = {};
+    // ── ムードマップ用: 6ヶ月分のジャーナル日付セット ───────────────────────
+    const journalDaySet = new Set<string>();
+    for (const j of allJournalDates) {
+      const d = new Date(j.createdAt.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
+      journalDaySet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+    }
+
+    // ── ワードクラウド用: 30日ジャーナルの日別マップ ─────────────────────────
+    const journalsByDay30: Record<string, { content: string; timeStr: string }[]> = {};
     for (const j of recentJournals) {
       const d = new Date(j.createdAt.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
       const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const timeStr = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-      if (!journalsByDay[ds]) journalsByDay[ds] = [];
-      journalsByDay[ds].push({ content: j.content, timeStr });
+      if (!journalsByDay30[ds]) journalsByDay30[ds] = [];
+      journalsByDay30[ds].push({ content: j.content, timeStr });
     }
 
-    // ── 30日分の weatherDays を構築 ────────────────────────────────────────
-    const nowJst = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-    const weatherDays: WeatherDay[] = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(nowJst);
-      d.setDate(nowJst.getDate() - i);
-      const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      const dayEntries = journalsByDay[ds] ?? [];
-      weatherDays.push({
+    // ── weatherDays: データがある日だけ収集（6ヶ月分）────────────────────────
+    const allDates = new Set([...Object.keys(scanMap), ...journalDaySet]);
+    const weatherDays: WeatherDay[] = [...allDates].sort().map((ds) => {
+      const [y, m, day] = ds.split("-").map(Number);
+      return {
         dateStr: ds,
-        day: d.getDate(),
-        month: d.getMonth() + 1,
-        factPct: alterLogMap[ds] ?? null,
-        journalEntries: dayEntries.length > 0 ? dayEntries : null,
-      });
-    }
+        day,
+        month: m,
+        factPct: scanMap[ds] ?? null,
+        journalEntries: journalDaySet.has(ds) ? [{ content: "", timeStr: "" }] : null,
+      };
+    });
 
     const observerDays = Math.max(1, Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)));
 
     timelineData = {
       weatherDays,
       wordCloudWords: extractKeywords(recentJournals.map((j) => j.content)),
-      journalDayCount: Object.keys(journalsByDay).length,
+      journalDayCount: Object.keys(journalsByDay30).length,
       observerDays,
       totalJournalCount,
       totalScanCount,
