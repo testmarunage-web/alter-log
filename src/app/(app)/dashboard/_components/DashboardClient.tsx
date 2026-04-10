@@ -211,6 +211,19 @@ function RippleLink({ href, children, className = "", style }: {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// テキストブロック（句点で分割して段落間に余白）
+// ─────────────────────────────────────────────────────────────────────────────
+function TextBlock({ text, className }: { text: string; className: string }) {
+  const paragraphs = text.split(/(?<=。)/).map((s) => s.trim()).filter(Boolean);
+  if (paragraphs.length <= 1) return <p className={className}>{text}</p>;
+  return (
+    <div className="space-y-2">
+      {paragraphs.map((s, i) => <p key={i} className={className}>{s}</p>)}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // HUD カード（即時スナップショット層）
 // ─────────────────────────────────────────────────────────────────────────────
 function HudCard({ label, tag, description, children }: {
@@ -300,7 +313,7 @@ function ProfileCard({ label, value, description }: { label: string; value: stri
           </p>
         </div>
       ) : (
-        <p className="text-[14px] text-white/65 leading-relaxed">{value}</p>
+        <TextBlock text={value} className="text-[14px] text-white/65 leading-relaxed" />
       )}
     </div>
   );
@@ -811,7 +824,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               ) : (
                 <>
                   <FactEmotionBar factPct={factPct} emotionPct={emotionPct} />
-                  {ratioAnalysis && <p className="mt-3 text-[14px] text-white/55 leading-relaxed">{ratioAnalysis}</p>}
+                  {ratioAnalysis && <div className="mt-3"><TextBlock text={ratioAnalysis} className="text-[14px] text-white/55 leading-relaxed" /></div>}
                 </>
               )}
             </HudCard>
@@ -831,7 +844,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               ) : (
                 <>
                   <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{biasName}」</p>
-                  {biasDescription && <p className="text-[14px] text-white/50 leading-relaxed">{biasDescription}</p>}
+                  {biasDescription && <TextBlock text={biasDescription} className="text-[14px] text-white/50 leading-relaxed" />}
                 </>
               )}
             </HudCard>
@@ -847,7 +860,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                   {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
                 </p>
               ) : passiveStatus ? (
-                <p className="text-[14px] text-white/55 leading-relaxed">{passiveStatus}</p>
+                <TextBlock text={passiveStatus} className="text-[14px] text-white/55 leading-relaxed" />
               ) : null}
             </HudCard>
           </div>
@@ -863,7 +876,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                   {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
                 </p>
               ) : positiveObservation ? (
-                <p className="text-[14px] text-[#C4A35A]/75 leading-relaxed">{positiveObservation}</p>
+                <TextBlock text={positiveObservation} className="text-[14px] text-white/55 leading-relaxed" />
               ) : (
                 <p className="font-mono text-[11px] text-white/25">—</p>
               )}

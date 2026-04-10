@@ -876,9 +876,12 @@ export function ChatInterface({
                     <div key={m.id} className="relative">
                       {/* ドット */}
                       <span className="absolute -left-[22px] top-[5px] w-2.5 h-2.5 rounded-full bg-[#0B0E13] border border-[#C4A35A]/45" />
-                      <p className="text-[10px] text-[#8A8276]/55 font-mono tracking-wide mb-1.5">
-                        {formatDateTime(m.createdAt)}
-                      </p>
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <p className="text-[10px] text-[#8A8276]/55 font-mono tracking-wide">
+                          {formatDateTime(m.createdAt)}
+                        </p>
+                        <CopyButton text={m.content} />
+                      </div>
                       <p className="text-sm text-[#E8E3D8]/75 leading-relaxed whitespace-pre-wrap">
                         {m.content}
                       </p>

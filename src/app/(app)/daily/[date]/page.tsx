@@ -229,7 +229,7 @@ export default async function DailyPage({
                 {!insights.is_insufficient_data && insights.positive_observation && (
                   <div className="px-5 py-4">
                     <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">ポジティブな観測</p>
-                    <p className="text-[13px] text-[#C4A35A]/75 leading-relaxed">{insights.positive_observation}</p>
+                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.positive_observation}</p>
                   </div>
                 )}
               </div>
@@ -285,6 +285,11 @@ export default async function DailyPage({
               <AlterIcon size={11} />
               <span className="font-mono text-[9px] tracking-[0.2em] text-[#C4A35A]/60 uppercase">Alter Log</span>
               <span className="text-[9px] text-[#8A8276]/30 font-mono">— Alterの観測日記</span>
+              {insights.daily_note && insights.daily_note !== "INSUFFICIENT_DATA" && (
+                <span className="ml-auto">
+                  <CopyButton text={insights.daily_note} />
+                </span>
+              )}
             </div>
 
             <div className="rounded-xl border border-[#C4A35A]/15 overflow-hidden" style={{ background: "rgba(196,163,90,0.025)" }}>
@@ -373,7 +378,7 @@ export default async function DailyPage({
               {!insights.is_insufficient_data && insights.positive_observation && (
                 <div className="px-5 py-4">
                   <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">ポジティブな観測</p>
-                  <p className="text-[13px] text-[#C4A35A]/75 leading-relaxed">{insights.positive_observation}</p>
+                  <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.positive_observation}</p>
                 </div>
               )}
             </div>
