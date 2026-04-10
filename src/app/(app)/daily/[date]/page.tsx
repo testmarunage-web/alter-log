@@ -78,10 +78,15 @@ export default async function DailyPage({
     fact_emotion_ratio: { fact_percentage: number; emotion_percentage: number; analysis: string };
     cognitive_bias_detected: { bias_name: string; description: string };
     passive_voice_status: string;
+    passive_voice_title: string | null;
     observed_loops: string | null;
+    observed_loops_title: string | null;
     blind_spots: string | null;
+    blind_spots_title: string | null;
     pending_decisions: string | null;
+    pending_decisions_title: string | null;
     positive_observation: string | null;
+    positive_observation_title: string | null;
   }> | null = null;
 
   if (alterLog) {
@@ -102,6 +107,44 @@ export default async function DailyPage({
   const showAlterMain    = !from || from === "alterlog";
   const hasJournals      = journals.length > 0;
   const hasInsights      = !!insights;
+
+  // Alter Log 全体コピーテキストを事前構築
+  const alterLogCopyText = (() => {
+    if (!insights) return "";
+    const parts: string[] = [];
+    if (insights.daily_note && insights.daily_note !== "INSUFFICIENT_DATA") parts.push(insights.daily_note);
+    if (!insights.is_insufficient_data) {
+      if (insights.fact_emotion_ratio) {
+        parts.push(`【事実・感情バランス】FACT ${insights.fact_emotion_ratio.fact_percentage}% / EMOTION ${insights.fact_emotion_ratio.emotion_percentage}%`);
+        if (insights.fact_emotion_ratio.analysis) parts.push(insights.fact_emotion_ratio.analysis);
+      }
+      if (insights.cognitive_bias_detected?.bias_name && insights.cognitive_bias_detected.bias_name !== "INSUFFICIENT_DATA") {
+        parts.push(`【認知バイアス検知】「${insights.cognitive_bias_detected.bias_name}」`);
+        if (insights.cognitive_bias_detected.description) parts.push(insights.cognitive_bias_detected.description);
+      }
+      if (insights.passive_voice_status) {
+        parts.push(`【意思決定の主体性】${insights.passive_voice_title ? `「${insights.passive_voice_title}」` : ""}`);
+        parts.push(insights.passive_voice_status);
+      }
+      if (insights.observed_loops) {
+        parts.push(`【思考ループ観測】${insights.observed_loops_title ? `「${insights.observed_loops_title}」` : ""}`);
+        parts.push(insights.observed_loops);
+      }
+      if (insights.blind_spots) {
+        parts.push(`【盲点エリア】${insights.blind_spots_title ? `「${insights.blind_spots_title}」` : ""}`);
+        parts.push(insights.blind_spots);
+      }
+      if (insights.pending_decisions) {
+        parts.push(`【保留リスト】${insights.pending_decisions_title ? `「${insights.pending_decisions_title}」` : ""}`);
+        parts.push(insights.pending_decisions);
+      }
+      if (insights.positive_observation) {
+        parts.push(`【ポジティブな観測】${insights.positive_observation_title ? `「${insights.positive_observation_title}」` : ""}`);
+        parts.push(insights.positive_observation);
+      }
+    }
+    return parts.filter(Boolean).join("\n\n");
+  })();
 
   return (
     <div className="bg-[#0B0E13] min-h-screen px-4 py-8 pb-24">
@@ -213,22 +256,45 @@ export default async function DailyPage({
                 {!insights.is_insufficient_data && insights.passive_voice_status && (
                   <div className="px-5 py-4 border-b border-[#C4A35A]/10">
                     <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">意思決定の主体性</p>
+                    {insights.passive_voice_title && (
+                      <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.passive_voice_title}」</p>
+                    )}
                     <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.passive_voice_status}</p>
                   </div>
                 )}
-                {[
-                  { key: "observed_loops",    label: "思考ループ観測", value: insights.observed_loops },
-                  { key: "blind_spots",       label: "盲点エリア",     value: insights.blind_spots },
-                  { key: "pending_decisions", label: "保留リスト",     value: insights.pending_decisions },
-                ].filter((x) => x.value).map(({ key, label, value }) => (
-                  <div key={key} className="px-5 py-4 border-b border-[#C4A35A]/10">
-                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widests mb-1">{label}</p>
-                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{value}</p>
+                {insights.observed_loops && (
+                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">思考ループ観測</p>
+                    {insights.observed_loops_title && (
+                      <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.observed_loops_title}」</p>
+                    )}
+                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.observed_loops}</p>
                   </div>
-                ))}
+                )}
+                {insights.blind_spots && (
+                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">盲点エリア</p>
+                    {insights.blind_spots_title && (
+                      <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.blind_spots_title}」</p>
+                    )}
+                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.blind_spots}</p>
+                  </div>
+                )}
+                {insights.pending_decisions && (
+                  <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                    <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">保留リスト</p>
+                    {insights.pending_decisions_title && (
+                      <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.pending_decisions_title}」</p>
+                    )}
+                    <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.pending_decisions}</p>
+                  </div>
+                )}
                 {!insights.is_insufficient_data && insights.positive_observation && (
                   <div className="px-5 py-4">
                     <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">ポジティブな観測</p>
+                    {insights.positive_observation_title && (
+                      <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.positive_observation_title}」</p>
+                    )}
                     <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.positive_observation}</p>
                   </div>
                 )}
@@ -285,9 +351,9 @@ export default async function DailyPage({
               <AlterIcon size={11} />
               <span className="font-mono text-[9px] tracking-[0.2em] text-[#C4A35A]/60 uppercase">Alter Log</span>
               <span className="text-[9px] text-[#8A8276]/30 font-mono">— Alterの観測日記</span>
-              {insights.daily_note && insights.daily_note !== "INSUFFICIENT_DATA" && (
+              {alterLogCopyText && (
                 <span className="ml-auto">
-                  <CopyButton text={insights.daily_note} />
+                  <CopyButton text={alterLogCopyText} />
                 </span>
               )}
             </div>
@@ -358,26 +424,53 @@ export default async function DailyPage({
               {!insights.is_insufficient_data && insights.passive_voice_status && (
                 <div className="px-5 py-4 border-b border-[#C4A35A]/10">
                   <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">意思決定の主体性</p>
+                  {insights.passive_voice_title && (
+                    <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.passive_voice_title}」</p>
+                  )}
                   <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.passive_voice_status}</p>
                 </div>
               )}
 
-              {/* 思考ループ / 盲点 / 保留リスト */}
-              {[
-                { key: "observed_loops",    label: "思考ループ観測", value: insights.observed_loops },
-                { key: "blind_spots",       label: "盲点エリア",     value: insights.blind_spots },
-                { key: "pending_decisions", label: "保留リスト",     value: insights.pending_decisions },
-              ].filter((x) => x.value).map(({ key, label, value }) => (
-                <div key={key} className="px-5 py-4 border-b border-[#C4A35A]/10">
-                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">{label}</p>
-                  <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{value}</p>
+              {/* 思考ループ観測 */}
+              {insights.observed_loops && (
+                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">思考ループ観測</p>
+                  {insights.observed_loops_title && (
+                    <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.observed_loops_title}」</p>
+                  )}
+                  <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.observed_loops}</p>
                 </div>
-              ))}
+              )}
+
+              {/* 盲点エリア */}
+              {insights.blind_spots && (
+                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">盲点エリア</p>
+                  {insights.blind_spots_title && (
+                    <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.blind_spots_title}」</p>
+                  )}
+                  <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.blind_spots}</p>
+                </div>
+              )}
+
+              {/* 保留リスト */}
+              {insights.pending_decisions && (
+                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">保留リスト</p>
+                  {insights.pending_decisions_title && (
+                    <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.pending_decisions_title}」</p>
+                  )}
+                  <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.pending_decisions}</p>
+                </div>
+              )}
 
               {/* ポジティブな観測 */}
               {!insights.is_insufficient_data && insights.positive_observation && (
                 <div className="px-5 py-4">
                   <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">ポジティブな観測</p>
+                  {insights.positive_observation_title && (
+                    <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">「{insights.positive_observation_title}」</p>
+                  )}
                   <p className="text-[13px] text-[#E8E3D8]/55 leading-relaxed">{insights.positive_observation}</p>
                 </div>
               )}

@@ -279,7 +279,7 @@ function FactEmotionBar({ factPct, emotionPct }: { factPct: number; emotionPct: 
 // ─────────────────────────────────────────────────────────────────────────────
 // プロファイルカード（蓄積層）
 // ─────────────────────────────────────────────────────────────────────────────
-function ProfileCard({ label, value, description }: { label: string; value: string | null; description?: string }) {
+function ProfileCard({ label, value, title, description }: { label: string; value: string | null; title?: string | null; description?: string }) {
   const [infoOpen, setInfoOpen] = useState(false);
   const isLocked = value === null;
   return (
@@ -313,7 +313,10 @@ function ProfileCard({ label, value, description }: { label: string; value: stri
           </p>
         </div>
       ) : (
-        <TextBlock text={value} className="text-[14px] text-white/65 leading-relaxed" />
+        <>
+          {title && <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{title}」</p>}
+          <TextBlock text={value} className="text-[14px] text-white/65 leading-relaxed" />
+        </>
       )}
     </div>
   );
@@ -708,10 +711,15 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
   const biasName        = log?.cognitive_bias_detected?.bias_name      ?? null;
   const biasDescription = log?.cognitive_bias_detected?.description    ?? null;
   const passiveStatus   = log?.passive_voice_status                    ?? null;
+  const passiveTitle    = log?.passive_voice_title                     ?? null;
   const observedLoops       = log?.observed_loops       ?? null;
+  const observedLoopsTitle  = log?.observed_loops_title ?? null;
   const blindSpots          = log?.blind_spots          ?? null;
+  const blindSpotsTitle     = log?.blind_spots_title    ?? null;
   const pendingDecisions    = log?.pending_decisions    ?? null;
-  const positiveObservation = log?.positive_observation ?? null;
+  const pendingDecisionsTitle = log?.pending_decisions_title ?? null;
+  const positiveObservation       = log?.positive_observation       ?? null;
+  const positiveObservationTitle  = log?.positive_observation_title ?? null;
 
   return (
     <>
@@ -860,7 +868,10 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                   {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
                 </p>
               ) : passiveStatus ? (
-                <TextBlock text={passiveStatus} className="text-[14px] text-white/55 leading-relaxed" />
+                <>
+                  {passiveTitle && <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{passiveTitle}」</p>}
+                  <TextBlock text={passiveStatus} className="text-[14px] text-white/55 leading-relaxed" />
+                </>
               ) : null}
             </HudCard>
           </div>
@@ -876,7 +887,10 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                   {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
                 </p>
               ) : positiveObservation ? (
-                <TextBlock text={positiveObservation} className="text-[14px] text-white/55 leading-relaxed" />
+                <>
+                  {positiveObservationTitle && <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{positiveObservationTitle}」</p>}
+                  <TextBlock text={positiveObservation} className="text-[14px] text-white/55 leading-relaxed" />
+                </>
               ) : (
                 <p className="font-mono text-[11px] text-white/25">—</p>
               )}
@@ -890,9 +904,9 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
           </div>
 
           <div className="hl-enter hl-d6 space-y-2">
-            <ProfileCard label="思考ループ観測" value={observedLoops} description="繰り返し出現する思考パターンをAlterが検出しています。" />
-            <ProfileCard label="盲点エリア"     value={blindSpots}   description="あなたが気づいていない可能性のある視点をAlterが指摘しています。" />
-            <ProfileCard label="保留リスト"     value={pendingDecisions} description="判断を先送りにしている事項をAlterが記録しています。" />
+            <ProfileCard label="思考ループ観測" value={observedLoops}     title={observedLoopsTitle}     description="繰り返し出現する思考パターンをAlterが検出しています。" />
+            <ProfileCard label="盲点エリア"     value={blindSpots}        title={blindSpotsTitle}        description="あなたが気づいていない可能性のある視点をAlterが指摘しています。" />
+            <ProfileCard label="保留リスト"     value={pendingDecisions}  title={pendingDecisionsTitle}  description="判断を先送りにしている事項をAlterが記録しています。" />
           </div>
 
           {/* ─── ③ TIMELINE ── */}

@@ -78,25 +78,41 @@ const SYSTEM_PROMPT = `あなたはAlter Log解析エンジンである。ユー
 - 「〜された」「〜になってしまう」「〜できない」等の受け身の表現と、「〜する」「〜を決める」等の自分から動く表現の比率を観察する。
 - どちらが多いかを示し、テキスト内の具体的な表現を挙げて記述する。
 
+【passive_voice_title】（10文字以内）
+- passive_voice_statusの内容を端的に表す一言。例：「受動的な傾向」「主体的に行動」「外部依存が強い」「自律的な判断」等。
+- is_insufficient_dataの場合はnullを返す。
+
 【observed_loops】（2〜3文 or null）
 - 直近のログ内で繰り返し現れるテーマや思考パターンがあれば記述する。
 - 3日分のデータのみが入力されているため、明確な反復が観察できない場合はnullを返す。無理にパターンを見出さない。
+
+【observed_loops_title】（10文字以内 or null）
+- observed_loopsの内容を端的に表す一言。例：「完璧主義の繰り返し」「承認欲求ループ」。observed_loopsがnullの場合はnullを返す。
 
 【blind_spots】（2〜3文 or null）
 - テキスト内で言及されていないが、文脈上存在するはずの視点や情報があれば指摘する。
 - 具体的に「何について言及がないか」を明示し、それがなぜこの文脈で重要かを1文で補足する。
 - 推測の域を出る場合はnullを返す。
 
+【blind_spots_title】（10文字以内 or null）
+- blind_spotsの内容を端的に表す一言。例：「コスト視点の欠落」「他者への影響を未考慮」。blind_spotsがnullの場合はnullを返す。
+
 【pending_decisions】（2〜3文 or null）
 - テキスト内に「〜すべき」「〜しよう」「〜を検討」等の未実行の意思決定が含まれていれば列挙する。
 - 意思決定が記述されている場合、その実行に必要な条件や情報がテキスト内で明示されているかどうかも併せて指摘する。
 - 明確な保留事項がなければnullを返す。
+
+【pending_decisions_title】（10文字以内 or null）
+- pending_decisionsの内容を端的に表す一言。例：「3件の判断保留」「転職の意思決定待ち」。pending_decisionsがnullの場合はnullを返す。
 
 【positive_observation】（1〜2文 or null）
 - ジャーナルから、事実に基づいてポジティブに評価できる行動・思考・変化を1つ具体的に指摘する。
 - お世辞や励ましではなく、テキスト内で実際に観察できた事実として「〜という行動が観察される」「〜の点は注目に値する」等の客観的なトーンで記述する。
 - 共感・褒め言葉は不要。あくまで観察者として、何が起きていたかを淡々と記す。
 - 明確にポジティブと評価できる要素がテキスト内に存在しない場合はnullを返す。
+
+【positive_observation_title】（10文字以内 or null）
+- positive_observationの内容を端的に表す一言。例：「具体的な行動に移している」「自己認識が高い」。positive_observationがnullの場合はnullを返す。
 
 【daily_note】（1〜5文：ジャーナルの情報量に応じて調整）
 - 上記の分析結果を踏まえ、Alterが観察者として記す短い観察メモを生成する。
@@ -117,10 +133,15 @@ const FALLBACK_INSIGHTS: AlterLogInsights = {
   fact_emotion_ratio: { fact_percentage: 0, emotion_percentage: 0, analysis: "INSUFFICIENT_DATA" },
   cognitive_bias_detected: { bias_name: "INSUFFICIENT_DATA", description: "INSUFFICIENT_DATA" },
   passive_voice_status: "INSUFFICIENT_DATA",
+  passive_voice_title: null,
   observed_loops: null,
+  observed_loops_title: null,
   blind_spots: null,
+  blind_spots_title: null,
   pending_decisions: null,
+  pending_decisions_title: null,
   positive_observation: null,
+  positive_observation_title: null,
   daily_note: "INSUFFICIENT_DATA",
 };
 
