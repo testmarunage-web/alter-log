@@ -14,7 +14,7 @@ async function getOrCreateUser() {
   });
 }
 
-const MAX_CONTENT_LENGTH = 8000;
+const MAX_CONTENT_LENGTH = 12000;
 
 export async function saveChatMessage(content: string) {
   if (!content || content.length > MAX_CONTENT_LENGTH) {
