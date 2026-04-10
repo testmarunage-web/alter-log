@@ -29,6 +29,7 @@ function IcCompass() {
 type Entry = {
   id: string;
   jst: string;
+  dateStr: string; // YYYY-MM-DD（/daily/[date] へのリンク用）
   logEntry: string | null;
 };
 
@@ -98,12 +99,12 @@ export default async function AlterLogPage() {
         null;
       if (!logEntry) return [];
       const d = log.date;
-      const jst = [
-        d.getUTCFullYear(),
-        String(d.getUTCMonth() + 1).padStart(2, "0"),
-        d.getUTCDate().toString().padStart(2, "0"),
-      ].join(".");
-      return [{ id: log.id, jst, logEntry }];
+      const y = d.getUTCFullYear();
+      const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+      const day = d.getUTCDate().toString().padStart(2, "0");
+      const jst = `${y}.${m}.${day}`;
+      const dateStr = `${y}-${m}-${day}`;
+      return [{ id: log.id, jst, dateStr, logEntry }];
     } catch {
       return [];
     }
@@ -130,6 +131,23 @@ export default async function AlterLogPage() {
               Alterが裏側で記録している、あなたに関する密かな観測日記
             </p>
             <div className="mt-3 h-px bg-gradient-to-r from-[#C4A35A]/30 via-[#C4A35A]/10 to-transparent" />
+
+            {/* 過去参照導線 */}
+            <Link
+              href="/dashboard"
+              className="mt-4 flex items-center gap-2 text-[10px] text-[#8A8276]/50 hover:text-[#C4A35A]/60 transition-colors font-mono tracking-wide group"
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              ムードマップで過去を振り返る
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 group-hover:translate-x-0.5 transition-transform">
+                <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
           </div>
 
           {/* 分岐ロジック */}
@@ -187,16 +205,24 @@ export default async function AlterLogPage() {
                         }}
                       />
 
-                      {/* カード */}
-                      <div className="bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl p-5 mb-1">
-                        {/* タイムスタンプ */}
-                        <div className="flex items-center gap-2 mb-4">
-                          <span className="text-[#C4A35A]/60" aria-hidden="true">
-                            <IcCompass />
-                          </span>
-                          <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums">
-                            {entry.jst}
-                          </span>
+                      {/* カード（日付ページへのリンク） */}
+                      <Link
+                        href={`/daily/${entry.dateStr}`}
+                        className="block bg-white/[0.02] border border-[#C4A35A]/15 rounded-xl p-5 mb-1 hover:bg-white/[0.035] hover:border-[#C4A35A]/25 transition-colors group"
+                      >
+                        {/* タイムスタンプ + 矢印 */}
+                        <div className="flex items-center justify-between gap-2 mb-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[#C4A35A]/60" aria-hidden="true">
+                              <IcCompass />
+                            </span>
+                            <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums">
+                              {entry.jst}
+                            </span>
+                          </div>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#8A8276]/25 group-hover:text-[#C4A35A]/40 transition-colors flex-shrink-0">
+                            <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                          </svg>
                         </div>
 
                         {/* 観察日記 本文 */}
@@ -205,7 +231,7 @@ export default async function AlterLogPage() {
                             {entry.logEntry}
                           </p>
                         )}
-                      </div>
+                      </Link>
                     </div>
                   ))}
                 </div>

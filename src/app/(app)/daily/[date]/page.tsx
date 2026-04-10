@@ -65,8 +65,10 @@ export default async function DailyPage({ params }: { params: Promise<{ date: st
   // Alter Log のインサイト解析
   let insights: Partial<{
     daily_note: string;
-    fact_emotion_ratio: { fact_percentage: number; analysis: string };
+    is_insufficient_data: boolean;
+    fact_emotion_ratio: { fact_percentage: number; emotion_percentage: number; analysis: string };
     cognitive_bias_detected: { bias_name: string; description: string };
+    passive_voice_status: string;
     observed_loops: string | null;
     blind_spots: string | null;
     pending_decisions: string | null;
@@ -166,51 +168,74 @@ export default async function DailyPage({ params }: { params: Promise<{ date: st
                 </div>
               )}
 
-              {/* fact/emotion ratio */}
-              {insights.fact_emotion_ratio && (
+              {/* 情報量不足 */}
+              {insights.is_insufficient_data && (
                 <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                  <p className="font-mono text-[9px] text-[#C4A35A]/50 uppercase tracking-widest mb-2">Fact / Emotion</p>
+                  <p className="font-mono text-[11px] text-white/30">— 情報量不足のため解析できません</p>
+                </div>
+              )}
+
+              {/* 事実・感情バランス */}
+              {!insights.is_insufficient_data && insights.fact_emotion_ratio && (
+                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-2">事実・感情バランス</p>
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
                       <div
-                        className="h-full rounded-full bg-[#C4A35A]/60"
-                        style={{ width: `${insights.fact_emotion_ratio.fact_percentage}%` }}
+                        className="h-full rounded-full"
+                        style={{ width: `${insights.fact_emotion_ratio.fact_percentage}%`, background: "rgba(196,163,90,0.60)" }}
                       />
                     </div>
                     <span className="font-mono text-[10px] text-[#C4A35A]/70 tabular-nums flex-shrink-0">
-                      事実 {insights.fact_emotion_ratio.fact_percentage}%
+                      FACT {insights.fact_emotion_ratio.fact_percentage}%
                     </span>
                   </div>
                   {insights.fact_emotion_ratio.analysis && (
-                    <p className="text-[11px] text-[#8A8276]/60 leading-relaxed">
+                    <p className="text-[12px] text-[#E8E3D8]/55 leading-relaxed">
                       {insights.fact_emotion_ratio.analysis}
                     </p>
                   )}
                 </div>
               )}
 
-              {/* cognitive bias */}
-              {insights.cognitive_bias_detected && (
+              {/* 認知バイアス検知 */}
+              {!insights.is_insufficient_data && insights.cognitive_bias_detected && (
                 <div className="px-5 py-4 border-b border-[#C4A35A]/10">
-                  <p className="font-mono text-[9px] text-[#C4A35A]/50 uppercase tracking-widest mb-1">Cognitive Bias</p>
-                  <p className="text-[11px] font-medium text-[#E8E3D8]/70 mb-1">
-                    {insights.cognitive_bias_detected.bias_name}
-                  </p>
-                  <p className="text-[11px] text-[#8A8276]/60 leading-relaxed">
-                    {insights.cognitive_bias_detected.description}
-                  </p>
+                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">認知バイアス検知</p>
+                  {insights.cognitive_bias_detected.bias_name && insights.cognitive_bias_detected.bias_name !== "INSUFFICIENT_DATA" ? (
+                    <>
+                      <p className="font-mono text-[13px] font-bold text-[#E8E3D8]/80 mb-2 tracking-wide">
+                        「{insights.cognitive_bias_detected.bias_name}」
+                      </p>
+                      {insights.cognitive_bias_detected.description && (
+                        <p className="text-[12px] text-[#E8E3D8]/50 leading-relaxed">
+                          {insights.cognitive_bias_detected.description}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="font-mono text-[11px] text-white/30">偏りなし</p>
+                  )}
                 </div>
               )}
 
-              {/* loops / blind spots / pending */}
+              {/* 意思決定の主体性 */}
+              {!insights.is_insufficient_data && insights.passive_voice_status && (
+                <div className="px-5 py-4 border-b border-[#C4A35A]/10">
+                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">意思決定の主体性</p>
+                  <p className="text-[12px] text-[#E8E3D8]/55 leading-relaxed">{insights.passive_voice_status}</p>
+                </div>
+              )}
+
+              {/* 思考ループ / 盲点 / 保留リスト */}
               {[
-                { key: "observed_loops",    label: "Observed Loops",    value: insights.observed_loops },
-                { key: "blind_spots",       label: "Blind Spots",       value: insights.blind_spots },
-                { key: "pending_decisions", label: "Pending Decisions",  value: insights.pending_decisions },
+                { key: "observed_loops",    label: "思考ループ観測", value: insights.observed_loops },
+                { key: "blind_spots",       label: "盲点エリア",     value: insights.blind_spots },
+                { key: "pending_decisions", label: "保留リスト",     value: insights.pending_decisions },
               ].filter((x) => x.value).map(({ key, label, value }) => (
                 <div key={key} className="px-5 py-4 border-b border-[#C4A35A]/10 last:border-b-0">
-                  <p className="font-mono text-[9px] text-[#C4A35A]/50 uppercase tracking-widest mb-1">{label}</p>
-                  <p className="text-[11px] text-[#8A8276]/60 leading-relaxed">{value}</p>
+                  <p className="font-mono text-[9px] text-[#C4A35A]/50 tracking-widest mb-1">{label}</p>
+                  <p className="text-[12px] text-[#E8E3D8]/55 leading-relaxed">{value}</p>
                 </div>
               ))}
             </div>
