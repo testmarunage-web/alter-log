@@ -40,6 +40,7 @@ interface Props {
   pastJournal: PastJournalEntry | null;
   journalDates: string[]; // YYYY-MM-DD（カレンダー用）
   showVisionBanner?: boolean;
+  hasNeverScanned?: boolean; // lastDashboardScanAt が null のユーザー
 }
 
 // ── 「あの時のあなた」カード ────────────────────────────────────────────────
@@ -119,6 +120,7 @@ export function ChatInterface({
   pastJournal,
   journalDates,
   showVisionBanner = false,
+  hasNeverScanned = false,
 }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -143,6 +145,8 @@ export function ChatInterface({
   const [recElapsed, setRecElapsed]           = useState(0);   // 録音経過秒数
   const [autoStopped, setAutoStopped]         = useState(false); // 5分自動停止フラグ
   const [visionBannerDismissed, setVisionBannerDismissed] = useState(false);
+  const [scanCardVisible, setScanCardVisible]             = useState(false); // SCAN未実行カード表示
+  const [scanCardDismissed, setScanCardDismissed]         = useState(false); // セッション中閉じたか
   const [sizeStopped, setSizeStopped]         = useState(false); // 20MB超過自動停止フラグ
   const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
   const audioChunksRef    = useRef<Blob[]>([]);
@@ -593,6 +597,9 @@ export function ChatInterface({
     try {
       await saveChatMessage(content);
       setShowScanSuggestion(true);
+      if (hasNeverScanned && !scanCardDismissed) {
+        setScanCardVisible(true);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -960,20 +967,47 @@ export function ChatInterface({
             </div>
           )}
 
-          {/* SCAN導線（ジャーナル投稿後に表示） */}
-          {showScanSuggestion && (
-            <div className="max-w-2xl mx-auto w-full px-4 pb-3">
-              <button
-                type="button"
-                onClick={() => router.push("/dashboard")}
-                className="flex items-center gap-2 text-xs text-[#8BA89E]/70 hover:text-[#8BA89E] transition-colors"
+          {/* SCAN導線（ジャーナル投稿後・SCAN未実行ユーザーのみ） */}
+          {showScanSuggestion && hasNeverScanned && !scanCardDismissed && (
+            <div
+              className="max-w-2xl mx-auto w-full px-4 pb-3"
+              style={{
+                opacity: scanCardVisible ? 1 : 0,
+                transition: "opacity 500ms ease-in",
+              }}
+            >
+              <div
+                className="rounded-2xl px-5 py-4"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
               >
-                <AlterIcon size={12} />
-                <span>SCANで思考を解析する</span>
-                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 5.5h7M6 2l3.5 3.5L6 9" />
-                </svg>
-              </button>
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <p className="text-[13px] text-[#E8E3D8]/70 leading-relaxed">
+                    ジャーナルが記録されました。SCANであなたの思考パターンを分析してみましょう。
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setScanCardDismissed(true); setScanCardVisible(false); }}
+                    className="flex-shrink-0 mt-0.5 text-white/20 hover:text-white/45 transition-colors"
+                    aria-label="閉じる"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="flex justify-center">
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#C4A35A] text-[13px] font-mono font-bold text-[#0B0E13] hover:bg-[#D4B36A] transition-colors"
+                  >
+                    SCANで分析する
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+              </div>
             </div>
           )}
 

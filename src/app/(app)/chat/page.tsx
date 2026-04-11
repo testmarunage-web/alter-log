@@ -127,6 +127,7 @@ export default async function ChatPage({
   }
 
   const hasVision = !!(user.vision?.trim());
+  const hasNeverScanned = user.lastDashboardScanAt === null;
 
   return (
     <ChatInterface
@@ -136,6 +137,7 @@ export default async function ChatPage({
       pastJournal={pastJournal}
       journalDates={journalDates}
       showVisionBanner={!hasVision}
+      hasNeverScanned={hasNeverScanned}
     />
   );
 }
