@@ -668,27 +668,30 @@ export function ChatInterface({
         {showVisionBanner && !visionBannerDismissed && (
           <div className="flex-none max-w-2xl mx-auto w-full px-4 pt-3 pb-1">
             <div
-              className="rounded-xl px-4 py-3 flex items-start gap-3"
-              style={{ background: "rgba(196,163,90,0.06)", border: "1px solid rgba(196,163,90,0.12)" }}
+              className="rounded-xl px-4 py-4 flex items-start gap-3"
+              style={{ background: "rgba(196,163,90,0.07)", border: "1px solid rgba(196,163,90,0.18)" }}
             >
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-[#C4A35A]/70 leading-relaxed">
-                  新機能：マイビジョンを設定すると、SCANやAlter Logの分析がより深くなります。
+                <p className="text-[13px] text-[#C4A35A]/75 leading-relaxed">
+                  新機能「マイビジョン」が追加されました。あなたの目標・価値観・なりたい姿などを設定画面から入力できます。入力いただいた内容をもとに、SCANやAlter Logがより深い分析を行います。NotebookLM等で既にジャーナリングをされていた方は、これまでの振り返りやまとめを入力いただくと、Alterがあなたをより深く理解できるようになります。
                 </p>
                 <Link
                   href="/settings"
-                  className="mt-1.5 inline-block text-[11px] font-mono text-[#C4A35A]/60 hover:text-[#C4A35A]/85 underline underline-offset-2 transition-colors"
+                  className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#C4A35A]/20 border border-[#C4A35A]/35 text-[13px] font-mono text-[#C4A35A]/85 hover:bg-[#C4A35A]/28 hover:text-[#C4A35A] transition-colors"
                 >
-                  設定する →
+                  設定する
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
                 </Link>
               </div>
               <button
                 type="button"
                 onClick={() => setVisionBannerDismissed(true)}
-                className="flex-shrink-0 mt-0.5 text-white/20 hover:text-white/40 transition-colors"
+                className="flex-shrink-0 mt-0.5 text-white/25 hover:text-white/50 transition-colors"
                 aria-label="閉じる"
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
