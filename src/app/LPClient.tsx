@@ -236,14 +236,14 @@ export default function LPClient() {
           </div>
 
           {/* Hero動画: PCのみ表示、カード枠なし */}
-          <div className="hidden lg:block relative rv-r" style={{ transitionDelay: "0.3s" }}>
+          <div className="hidden lg:flex relative rv-r justify-center" style={{ transitionDelay: "0.3s" }}>
             <VideoPlayer
               src="/videos/alterlog.mp4"
               ariaLabel="Alter Log画面"
-              className="w-full"
               style={{
                 display: "block",
-                maxHeight: "520px",
+                height: "520px",
+                width: "auto",
                 borderRadius: "16px",
                 boxShadow: "0 48px 120px rgba(0,0,0,0.65), 0 0 40px rgba(180,180,190,0.12)",
               }}
