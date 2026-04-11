@@ -23,8 +23,8 @@ const CURVES: CurveConfig[] = [
 ];
 
 const VIDEO_BORDER_STYLE: React.CSSProperties = {
-  border: "1px solid rgba(255,255,255,0.2)",
-  boxShadow: "0 0 32px rgba(255,255,255,0.08)",
+  border: "1px solid rgba(180,180,190,0.25)",
+  boxShadow: "0 0 24px rgba(180,180,190,0.1)",
 };
 
 type VideoPlayerProps = {
@@ -245,7 +245,7 @@ export default function LPClient() {
                 maxHeight: "520px",
                 objectFit: "contain",
                 borderRadius: "16px",
-                boxShadow: "0 48px 120px rgba(0,0,0,0.65), 0 0 40px rgba(255,255,255,0.1)",
+                boxShadow: "0 48px 120px rgba(0,0,0,0.65), 0 0 40px rgba(180,180,190,0.12)",
               }}
             />
           </div>
@@ -286,7 +286,7 @@ export default function LPClient() {
                 />
                 <div
                   className="p-6"
-                  style={{ border: "1px solid rgba(255,255,255,0.2)", background: "#0c0d12", paddingTop: "24px" }}
+                  style={{ border: "1px solid rgba(180,180,190,0.25)", background: "#0c0d12", paddingTop: "24px" }}
                 >
                   <p className="mono text-[#C9A84C] opacity-40 text-[10px] tracking-[0.2em] uppercase mb-2">
                     Feature 01
@@ -312,7 +312,7 @@ export default function LPClient() {
                 />
                 <div
                   className="p-6"
-                  style={{ border: "1px solid rgba(255,255,255,0.2)", background: "#0c0d12", paddingTop: "24px" }}
+                  style={{ border: "1px solid rgba(180,180,190,0.25)", background: "#0c0d12", paddingTop: "24px" }}
                 >
                   <p className="mono text-[#C9A84C] opacity-40 text-[10px] tracking-[0.2em] uppercase mb-2">
                     Feature 02
@@ -338,7 +338,7 @@ export default function LPClient() {
                 />
                 <div
                   className="p-6"
-                  style={{ border: "1px solid rgba(255,255,255,0.2)", background: "#0c0d12", paddingTop: "24px" }}
+                  style={{ border: "1px solid rgba(180,180,190,0.25)", background: "#0c0d12", paddingTop: "24px" }}
                 >
                   <p className="mono text-[#C9A84C] opacity-40 text-[10px] tracking-[0.2em] uppercase mb-2">
                     Feature 03
@@ -496,8 +496,8 @@ export default function LPClient() {
                     alt="ダッシュボード画面"
                     className="w-full"
                     style={{
-                      border: "1px solid rgba(255,255,255,0.2)",
-                      boxShadow: "0 0 32px rgba(255,255,255,0.08)",
+                      border: "1px solid rgba(180,180,190,0.25)",
+                      boxShadow: "0 0 24px rgba(180,180,190,0.1)",
                     }}
                   />
                 </div>
