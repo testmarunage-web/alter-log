@@ -126,6 +126,8 @@ export default async function ChatPage({
     }
   }
 
+  const hasVision = !!(user.vision?.trim());
+
   return (
     <ChatInterface
       initialJournalMessages={initialJournalMessages}
@@ -133,6 +135,7 @@ export default async function ChatPage({
       hasTodayJournal={hasTodayJournal}
       pastJournal={pastJournal}
       journalDates={journalDates}
+      showVisionBanner={!hasVision}
     />
   );
 }

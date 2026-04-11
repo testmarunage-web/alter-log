@@ -270,7 +270,7 @@ export async function generateDashboardScan(): Promise<{ insights: AlterLogInsig
     : "（入力データなし）";
 
   const visionBlock = user.vision?.trim()
-    ? `\n\n【参考情報：ユーザーのビジョン・目標】\n以下はこのユーザー自身が入力した価値観・目標です。分析の参考にしてください。ただし、主たる分析対象はジャーナルの内容です。\n${user.vision.trim()}`
+    ? `\n\n【参考情報：ユーザーのビジョン・目標】\n以下はこのユーザー自身が入力した価値観・目標です。ジャーナルの分析において、このビジョンとの関連性や一致・乖離があれば積極的に言及してください。ただし、主たる分析対象はジャーナルの内容です。\n${user.vision.trim()}`
     : "";
 
   const prompt = `以下のログを構造解析し、指定のJSON形式でレポートを生成せよ。

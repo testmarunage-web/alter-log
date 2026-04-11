@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { saveChatMessage } from "@/app/actions/chat";
 import { AlterIcon } from "../../_components/AlterIcon";
 import { useReadOnly } from "../../_components/ReadOnlyProvider";
@@ -38,6 +39,7 @@ interface Props {
   hasTodayJournal: boolean;
   pastJournal: PastJournalEntry | null;
   journalDates: string[]; // YYYY-MM-DD（カレンダー用）
+  showVisionBanner?: boolean;
 }
 
 // ── 「あの時のあなた」カード ────────────────────────────────────────────────
@@ -116,6 +118,7 @@ export function ChatInterface({
   hasTodayJournal,
   pastJournal,
   journalDates,
+  showVisionBanner = false,
 }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -139,6 +142,7 @@ export function ChatInterface({
   const [textInputOpen, setTextInputOpen]     = useState(false);
   const [recElapsed, setRecElapsed]           = useState(0);   // 録音経過秒数
   const [autoStopped, setAutoStopped]         = useState(false); // 5分自動停止フラグ
+  const [visionBannerDismissed, setVisionBannerDismissed] = useState(false);
   const [sizeStopped, setSizeStopped]         = useState(false); // 20MB超過自動停止フラグ
   const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
   const audioChunksRef    = useRef<Blob[]>([]);
@@ -656,6 +660,39 @@ export function ChatInterface({
               <p className="text-[12px] text-[#C4A35A]/70 leading-relaxed">
                 サブスクリプションの再開が必要です
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* マイビジョン未設定バナー */}
+        {showVisionBanner && !visionBannerDismissed && (
+          <div className="flex-none max-w-2xl mx-auto w-full px-4 pt-3 pb-1">
+            <div
+              className="rounded-xl px-4 py-3 flex items-start gap-3"
+              style={{ background: "rgba(196,163,90,0.06)", border: "1px solid rgba(196,163,90,0.12)" }}
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] text-[#C4A35A]/70 leading-relaxed">
+                  新機能：マイビジョンを設定すると、SCANやAlter Logの分析がより深くなります。
+                </p>
+                <Link
+                  href="/settings"
+                  className="mt-1.5 inline-block text-[11px] font-mono text-[#C4A35A]/60 hover:text-[#C4A35A]/85 underline underline-offset-2 transition-colors"
+                >
+                  設定する →
+                </Link>
+              </div>
+              <button
+                type="button"
+                onClick={() => setVisionBannerDismissed(true)}
+                className="flex-shrink-0 mt-0.5 text-white/20 hover:text-white/40 transition-colors"
+                aria-label="閉じる"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
             </div>
           </div>
         )}

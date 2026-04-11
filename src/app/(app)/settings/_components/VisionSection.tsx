@@ -1,31 +1,19 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const MAX_CHARS = 12000;
+const MAX_REC_SEC = 300; // 5分
 
 interface Props {
   initialVision: string | null;
   isReadOnly: boolean;
 }
 
-function MicIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-      <line x1="12" y1="19" x2="12" y2="23" />
-      <line x1="8" y1="23" x2="16" y2="23" />
-    </svg>
-  );
-}
-
-function StopIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-    </svg>
-  );
+function fmtTime(sec: number): string {
+  const m = Math.floor(sec / 60).toString();
+  const s = (sec % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
 }
 
 export function VisionSection({ initialVision, isReadOnly }: Props) {
@@ -37,10 +25,36 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [micError, setMicError] = useState<string | null>(null);
+  const [recElapsed, setRecElapsed] = useState(0);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoStoppedRef = useRef(false);
+
+  // アンマウント時にタイマー・ストリームをクリーンアップ
+  useEffect(() => {
+    return () => {
+      clearTimers();
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      if (mediaRecorderRef.current?.state === "recording") {
+        mediaRecorderRef.current.stop();
+      }
+    };
+  }, []);
+
+  function clearTimers() {
+    if (elapsedTimerRef.current) {
+      clearInterval(elapsedTimerRef.current);
+      elapsedTimerRef.current = null;
+    }
+    if (autoStopTimerRef.current) {
+      clearTimeout(autoStopTimerRef.current);
+      autoStopTimerRef.current = null;
+    }
+  }
 
   const hasContent = savedText.trim().length > 0;
 
@@ -52,11 +66,12 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
   }
 
   function cancelEdit() {
-    // 録音中なら止める
     if (isRecording) {
+      clearTimers();
       mediaRecorderRef.current?.stop();
       streamRef.current?.getTracks().forEach((t) => t.stop());
       setIsRecording(false);
+      setRecElapsed(0);
     }
     setText(savedText);
     setMode("view");
@@ -90,6 +105,7 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
 
   async function startRecording() {
     setMicError(null);
+    autoStoppedRef.current = false;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -101,7 +117,6 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
         mimeType,
         audioBitsPerSecond: 64000,
       });
-
       audioChunksRef.current = [];
 
       recorder.ondataavailable = (e) => {
@@ -109,12 +124,14 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
       };
 
       recorder.onstop = async () => {
+        clearTimers();
         stream.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
+        setIsRecording(false);
+        setRecElapsed(0);
 
         const chunks = audioChunksRef.current;
         audioChunksRef.current = [];
-
         const totalSize = chunks.reduce((acc, c) => acc + c.size, 0);
         if (totalSize < 200) return;
 
@@ -138,49 +155,68 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
           setMicError("文字起こしに失敗しました。");
         } finally {
           setIsTranscribing(false);
+          autoStoppedRef.current = false;
         }
       };
 
       recorder.start(250);
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
+      setRecElapsed(0);
+
+      // 経過秒数カウンター
+      elapsedTimerRef.current = setInterval(() => {
+        setRecElapsed((prev) => prev + 1);
+      }, 1000);
+
+      // 5分自動停止
+      autoStopTimerRef.current = setTimeout(() => {
+        if (mediaRecorderRef.current?.state === "recording") {
+          autoStoppedRef.current = true;
+          mediaRecorderRef.current.stop();
+        }
+      }, MAX_REC_SEC * 1000);
     } catch {
       setMicError("マイクへのアクセスが許可されていません。");
     }
   }
 
   function stopRecording() {
-    if (
-      mediaRecorderRef.current &&
-      mediaRecorderRef.current.state !== "inactive"
-    ) {
-      mediaRecorderRef.current.stop();
+    clearTimers();
+    if (mediaRecorderRef.current?.state !== "inactive") {
+      mediaRecorderRef.current?.stop();
     }
     setIsRecording(false);
+    setRecElapsed(0);
   }
+
+  const isNearLimit = recElapsed >= MAX_REC_SEC - 30;
 
   return (
     <section className="mb-8">
       {/* セクションタイトル */}
       <div className="flex items-center gap-2 mb-3">
         <svg
-          width="11"
-          height="11"
+          width="14"
+          height="14"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-[#C4A35A]/60"
+          className="text-[#C4A35A]/70 flex-shrink-0"
         >
           <circle cx="12" cy="12" r="10" />
           <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
         </svg>
-        <h2 className="font-mono text-[12px] tracking-[0.18em] text-[#C4A35A]/75 uppercase">
+        <h2 className="text-xl font-bold text-[#C4A35A] leading-snug tracking-tight">
           My Vision
         </h2>
       </div>
+      <p className="text-[11px] text-[#8A8276] mb-4 leading-relaxed">
+        Alterが裏側で参照している、あなた自身の目標・価値観・なりたい姿
+      </p>
 
       <div
         className="rounded-xl border border-[#C4A35A]/15 overflow-hidden"
@@ -233,47 +269,60 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
               className="w-full bg-transparent border border-white/[0.08] rounded-lg px-4 py-3 text-[13px] text-[#E8E3D8]/85 placeholder-white/20 leading-relaxed resize-none focus:outline-none focus:border-[#C4A35A]/30 transition-colors font-sans"
             />
 
-            {/* 文字数 + マイクボタン */}
-            <div className="flex items-center justify-between mt-2 mb-4">
-              <div className="flex items-center gap-3">
-                {/* マイクボタン */}
-                {isTranscribing ? (
-                  <div className="flex items-center gap-1.5 text-[#C4A35A]/60">
-                    <span className="w-3 h-3 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-                    <span className="text-[10px] font-mono">変換中...</span>
-                  </div>
-                ) : isRecording ? (
+            {/* 音声入力エリア */}
+            <div className="mt-2.5 mb-4">
+              {isTranscribing ? (
+                <div className="flex items-center gap-2 text-[#C4A35A]/60">
+                  <span className="w-3 h-3 border border-[#C4A35A]/60 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                  <span className="text-[11px] font-mono">文字起こし中...</span>
+                </div>
+              ) : isRecording ? (
+                <div>
                   <button
                     type="button"
                     onClick={stopRecording}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/15 border border-red-500/30 text-red-400/80 hover:bg-red-500/20 transition-colors"
+                    className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-lg bg-red-500/12 border border-red-500/25 text-red-400/80 hover:bg-red-500/18 transition-colors"
                   >
                     <span
                       className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0"
                       style={{ animation: "dot-pulse 1s ease-in-out infinite" }}
                     />
-                    <StopIcon />
-                    <span className="text-[10px] font-mono">停止</span>
+                    <span className="text-[12px] font-mono">タップして停止</span>
+                    <span
+                      className={`font-mono text-[12px] font-normal transition-colors ${
+                        isNearLimit ? "text-red-300" : "text-white/60"
+                      }`}
+                    >
+                      {fmtTime(recElapsed)} / {fmtTime(MAX_REC_SEC)}
+                    </span>
                   </button>
-                ) : (
+                  <p className="mt-1.5 text-[10px] font-mono text-white/25 text-right">
+                    最大5分まで録音できます
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
                   <button
                     type="button"
                     onClick={startRecording}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/[0.08] text-[#8A8276]/70 hover:text-[#E8E3D8]/70 hover:border-white/[0.14] transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/[0.12] text-[#8A8276]/80 hover:border-[#C4A35A]/25 hover:text-[#C4A35A]/65 transition-colors"
                   >
-                    <MicIcon />
-                    <span className="text-[10px] font-mono">音声入力</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="23" />
+                      <line x1="8" y1="23" x2="16" y2="23" />
+                    </svg>
+                    <span className="text-[11px] font-mono">音声入力</span>
                   </button>
-                )}
-
-                {micError && (
-                  <span className="text-[10px] text-red-400/60 font-mono">{micError}</span>
-                )}
-              </div>
-
-              <span className="text-[10px] font-mono text-white/20">
-                {text.length.toLocaleString()} / {MAX_CHARS.toLocaleString()}
-              </span>
+                  <span className="text-[10px] font-mono text-white/20">
+                    {text.length.toLocaleString()} / {MAX_CHARS.toLocaleString()}
+                  </span>
+                </div>
+              )}
+              {micError && (
+                <p className="mt-1.5 text-[10px] text-red-400/60 font-mono">{micError}</p>
+              )}
             </div>
 
             {/* 保存 / キャンセル */}
@@ -306,7 +355,7 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
       <style>{`
         @keyframes dot-pulse {
           0%, 100% { opacity: 1; }
-          50%       { opacity: 0.4; }
+          50%       { opacity: 0.3; }
         }
       `}</style>
     </section>
