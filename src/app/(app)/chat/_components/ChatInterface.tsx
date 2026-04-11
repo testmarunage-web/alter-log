@@ -958,7 +958,7 @@ export function ChatInterface({
         {journalMessages.length > 0 && (
           <div ref={journalListRef} className="flex-1 overflow-y-auto border-t border-white/[0.04] min-h-0">
             <div className="max-w-2xl mx-auto px-4 py-4">
-              <p className="text-[10px] text-[#8A8276]/45 tracking-widest uppercase mb-4">過去のジャーナル</p>
+              <p className="text-[11px] text-[#8A8276]/70 font-mono tracking-widest uppercase mb-4">過去のジャーナル</p>
               <div className="relative">
                 {/* 縦線 */}
                 <div className="absolute left-[5px] top-1 bottom-0 w-px bg-gradient-to-b from-[#C4A35A]/30 via-[#C4A35A]/12 to-transparent" />
@@ -968,7 +968,7 @@ export function ChatInterface({
                       {/* ドット */}
                       <span className="absolute -left-[22px] top-[5px] w-2.5 h-2.5 rounded-full bg-[#0B0E13] border border-[#C4A35A]/45" />
                       <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <p className="text-[11px] text-[#8A8276]/90 font-mono font-semibold tracking-wide">
+                        <p className="text-[12px] text-[#8A8276]/90 font-mono font-semibold tracking-wide">
                           {formatDateTime(m.createdAt)}
                         </p>
                         <CopyButton text={m.content} />

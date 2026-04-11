@@ -28,11 +28,15 @@ function IcCompass() {
   );
 }
 
-// Alter Log 本文（句点で段落分割）
+// Alter Log 本文（2文ずつ結合して段落分け）
 function AlterLogBody({ text }: { text: string }) {
-  const paragraphs = text.split(/(?<=。)/).map((s) => s.trim()).filter(Boolean);
-  if (paragraphs.length <= 1) {
-    return <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide pr-6">{text}</p>;
+  const sentences = text.split(/(?<=。)/).map((s) => s.trim()).filter(Boolean);
+  if (sentences.length <= 2) {
+    return <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide pr-6">{text.trim()}</p>;
+  }
+  const paragraphs: string[] = [];
+  for (let i = 0; i < sentences.length; i += 2) {
+    paragraphs.push(sentences.slice(i, i + 2).join(""));
   }
   return (
     <div className="space-y-3 pr-6">

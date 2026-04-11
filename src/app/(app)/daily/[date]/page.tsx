@@ -36,11 +36,15 @@ function toTimeStr(d: Date): string {
   return `${String(jst.getHours()).padStart(2, "0")}:${String(jst.getMinutes()).padStart(2, "0")}`;
 }
 
-// Alter Log 本文（句点で段落分割）
+// Alter Log 本文（2文ずつ結合して段落分け）
 function AlterLogBody({ text }: { text: string }) {
-  const paragraphs = text.split(/(?<=。)/).map((s) => s.trim()).filter(Boolean);
-  if (paragraphs.length <= 1) {
-    return <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide">{text}</p>;
+  const sentences = text.split(/(?<=。)/).map((s) => s.trim()).filter(Boolean);
+  if (sentences.length <= 2) {
+    return <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide">{text.trim()}</p>;
+  }
+  const paragraphs: string[] = [];
+  for (let i = 0; i < sentences.length; i += 2) {
+    paragraphs.push(sentences.slice(i, i + 2).join(""));
   }
   return (
     <div className="space-y-3">
@@ -159,7 +163,7 @@ export default async function DailyPage({
                     <CopyButton text={entry.content} />
                   </div>
                   {journals.length > 1 && (
-                    <p className="font-mono text-[10px] text-[#8A8276]/80 font-semibold mb-2">
+                    <p className="font-mono text-[12px] text-[#8A8276]/80 font-semibold mb-2">
                       {toTimeStr(entry.createdAt)}
                       <span className="ml-2 font-normal text-[#8A8276]/45">— {i + 1}/{journals.length}</span>
                     </p>
@@ -216,7 +220,7 @@ export default async function DailyPage({
                       <CopyButton text={entry.content} />
                     </div>
                     {journals.length > 1 && (
-                      <p className="font-mono text-[10px] text-[#8A8276]/80 font-semibold mb-2">
+                      <p className="font-mono text-[12px] text-[#8A8276]/80 font-semibold mb-2">
                         {toTimeStr(entry.createdAt)}
                         <span className="ml-2 font-normal text-[#8A8276]/45">— {i + 1}/{journals.length}</span>
                       </p>
