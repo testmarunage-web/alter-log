@@ -33,6 +33,7 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
   const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoStoppedRef = useRef(false);
+  const recElapsedRef = useRef(0); // ビープ判定用（state updater外から参照）
 
   // アンマウント時にタイマー・ストリームをクリーンアップ
   useEffect(() => {
@@ -60,30 +61,42 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
 
   // ── 通知音ヘルパー ───────────────────────────────────────────────────────────
   function playBeep(type: "warning" | "end") {
+    console.log("[VisionSection playBeep] called:", type);
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const AudioCtxClass = window.AudioContext ?? (window as any).webkitAudioContext;
       const ctx: AudioContext = new AudioCtxClass();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      if (type === "warning") {
-        osc.frequency.value = 880;
-        gain.gain.setValueAtTime(0.18, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.12);
+      console.log("[VisionSection playBeep] AudioContext state:", ctx.state);
+
+      const play = () => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        if (type === "warning") {
+          osc.frequency.value = 880;
+          gain.gain.setValueAtTime(0.5, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.12);
+        } else {
+          osc.frequency.setValueAtTime(660, ctx.currentTime);
+          osc.frequency.setValueAtTime(440, ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.5, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.22);
+        }
+        console.log("[VisionSection playBeep] oscillator started");
+      };
+
+      if (ctx.state === "suspended") {
+        ctx.resume().then(play).catch((e) => console.warn("[VisionSection playBeep] resume failed:", e));
       } else {
-        osc.frequency.setValueAtTime(660, ctx.currentTime);
-        osc.frequency.setValueAtTime(440, ctx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.18, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.22);
+        play();
       }
-    } catch {
-      // 音が鳴らなくても録音は継続
+    } catch (e) {
+      console.warn("[VisionSection playBeep] error:", e);
     }
   }
 
@@ -192,14 +205,15 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
       setRecElapsed(0);
+      recElapsedRef.current = 0;
 
       // 経過秒数カウンター
       elapsedTimerRef.current = setInterval(() => {
-        setRecElapsed((prev) => {
-          const next = prev + 1;
-          if (next === MAX_REC_SEC - 30) playBeep("warning");
-          return next;
-        });
+        recElapsedRef.current += 1;
+        const next = recElapsedRef.current;
+        setRecElapsed(next);
+        // 残り30秒で警告音 — state updater外で呼ぶ
+        if (next === MAX_REC_SEC - 30) playBeep("warning");
       }, 1000);
 
       // 5分自動停止

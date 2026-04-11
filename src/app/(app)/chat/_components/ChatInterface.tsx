@@ -157,6 +157,7 @@ export function ChatInterface({
   const elapsedTimerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoStopTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoStoppedRef    = useRef(false); // onstop の stale closure 対策
+  const recElapsedRef     = useRef(0);    // ビープ判定用（state updater外から参照）
   const sizeLimitStoppedRef = useRef(false); // 20MB超過フラグ（stale closure 対策）
   const wakeLockRef          = useRef<WakeLockSentinel | null>(null); // 画面スリープ防止
   const visibilityHandlerRef = useRef<(() => void) | null>(null);    // visibilitychange リスナー
@@ -166,32 +167,48 @@ export function ChatInterface({
 
   // ── 通知音ヘルパー ───────────────────────────────────────────────────────────
   function playBeep(type: "warning" | "end") {
+    console.log("[playBeep] called:", type);
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const AudioCtxClass = window.AudioContext ?? (window as any).webkitAudioContext;
-      const ctx: AudioContext = audioContextRef.current ?? new AudioCtxClass();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      if (type === "warning") {
-        // 残り30秒：短い高音ビープ（880Hz, 120ms）
-        osc.frequency.value = 880;
-        gain.gain.setValueAtTime(0.18, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.12);
+      // closed状態のAudioContextは再利用不可 → 新規作成
+      const existing = audioContextRef.current;
+      const ctx: AudioContext =
+        existing && existing.state !== "closed" ? existing : new AudioCtxClass();
+      console.log("[playBeep] AudioContext state:", ctx.state);
+
+      // suspended状態（Chromeの自動suspend）の場合はresumeしてから再生
+      const play = () => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        if (type === "warning") {
+          // 残り30秒：短い高音ビープ（880Hz, 120ms）
+          osc.frequency.value = 880;
+          gain.gain.setValueAtTime(0.5, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.12);
+        } else {
+          // 5分完了：2段トーン（660Hz→440Hz）で区別
+          osc.frequency.setValueAtTime(660, ctx.currentTime);
+          osc.frequency.setValueAtTime(440, ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.5, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + 0.22);
+        }
+        console.log("[playBeep] oscillator started");
+      };
+
+      if (ctx.state === "suspended") {
+        ctx.resume().then(play).catch((e) => console.warn("[playBeep] resume failed:", e));
       } else {
-        // 5分完了：2段トーン（660Hz→440Hz）で区別
-        osc.frequency.setValueAtTime(660, ctx.currentTime);
-        osc.frequency.setValueAtTime(440, ctx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.18, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.22);
+        play();
       }
-    } catch {
-      // 音が鳴らなくても録音は継続
+    } catch (e) {
+      console.warn("[playBeep] error:", e);
     }
   }
 
@@ -547,15 +564,15 @@ export function ChatInterface({
 
     // 経過秒数カウンター（1秒ごと）
     setRecElapsed(0);
+    recElapsedRef.current = 0;
     setAutoStopped(false);
     autoStoppedRef.current = false;
     elapsedTimerRef.current = setInterval(() => {
-      setRecElapsed((prev) => {
-        const next = prev + 1;
-        // 残り30秒（MAX_REC_SEC - 30秒経過）で警告音
-        if (next === MAX_REC_SEC - 30) playBeep("warning");
-        return next;
-      });
+      recElapsedRef.current += 1;
+      const next = recElapsedRef.current;
+      setRecElapsed(next);
+      // 残り30秒（MAX_REC_SEC - 30秒経過）で警告音 — state updater外で呼ぶ
+      if (next === MAX_REC_SEC - 30) playBeep("warning");
     }, 1000);
 
     // 5分自動停止タイマー
