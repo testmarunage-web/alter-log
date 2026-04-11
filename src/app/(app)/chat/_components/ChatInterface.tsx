@@ -166,7 +166,7 @@ export function ChatInterface({
   const MAX_REC_SEC = 300; // 5分
 
   // ── 通知音ヘルパー ───────────────────────────────────────────────────────────
-  function playBeep(type: "warning" | "end") {
+  function playBeep(type: "start" | "warning" | "end") {
     console.log("[playBeep] called:", type);
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -177,29 +177,49 @@ export function ChatInterface({
         existing && existing.state !== "closed" ? existing : new AudioCtxClass();
       console.log("[playBeep] AudioContext state:", ctx.state);
 
-      // suspended状態（Chromeの自動suspend）の場合はresumeしてから再生
       const play = () => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        if (type === "warning") {
+        const t = ctx.currentTime;
+        if (type === "start") {
+          // 録音開始：1200Hz→1400Hzの上昇トーン、100ms
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.setValueAtTime(1200, t);
+          osc.frequency.linearRampToValueAtTime(1400, t + 0.10);
+          gain.gain.setValueAtTime(0.4, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.10);
+          osc.start(t);
+          osc.stop(t + 0.10);
+        } else if (type === "warning") {
           // 残り30秒：短い高音ビープ（880Hz, 120ms）
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
           osc.frequency.value = 880;
-          gain.gain.setValueAtTime(0.5, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-          osc.start(ctx.currentTime);
-          osc.stop(ctx.currentTime + 0.12);
+          gain.gain.setValueAtTime(0.5, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+          osc.start(t);
+          osc.stop(t + 0.12);
         } else {
-          // 5分完了：2段トーン（660Hz→440Hz）で区別
-          osc.frequency.setValueAtTime(660, ctx.currentTime);
-          osc.frequency.setValueAtTime(440, ctx.currentTime + 0.1);
-          gain.gain.setValueAtTime(0.5, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
-          osc.start(ctx.currentTime);
-          osc.stop(ctx.currentTime + 0.22);
+          // 残り10秒（4:50）：ピピピッ 3連ビープ（960Hz, 280ms）
+          // ON:0-60ms / OFF:60-100ms / ON:100-160ms / OFF:160-200ms / ON:200-280ms→fadeout
+          const beepTimes = [0, 0.1, 0.2];
+          for (const offset of beepTimes) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = 960;
+            const onDur = offset === 0.2 ? 0.08 : 0.06;
+            gain.gain.setValueAtTime(0.5, t + offset);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + offset + onDur);
+            osc.start(t + offset);
+            osc.stop(t + offset + onDur);
+          }
         }
-        console.log("[playBeep] oscillator started");
+        console.log("[playBeep] oscillator started:", type);
       };
 
       if (ctx.state === "suspended") {
@@ -535,6 +555,7 @@ export function ChatInterface({
     mediaRecorderRef.current = recorder;
     // timeslice 250ms: 定期的に ondataavailable を発火させてデータロスを防ぐ
     recorder.start(250);
+    playBeep("start"); // 録音開始音
 
     // Wake Lock（画面スリープ防止）— 非対応ブラウザはスキップ
     try {
@@ -571,16 +592,16 @@ export function ChatInterface({
       recElapsedRef.current += 1;
       const next = recElapsedRef.current;
       setRecElapsed(next);
-      // 残り30秒（MAX_REC_SEC - 30秒経過）で警告音 — state updater外で呼ぶ
+      // 残り30秒（270秒経過）で警告音、残り10秒（290秒経過）でトリプルビープ
       if (next === MAX_REC_SEC - 30) playBeep("warning");
+      if (next === MAX_REC_SEC - 10) playBeep("end");
     }, 1000);
 
-    // 5分自動停止タイマー
+    // 5分自動停止タイマー（音なし）
     autoStopTimerRef.current = setTimeout(() => {
       if (mediaRecorderRef.current?.state === "recording") {
         autoStoppedRef.current = true;
         setAutoStopped(true);
-        playBeep("end");
         mediaRecorderRef.current.stop();
       }
     }, MAX_REC_SEC * 1000);
