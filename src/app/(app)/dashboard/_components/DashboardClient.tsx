@@ -233,7 +233,7 @@ function HudCard({ label, tag, description, children }: {
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-[10px] tracking-[0.22em] text-white/55 uppercase">{label}</span>
+        <span className="font-mono text-[12px] tracking-[0.18em] text-white/55 uppercase">{label}</span>
         {description && (
           <button
             type="button"
@@ -291,7 +291,7 @@ function ProfileCard({ label, value, title, description }: { label: string; valu
       }}
     >
       <div className="flex items-center mb-2">
-        <span className="font-mono text-[10px] tracking-[0.22em] text-white/50 uppercase">{label}</span>
+        <span className="font-mono text-[12px] tracking-[0.18em] text-white/50 uppercase">{label}</span>
         {description && (
           <button
             type="button"
@@ -396,7 +396,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       {/* ヘッダー */}
       <div className="flex items-center mb-1">
-        <span className="font-mono text-[10px] tracking-[0.22em] text-white/55 uppercase">ムードマップ</span>
+        <span className="font-mono text-[12px] tracking-[0.18em] text-white/55 uppercase">ムードマップ</span>
         <button type="button" onClick={() => setInfoOpen((v) => !v)} className="text-white/20 hover:text-white/40 transition-colors ml-1">
           <IcInfo />
         </button>
@@ -533,7 +533,7 @@ function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayC
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       {/* ヘッダー */}
       <div className="flex items-center mb-1">
-        <span className="font-mono text-[10px] tracking-[0.22em] text-white/55 uppercase">ワードクラウド</span>
+        <span className="font-mono text-[12px] tracking-[0.18em] text-white/55 uppercase">ワードクラウド</span>
       </div>
       {infoOpen && (
         <p className="text-[10px] text-white/25 leading-relaxed mb-2">
@@ -599,7 +599,7 @@ function ObserverCounter({ observerDays, totalJournalCount, totalScanCount }: {
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       <div className="flex items-center mb-3">
-        <span className="font-mono text-[10px] tracking-[0.22em] text-white/55 uppercase">観測カウンター</span>
+        <span className="font-mono text-[12px] tracking-[0.18em] text-white/55 uppercase">観測カウンター</span>
         <button
           type="button"
           onClick={() => setInfoOpen((v) => !v)}

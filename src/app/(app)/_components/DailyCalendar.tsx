@@ -95,7 +95,7 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
         {WEEKDAYS.map((d, i) => (
           <span
             key={d}
-            className={`text-center font-mono text-[8px] ${
+            className={`text-center font-mono text-[10px] ${
               i === 0 ? "text-red-400/60" : i === 6 ? "text-white/45" : "text-white/40"
             }`}
           >
@@ -124,7 +124,7 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
               `}
             >
               <span
-                className={`font-mono text-[11px] leading-none ${
+                className={`font-mono text-[13px] leading-none ${
                   isToday
                     ? "text-[#C4A35A] font-bold"
                     : hasData
