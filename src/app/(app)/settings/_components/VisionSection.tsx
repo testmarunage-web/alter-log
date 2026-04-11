@@ -58,6 +58,35 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
 
   const hasContent = savedText.trim().length > 0;
 
+  // ── 通知音ヘルパー ───────────────────────────────────────────────────────────
+  function playBeep(type: "warning" | "end") {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const AudioCtxClass = window.AudioContext ?? (window as any).webkitAudioContext;
+      const ctx: AudioContext = new AudioCtxClass();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      if (type === "warning") {
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.12);
+      } else {
+        osc.frequency.setValueAtTime(660, ctx.currentTime);
+        osc.frequency.setValueAtTime(440, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.22);
+      }
+    } catch {
+      // 音が鳴らなくても録音は継続
+    }
+  }
+
   function enterEdit() {
     setText(savedText);
     setMode("edit");
@@ -166,13 +195,18 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
 
       // 経過秒数カウンター
       elapsedTimerRef.current = setInterval(() => {
-        setRecElapsed((prev) => prev + 1);
+        setRecElapsed((prev) => {
+          const next = prev + 1;
+          if (next === MAX_REC_SEC - 30) playBeep("warning");
+          return next;
+        });
       }, 1000);
 
       // 5分自動停止
       autoStopTimerRef.current = setTimeout(() => {
         if (mediaRecorderRef.current?.state === "recording") {
           autoStoppedRef.current = true;
+          playBeep("end");
           mediaRecorderRef.current.stop();
         }
       }, MAX_REC_SEC * 1000);

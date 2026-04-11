@@ -164,6 +164,37 @@ export function ChatInterface({
 
   const MAX_REC_SEC = 300; // 5分
 
+  // ── 通知音ヘルパー ───────────────────────────────────────────────────────────
+  function playBeep(type: "warning" | "end") {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const AudioCtxClass = window.AudioContext ?? (window as any).webkitAudioContext;
+      const ctx: AudioContext = audioContextRef.current ?? new AudioCtxClass();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      if (type === "warning") {
+        // 残り30秒：短い高音ビープ（880Hz, 120ms）
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.12);
+      } else {
+        // 5分完了：2段トーン（660Hz→440Hz）で区別
+        osc.frequency.setValueAtTime(660, ctx.currentTime);
+        osc.frequency.setValueAtTime(440, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.22);
+      }
+    } catch {
+      // 音が鳴らなくても録音は継続
+    }
+  }
+
   // 初回のみウェルカムモーダルを表示
   useEffect(() => {
     try {
@@ -519,7 +550,12 @@ export function ChatInterface({
     setAutoStopped(false);
     autoStoppedRef.current = false;
     elapsedTimerRef.current = setInterval(() => {
-      setRecElapsed((prev) => prev + 1);
+      setRecElapsed((prev) => {
+        const next = prev + 1;
+        // 残り30秒（MAX_REC_SEC - 30秒経過）で警告音
+        if (next === MAX_REC_SEC - 30) playBeep("warning");
+        return next;
+      });
     }, 1000);
 
     // 5分自動停止タイマー
@@ -527,6 +563,7 @@ export function ChatInterface({
       if (mediaRecorderRef.current?.state === "recording") {
         autoStoppedRef.current = true;
         setAutoStopped(true);
+        playBeep("end");
         mediaRecorderRef.current.stop();
       }
     }, MAX_REC_SEC * 1000);
