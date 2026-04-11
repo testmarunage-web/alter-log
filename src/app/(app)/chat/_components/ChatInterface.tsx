@@ -150,6 +150,9 @@ export function ChatInterface({
   const autoStopTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoStoppedRef    = useRef(false); // onstop の stale closure 対策
   const sizeLimitStoppedRef = useRef(false); // 20MB超過フラグ（stale closure 対策）
+  const wakeLockRef          = useRef<WakeLockSentinel | null>(null); // 画面スリープ防止
+  const visibilityHandlerRef = useRef<(() => void) | null>(null);    // visibilitychange リスナー
+  const bgStoppedRef         = useRef(false); // バックグラウンド移行による停止フラグ
 
   const MAX_REC_SEC = 300; // 5分
 
@@ -172,6 +175,12 @@ export function ChatInterface({
       if (elapsedTimerRef.current) clearInterval(elapsedTimerRef.current);
       if (autoStopTimerRef.current) clearTimeout(autoStopTimerRef.current);
       audioContextRef.current?.close();
+      // Wake Lock と visibilitychange のクリーンアップ
+      wakeLockRef.current?.release().catch(() => {});
+      if (visibilityHandlerRef.current) {
+        document.removeEventListener("visibilitychange", visibilityHandlerRef.current);
+        visibilityHandlerRef.current = null;
+      }
     };
   }, []);
 
@@ -220,6 +229,44 @@ export function ChatInterface({
     if (canvas) {
       const ctx = canvas.getContext("2d");
       ctx?.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    // Wake Lock 解除
+    wakeLockRef.current?.release().catch(() => {});
+    wakeLockRef.current = null;
+    // visibilitychange リスナー解除
+    if (visibilityHandlerRef.current) {
+      document.removeEventListener("visibilitychange", visibilityHandlerRef.current);
+      visibilityHandlerRef.current = null;
+    }
+  }
+
+  /** チャンクをそのままWhisper APIに送信して文字起こし（バックグラウンド移行・エラー時の救済用） */
+  async function transcribeChunks(chunks: Blob[], mimeType: string, notifyMsg: string) {
+    if (chunks.length === 0) return;
+    const blob = new Blob(chunks, { type: mimeType });
+    if (blob.size < 200) return;
+    setIsTranscribing(true);
+    setMicError(notifyMsg);
+    try {
+      const ext = mimeType.includes("webm") ? "webm" : "mp4";
+      const fd = new FormData();
+      fd.append("audio", blob, `audio.${ext}`);
+      const res = await fetch("/api/transcribe", { method: "POST", body: fd });
+      if (res.ok) {
+        const { text } = await res.json() as { text: string };
+        if (text?.trim()) {
+          setJournalInput((prev) => prev ? `${prev}\n${text.trim()}` : text.trim());
+          setTextInputOpen(true);
+          setTimeout(() => textareaRef.current?.focus(), 100);
+        }
+      }
+    } catch {
+      // 救済送信失敗は無視（既にエラーメッセージを表示済み）
+    } finally {
+      setIsTranscribing(false);
+      setRecElapsed(0);
+      autoStoppedRef.current = false;
+      sizeLimitStoppedRef.current = false;
     }
   }
 
@@ -351,9 +398,10 @@ export function ChatInterface({
     };
 
     recorder.onstop = async () => {
-      // autoStoppedRef で stale closure を回避
+      // stale closure を回避するため ref の値をスナップショット
       const wasAutoStopped = autoStoppedRef.current;
       const wasSizeStopped = sizeLimitStoppedRef.current;
+      const wasBgStopped   = bgStoppedRef.current;
       stopRecordingResources();
       stream.getTracks().forEach((t) => t.stop());
       setIsRecording(false);
@@ -382,8 +430,10 @@ export function ChatInterface({
             setTextInputOpen(true);
             setTimeout(() => textareaRef.current?.focus(), 100);
           }
-          // 自動停止の場合は続きを促すメッセージを表示（エラーではなく通知）
-          if (wasAutoStopped && !wasSizeStopped) {
+          // 停止理由に応じたメッセージ
+          if (wasBgStopped) {
+            setMicError("画面がバックグラウンドになったため録音を停止しました。ここまでの内容は保存されています。");
+          } else if (wasAutoStopped && !wasSizeStopped) {
             setMicError("5分経過のため録音を終了しました。続きがある場合はもう一度録音してください。");
           }
         } else {
@@ -407,13 +457,54 @@ export function ChatInterface({
         autoStoppedRef.current = false;
         setSizeStopped(false);
         sizeLimitStoppedRef.current = false;
+        bgStoppedRef.current = false;
         setRecElapsed(0);
       }
+    };
+
+    // onerror: 録音エラー時にチャンク救済送信
+    recorder.onerror = () => {
+      const savedChunks = [...audioChunksRef.current];
+      const savedMime = mimeType;
+      stopRecordingResources();
+      stream.getTracks().forEach((t) => t.stop());
+      setIsRecording(false);
+      autoStoppedRef.current = false;
+      sizeLimitStoppedRef.current = false;
+      setAutoStopped(false);
+      setSizeStopped(false);
+      transcribeChunks(savedChunks, savedMime, "録音エラーが発生しました。ここまでの内容を保存しています。");
     };
 
     mediaRecorderRef.current = recorder;
     // timeslice 250ms: 定期的に ondataavailable を発火させてデータロスを防ぐ
     recorder.start(250);
+
+    // Wake Lock（画面スリープ防止）— 非対応ブラウザはスキップ
+    try {
+      if ("wakeLock" in navigator) {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+        // visibilitychange で解除された場合（着信・アプリ切替など）に再取得
+        wakeLockRef.current.addEventListener("release", async () => {
+          if (mediaRecorderRef.current?.state === "recording" && document.visibilityState === "visible") {
+            try {
+              wakeLockRef.current = await navigator.wakeLock.request("screen");
+            } catch { /* 再取得失敗は無視 */ }
+          }
+        });
+      }
+    } catch { /* Wake Lock 取得失敗は無視 */ }
+
+    // visibilitychange: バックグラウンド移行時に録音を停止（チャンクは onstop で処理）
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden" && mediaRecorderRef.current?.state === "recording") {
+        bgStoppedRef.current = true;
+        autoStoppedRef.current = true;
+        mediaRecorderRef.current.stop();
+      }
+    };
+    visibilityHandlerRef.current = handleVisibilityChange;
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     // 経過秒数カウンター（1秒ごと）
     setRecElapsed(0);
