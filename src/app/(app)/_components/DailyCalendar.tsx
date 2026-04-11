@@ -60,10 +60,10 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
           type="button"
           onClick={prevMonth}
           disabled={isEarliestMonth}
-          className="w-6 h-6 flex items-center justify-center rounded-md text-white/60 hover:text-white/90 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-default"
+          className="w-7 h-7 flex items-center justify-center rounded-md text-white/60 hover:text-white/90 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-default"
           aria-label="前月"
         >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
@@ -72,7 +72,7 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
           {label && (
             <span className="font-mono text-[8px] tracking-[0.2em] text-[#8A8276]/30 uppercase">{label}</span>
           )}
-          <span className="font-mono text-[10px] text-white/60 tracking-wide">
+          <span className="font-mono text-[12px] text-white/60 tracking-wide">
             {year}年{month + 1}月
           </span>
         </div>
@@ -81,10 +81,10 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
           type="button"
           onClick={nextMonth}
           disabled={isCurrentMonth}
-          className="w-6 h-6 flex items-center justify-center rounded-md text-white/60 hover:text-white/90 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-default"
+          className="w-7 h-7 flex items-center justify-center rounded-md text-white/60 hover:text-white/90 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-default"
           aria-label="翌月"
         >
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 18l6-6-6-6" />
           </svg>
         </button>

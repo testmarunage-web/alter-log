@@ -36,6 +36,21 @@ function toTimeStr(d: Date): string {
   return `${String(jst.getHours()).padStart(2, "0")}:${String(jst.getMinutes()).padStart(2, "0")}`;
 }
 
+// Alter Log 本文（句点で段落分割）
+function AlterLogBody({ text }: { text: string }) {
+  const paragraphs = text.split(/(?<=。)/).map((s) => s.trim()).filter(Boolean);
+  if (paragraphs.length <= 1) {
+    return <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide">{text}</p>;
+  }
+  return (
+    <div className="space-y-3">
+      {paragraphs.map((p, i) => (
+        <p key={i} className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide">{p}</p>
+      ))}
+    </div>
+  );
+}
+
 export default async function DailyPage({
   params,
   searchParams,
@@ -118,7 +133,6 @@ export default async function DailyPage({
           </Link>
           <div>
             <h1 className="text-base font-semibold text-[#E8E3D8] tracking-wide">{dateLabel}</h1>
-            <p className="text-[10px] text-[#8A8276]/50 font-mono mt-0.5">DAILY LOG</p>
           </div>
         </div>
 
@@ -126,12 +140,12 @@ export default async function DailyPage({
         {hasJournals && showJournalMain && (
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-3">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8A8276]/60">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#C4A35A]/50">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
-              <span className="font-mono text-[9px] tracking-[0.2em] text-[#8A8276]/50 uppercase">Journal</span>
-              <span className="font-mono text-[9px] text-[#8A8276]/30">{journals.length}件</span>
+              <span className="font-mono text-[12px] tracking-[0.18em] text-[#C4A35A]/75 uppercase">Journal</span>
+              <span className="font-mono text-[10px] text-[#8A8276]/55">{journals.length}件</span>
             </div>
 
             <div className="space-y-3">
@@ -145,9 +159,9 @@ export default async function DailyPage({
                     <CopyButton text={entry.content} />
                   </div>
                   {journals.length > 1 && (
-                    <p className="font-mono text-[9px] text-[#8A8276]/35 mb-2">
+                    <p className="font-mono text-[10px] text-[#8A8276]/80 font-semibold mb-2">
                       {toTimeStr(entry.createdAt)}
-                      <span className="ml-2 text-[#8A8276]/20">— {i + 1}/{journals.length}</span>
+                      <span className="ml-2 font-normal text-[#8A8276]/45">— {i + 1}/{journals.length}</span>
                     </p>
                   )}
                   <p className="text-[14px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap pr-6">
@@ -164,14 +178,14 @@ export default async function DailyPage({
           <DailyAccordion label="この日のAlter Logを見る" accent="alterlog">
             <section>
               <div className="flex items-center gap-2 mb-4">
-                <AlterIcon size={11} />
-                <span className="font-mono text-[9px] tracking-[0.2em] text-[#C4A35A]/60 uppercase">Alter Log</span>
-                <span className="text-[9px] text-[#8A8276]/30 font-mono">— Alterの観測日記</span>
+                <AlterIcon size={14} />
+                <span className="font-mono text-[12px] tracking-[0.18em] text-[#C4A35A]/75 uppercase">Alter Log</span>
+                <span className="text-[10px] text-[#8A8276]/65 font-mono">— Alterの観測日記</span>
               </div>
               <div className="rounded-xl border border-[#C4A35A]/15 overflow-hidden" style={{ background: "rgba(196,163,90,0.025)" }}>
                 {dailyNote ? (
                   <div className="px-5 py-5">
-                    <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">{dailyNote}</p>
+                    <AlterLogBody text={dailyNote} />
                   </div>
                 ) : isInsufficient ? (
                   <div className="px-5 py-4">
@@ -188,12 +202,12 @@ export default async function DailyPage({
           <DailyAccordion label="この日のジャーナルを見る" accent="journal">
             <section className="mb-8">
               <div className="flex items-center gap-2 mb-3">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8A8276]/60">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#C4A35A]/50">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
-                <span className="font-mono text-[9px] tracking-[0.2em] text-[#8A8276]/50 uppercase">Journal</span>
-                <span className="font-mono text-[9px] text-[#8A8276]/30">{journals.length}件</span>
+                <span className="font-mono text-[12px] tracking-[0.18em] text-[#C4A35A]/75 uppercase">Journal</span>
+                <span className="font-mono text-[10px] text-[#8A8276]/55">{journals.length}件</span>
               </div>
               <div className="space-y-3">
                 {journals.map((entry, i) => (
@@ -202,9 +216,9 @@ export default async function DailyPage({
                       <CopyButton text={entry.content} />
                     </div>
                     {journals.length > 1 && (
-                      <p className="font-mono text-[9px] text-[#8A8276]/35 mb-2">
+                      <p className="font-mono text-[10px] text-[#8A8276]/80 font-semibold mb-2">
                         {toTimeStr(entry.createdAt)}
-                        <span className="ml-2 text-[#8A8276]/20">— {i + 1}/{journals.length}</span>
+                        <span className="ml-2 font-normal text-[#8A8276]/45">— {i + 1}/{journals.length}</span>
                       </p>
                     )}
                     <p className="text-[14px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap pr-6">{entry.content}</p>
@@ -228,9 +242,9 @@ export default async function DailyPage({
         {hasInsights && showAlterMain && (
           <section>
             <div className="flex items-center gap-2 mb-4">
-              <AlterIcon size={11} />
-              <span className="font-mono text-[9px] tracking-[0.2em] text-[#C4A35A]/60 uppercase">Alter Log</span>
-              <span className="text-[9px] text-[#8A8276]/30 font-mono">— Alterの観測日記</span>
+              <AlterIcon size={14} />
+              <span className="font-mono text-[12px] tracking-[0.18em] text-[#C4A35A]/75 uppercase">Alter Log</span>
+              <span className="text-[10px] text-[#8A8276]/65 font-mono">— Alterの観測日記</span>
               {dailyNote && (
                 <span className="ml-auto">
                   <CopyButton text={dailyNote} />
@@ -241,9 +255,7 @@ export default async function DailyPage({
             <div className="rounded-xl border border-[#C4A35A]/15 overflow-hidden" style={{ background: "rgba(196,163,90,0.025)" }}>
               {dailyNote ? (
                 <div className="px-5 py-5">
-                  <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap">
-                    {dailyNote}
-                  </p>
+                  <AlterLogBody text={dailyNote} />
                 </div>
               ) : isInsufficient ? (
                 <div className="px-5 py-4">

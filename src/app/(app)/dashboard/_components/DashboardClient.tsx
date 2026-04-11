@@ -214,8 +214,9 @@ function RippleLink({ href, children, className = "", style }: {
 // テキストブロック（句点で分割して段落間に余白）
 // ─────────────────────────────────────────────────────────────────────────────
 function TextBlock({ text, className }: { text: string; className: string }) {
-  const paragraphs = text.replace(/\n/g, "").split(/(?<=。)/).map((s) => s.trim()).filter(Boolean);
-  if (paragraphs.length <= 1) return <p className={className}>{text}</p>;
+  const cleaned = text.replace(/\n/g, "");
+  const paragraphs = cleaned.split(/(?<=。)/).map((s) => s.trim()).filter(Boolean);
+  if (paragraphs.length <= 1) return <p className={className}>{cleaned}</p>;
   return (
     <div className="space-y-2">
       {paragraphs.map((s, i) => <p key={i} className={className}>{s}</p>)}
@@ -765,7 +766,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                   <span className="text-[11px] font-mono text-[#C4A35A]/70 tracking-widest">{LOADING_MESSAGES[loadingMsgIdx]}</span>
                 </div>
               ) : (
-                <span className="text-[13px] font-mono tracking-[0.14em]">
+                <span className="text-[13px] font-mono font-bold tracking-[0.14em]">
                   {isReadOnly ? "SCAN  —  サブスクリプションの再開が必要です" : buttonLabel}
                 </span>
               )}

@@ -28,6 +28,21 @@ function IcCompass() {
   );
 }
 
+// Alter Log 本文（句点で段落分割）
+function AlterLogBody({ text }: { text: string }) {
+  const paragraphs = text.split(/(?<=。)/).map((s) => s.trim()).filter(Boolean);
+  if (paragraphs.length <= 1) {
+    return <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide pr-6">{text}</p>;
+  }
+  return (
+    <div className="space-y-3 pr-6">
+      {paragraphs.map((p, i) => (
+        <p key={i} className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide">{p}</p>
+      ))}
+    </div>
+  );
+}
+
 type Entry = {
   id: string;
   jst: string;
@@ -214,7 +229,7 @@ export default async function AlterLogPage() {
                               <span className="text-[#C4A35A]/60" aria-hidden="true">
                                 <IcCompass />
                               </span>
-                              <span className="font-mono text-[11px] text-[#C4A35A]/70 tabular-nums">
+                              <span className="font-mono text-[13px] text-[#C4A35A]/70 tabular-nums">
                                 {entry.jst}
                               </span>
                             </div>
@@ -225,9 +240,7 @@ export default async function AlterLogPage() {
 
                           {/* 観察日記 本文 */}
                           {entry.logEntry && (
-                            <p className="font-mono text-[13px] text-[#E8E3D8]/80 leading-[1.9] tracking-wide whitespace-pre-wrap pr-6">
-                              {entry.logEntry}
-                            </p>
+                            <AlterLogBody text={entry.logEntry} />
                           )}
                         </Link>
                         {/* コピーボタン（Link の外に配置して interactive 要素の入れ子を避ける） */}
