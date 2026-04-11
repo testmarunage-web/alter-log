@@ -60,7 +60,7 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
           type="button"
           onClick={prevMonth}
           disabled={isEarliestMonth}
-          className="w-6 h-6 flex items-center justify-center rounded-md text-[#8A8276]/40 hover:text-[#E8E3D8]/70 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-default"
+          className="w-6 h-6 flex items-center justify-center rounded-md text-white/60 hover:text-white/90 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-default"
           aria-label="前月"
         >
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -72,7 +72,7 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
           {label && (
             <span className="font-mono text-[8px] tracking-[0.2em] text-[#8A8276]/30 uppercase">{label}</span>
           )}
-          <span className="font-mono text-[10px] text-[#8A8276]/60 tracking-wide">
+          <span className="font-mono text-[10px] text-white/60 tracking-wide">
             {year}年{month + 1}月
           </span>
         </div>
@@ -81,7 +81,7 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
           type="button"
           onClick={nextMonth}
           disabled={isCurrentMonth}
-          className="w-6 h-6 flex items-center justify-center rounded-md text-[#8A8276]/40 hover:text-[#E8E3D8]/70 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-default"
+          className="w-6 h-6 flex items-center justify-center rounded-md text-white/60 hover:text-white/90 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-default"
           aria-label="翌月"
         >
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -96,7 +96,7 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
           <span
             key={d}
             className={`text-center font-mono text-[8px] ${
-              i === 0 ? "text-red-400/35" : i === 6 ? "text-[#8A8276]/30" : "text-white/18"
+              i === 0 ? "text-red-400/60" : i === 6 ? "text-white/45" : "text-white/40"
             }`}
           >
             {d}
@@ -128,10 +128,10 @@ export function DailyCalendar({ markedDates, label, from }: Props) {
                   isToday
                     ? "text-[#C4A35A] font-bold"
                     : hasData
-                    ? "text-[#E8E3D8]/70"
+                    ? "text-[#E8E3D8]/80"
                     : dow === 0
-                    ? "text-white/18"
-                    : "text-white/18"
+                    ? "text-white/35"
+                    : "text-white/35"
                 }`}
               >
                 {day}

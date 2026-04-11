@@ -712,7 +712,7 @@ export function ChatInterface({
                     ? "bg-[#C62828] text-white active:scale-[0.98]"
                     : isTranscribing
                       ? "bg-white/[0.05] border border-[#C4A35A]/25 text-[#C4A35A]/70 cursor-not-allowed"
-                      : "bg-white/[0.05] border border-white/[0.10] text-[#E8E3D8]/70 hover:bg-white/[0.08] hover:border-white/[0.18] hover:text-[#E8E3D8] active:scale-[0.98]"
+                      : "bg-white/[0.05] border border-white/[0.10] text-[#E8E3D8]/90 hover:bg-white/[0.08] hover:border-white/[0.18] hover:text-[#E8E3D8] active:scale-[0.98]"
                   } ${isSaving ? "opacity-40 cursor-not-allowed" : ""}`}
               >
                 {/* 録音中パルスリング（控えめ） */}
@@ -803,7 +803,7 @@ export function ChatInterface({
               )}
 
               {/* 区切り */}
-              <p className="text-center text-[11px] text-[#8A8276]/20 my-2.5">または</p>
+              <p className="text-center text-[11px] text-[#8A8276]/50 my-2.5">または</p>
 
               {/* テキストで入力 トグルボタン */}
               <button
@@ -815,8 +815,8 @@ export function ChatInterface({
                 }}
                 className={`w-full py-3.5 rounded-2xl text-sm font-medium flex items-center justify-center gap-2.5 transition-all duration-200
                   ${textInputOpen
-                    ? "border border-white/[0.10] bg-white/[0.04] text-[#E8E3D8]/60"
-                    : "border border-white/[0.08] bg-transparent text-[#8A8276]/50 hover:text-[#8A8276]/80 hover:border-white/[0.13] hover:bg-white/[0.03]"
+                    ? "border border-white/[0.10] bg-white/[0.04] text-[#E8E3D8]/80"
+                    : "border border-white/[0.08] bg-transparent text-[#8A8276]/80 hover:text-[#8A8276] hover:border-white/[0.13] hover:bg-white/[0.03]"
                   }`}
               >
                 {/* 鉛筆アイコン */}
@@ -968,12 +968,12 @@ export function ChatInterface({
                       {/* ドット */}
                       <span className="absolute -left-[22px] top-[5px] w-2.5 h-2.5 rounded-full bg-[#0B0E13] border border-[#C4A35A]/45" />
                       <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <p className="text-[10px] text-[#8A8276]/55 font-mono tracking-wide">
+                        <p className="text-[10px] text-[#8A8276]/80 font-mono tracking-wide">
                           {formatDateTime(m.createdAt)}
                         </p>
                         <CopyButton text={m.content} />
                       </div>
-                      <p className="text-sm text-[#E8E3D8]/75 leading-relaxed whitespace-pre-wrap">
+                      <p className="text-sm text-[#E8E3D8]/90 leading-relaxed whitespace-pre-wrap">
                         {m.content}
                       </p>
                     </div>

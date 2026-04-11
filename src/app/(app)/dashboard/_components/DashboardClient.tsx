@@ -233,12 +233,12 @@ function HudCard({ label, tag, description, children }: {
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase">{label}</span>
+        <span className="font-mono text-[10px] tracking-[0.22em] text-white/55 uppercase">{label}</span>
         {description && (
           <button
             type="button"
             onClick={() => setInfoOpen((v) => !v)}
-            className="text-white/20 hover:text-white/40 transition-colors flex-shrink-0 ml-1"
+            className="text-white/35 hover:text-white/55 transition-colors flex-shrink-0 ml-1"
           >
             <IcInfo />
           </button>
@@ -251,7 +251,7 @@ function HudCard({ label, tag, description, children }: {
         )}
       </div>
       {infoOpen && description && (
-        <p className="text-[10px] text-white/25 leading-relaxed -mt-1 mb-3">{description}</p>
+        <p className="text-[10px] text-white/42 leading-relaxed -mt-1 mb-3">{description}</p>
       )}
       {children}
     </div>
@@ -269,8 +269,8 @@ function FactEmotionBar({ factPct, emotionPct }: { factPct: number; emotionPct: 
         <div className="transition-all duration-700" style={{ width: `${emotionPct}%`, background: "rgba(255,255,255,0.10)" }} />
       </div>
       <div className="flex justify-between">
-        <span className="font-mono text-[10px] text-[#C4A35A]/70 tracking-widest">FACT {factPct}%</span>
-        <span className="font-mono text-[10px] text-white/25 tracking-widest">EMOTION {emotionPct}%</span>
+        <span className="font-mono text-[10px] text-[#C4A35A]/90 tracking-widest">FACT {factPct}%</span>
+        <span className="font-mono text-[10px] text-white/55 tracking-widest">EMOTION {emotionPct}%</span>
       </div>
     </div>
   );
@@ -291,31 +291,31 @@ function ProfileCard({ label, value, title, description }: { label: string; valu
       }}
     >
       <div className="flex items-center mb-2">
-        <span className="font-mono text-[9px] tracking-[0.22em] text-white/25 uppercase">{label}</span>
+        <span className="font-mono text-[10px] tracking-[0.22em] text-white/50 uppercase">{label}</span>
         {description && (
           <button
             type="button"
             onClick={() => setInfoOpen((v) => !v)}
-            className="text-white/18 hover:text-white/35 transition-colors flex-shrink-0 ml-1"
+            className="text-white/32 hover:text-white/50 transition-colors flex-shrink-0 ml-1"
           >
             <IcInfo />
           </button>
         )}
       </div>
       {infoOpen && description && (
-        <p className="text-[10px] text-white/22 leading-relaxed mb-2">{description}</p>
+        <p className="text-[10px] text-white/40 leading-relaxed mb-2">{description}</p>
       )}
       {isLocked ? (
         <div className="flex items-start gap-2 py-0.5">
           <span className="text-white/18 mt-0.5 flex-shrink-0"><IcLock /></span>
-          <p className="text-[11.5px] text-white/22 leading-relaxed tracking-wide">
+          <p className="text-[11.5px] text-white/40 leading-relaxed tracking-wide">
             データ収集中（解析にはさらに多くのジャーナル入力が必要です）
           </p>
         </div>
       ) : (
         <>
           {title && <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{title}」</p>}
-          <TextBlock text={value} className="text-[14px] text-white/65 leading-relaxed" />
+          <TextBlock text={value} className="text-[14px] text-white/78 leading-relaxed" />
         </>
       )}
     </div>
@@ -396,7 +396,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       {/* ヘッダー */}
       <div className="flex items-center mb-1">
-        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase">ムードマップ</span>
+        <span className="font-mono text-[10px] tracking-[0.22em] text-white/55 uppercase">ムードマップ</span>
         <button type="button" onClick={() => setInfoOpen((v) => !v)} className="text-white/20 hover:text-white/40 transition-colors ml-1">
           <IcInfo />
         </button>
@@ -406,7 +406,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
           ジャーナルの感情傾向を天気で可視化。日付タップでその日の内容を確認できます。
         </p>
       )}
-      <p className="text-[10px] text-white/20 leading-relaxed mb-3">
+      <p className="text-[10px] text-white/40 leading-relaxed mb-3">
         日付をタップすると、その日のジャーナル内容を確認できます
       </p>
 
@@ -418,19 +418,19 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
             <button
               type="button"
               onClick={prevMonth}
-              className="w-6 h-6 flex items-center justify-center rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors"
+              className="w-6 h-6 flex items-center justify-center rounded-md text-white/55 hover:text-white/85 hover:bg-white/[0.05] transition-colors"
               aria-label="前月"
             >
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
-            <span className="font-mono text-[10px] text-white/35 tracking-wide">{year}年{month + 1}月</span>
+            <span className="font-mono text-[10px] text-white/60 tracking-wide">{year}年{month + 1}月</span>
             <button
               type="button"
               onClick={nextMonth}
               disabled={isCurrentMonth}
-              className="w-6 h-6 flex items-center justify-center rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-default"
+              className="w-6 h-6 flex items-center justify-center rounded-md text-white/55 hover:text-white/85 hover:bg-white/[0.05] transition-colors disabled:opacity-20 disabled:cursor-default"
               aria-label="翌月"
             >
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -442,7 +442,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
           {/* 曜日ヘッダー */}
           <div className="grid grid-cols-7 mb-0.5">
             {WEEKDAYS_JP.map((d, i) => (
-              <span key={d} className={`text-center font-mono text-[8px] ${i === 0 ? "text-red-400/30" : "text-white/18"}`}>{d}</span>
+              <span key={d} className={`text-center font-mono text-[8px] ${i === 0 ? "text-red-400/55" : "text-white/42"}`}>{d}</span>
             ))}
           </div>
 
@@ -460,7 +460,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
                 const hasDummy = dummyFactPct !== null;
                 return (
                   <div key={dateStr} className="h-9 flex flex-col items-center justify-center gap-0.5">
-                    <span className={`font-mono text-[10px] leading-none ${hasDummy ? "text-white/40" : "text-white/15"}`}>{dayNum}</span>
+                    <span className={`font-mono text-[10px] leading-none ${hasDummy ? "text-white/55" : "text-white/28"}`}>{dayNum}</span>
                     {hasDummy
                       ? <WeatherIcon factPct={dummyFactPct} />
                       : <div className="w-[18px] h-[18px] flex items-center justify-center"><div className="w-1.5 h-px bg-white/10" /></div>
@@ -482,7 +482,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
                   }`}
                 >
                   <span className={`font-mono text-[10px] leading-none ${
-                    isToday ? "text-[#C4A35A]" : hasJournal ? "text-white/55" : "text-white/18"
+                    isToday ? "text-[#C4A35A]" : hasJournal ? "text-white/70" : "text-white/32"
                   }`}>
                     {dayNum}
                   </span>
@@ -533,14 +533,14 @@ function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayC
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       {/* ヘッダー */}
       <div className="flex items-center mb-1">
-        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase">ワードクラウド</span>
+        <span className="font-mono text-[10px] tracking-[0.22em] text-white/55 uppercase">ワードクラウド</span>
       </div>
       {infoOpen && (
         <p className="text-[10px] text-white/25 leading-relaxed mb-2">
           直近30日間のジャーナルから、よく使う言葉を抽出しています。
         </p>
       )}
-      <p className="text-[10px] text-white/20 leading-relaxed mb-3">
+      <p className="text-[10px] text-white/40 leading-relaxed mb-3">
         直近30日間のジャーナルから抽出された、あなたの思考の中心にある言葉
       </p>
 
@@ -599,11 +599,11 @@ function ObserverCounter({ observerDays, totalJournalCount, totalScanCount }: {
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       <div className="flex items-center mb-3">
-        <span className="font-mono text-[9px] tracking-[0.22em] text-white/30 uppercase">観測カウンター</span>
+        <span className="font-mono text-[10px] tracking-[0.22em] text-white/55 uppercase">観測カウンター</span>
         <button
           type="button"
           onClick={() => setInfoOpen((v) => !v)}
-          className="text-white/20 hover:text-white/40 transition-colors ml-1"
+          className="text-white/35 hover:text-white/55 transition-colors ml-1"
         >
           <IcInfo />
         </button>
@@ -613,15 +613,15 @@ function ObserverCounter({ observerDays, totalJournalCount, totalScanCount }: {
           Alterがあなたを観察している期間と、各機能の利用回数です。
         </p>
       )}
-      <p className="text-sm text-white/55 mb-2.5 leading-relaxed">
+      <p className="text-sm text-white/72 mb-2.5 leading-relaxed">
         Alterは<span className="text-[#C4A35A] font-bold text-base">{observerDays}</span>日間あなたと共にいます
       </p>
       <div className="flex gap-4">
-        <span className="font-mono text-[9px] text-white/25 tracking-wide">
-          ジャーナル <span className="text-white/40">{totalJournalCount}</span>件
+        <span className="font-mono text-[9px] text-white/45 tracking-wide">
+          ジャーナル <span className="text-white/60">{totalJournalCount}</span>件
         </span>
-        <span className="font-mono text-[9px] text-white/25 tracking-wide">
-          SCAN <span className="text-white/40">{totalScanCount}</span>回
+        <span className="font-mono text-[9px] text-white/45 tracking-wide">
+          SCAN <span className="text-white/60">{totalScanCount}</span>回
         </span>
       </div>
     </div>
@@ -771,7 +771,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               )}
             </button>
             {!isReadOnly && helperText && !isGenerating && !isPending && (
-              <p className="mt-1.5 text-[10px] font-mono text-white/20 text-center tracking-wide">{helperText}</p>
+              <p className="mt-1.5 text-[10px] font-mono text-white/40 text-center tracking-wide">{helperText}</p>
             )}
             {error && (
               <p className="mt-2 text-[10px] text-red-400/60 text-center font-mono">{error}</p>
@@ -811,10 +811,10 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
 
           {/* ─── ① SNAPSHOT ── */}
           <div className="hl-enter hl-d2 flex items-center gap-3 pt-2">
-            <span className="font-mono text-[9px] tracking-[0.25em] text-white/25 uppercase">① Snapshot</span>
+            <span className="font-mono text-[10px] tracking-[0.25em] text-white/55 uppercase">① Snapshot</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
             {localLastScanAt && (
-              <span className="font-mono text-[10px] text-white/30 tracking-widest">
+              <span className="font-mono text-[10px] text-white/55 tracking-widest">
                 LAST SCAN {formatLastScan(localLastScanAt)}
               </span>
             )}
@@ -826,13 +826,13 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               description="ジャーナルの内容が事実ベースか感情ベースかの比率です。"
             >
               {!log || isInsufficient ? (
-                <p className="font-mono text-[11px] text-white/18">
+                <p className="font-mono text-[11px] text-white/38">
                   {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
                 </p>
               ) : (
                 <>
                   <FactEmotionBar factPct={factPct} emotionPct={emotionPct} />
-                  {ratioAnalysis && <div className="mt-3"><TextBlock text={ratioAnalysis} className="text-[14px] text-white/55 leading-relaxed" /></div>}
+                  {ratioAnalysis && <div className="mt-3"><TextBlock text={ratioAnalysis} className="text-[14px] text-white/72 leading-relaxed" /></div>}
                 </>
               )}
             </HudCard>
@@ -844,7 +844,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               description="ジャーナルから検出された認知の偏りパターンです。"
             >
               {!log || isInsufficient ? (
-                <p className="font-mono text-[11px] text-white/18">
+                <p className="font-mono text-[11px] text-white/38">
                   {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
                 </p>
               ) : !biasName || biasName === "INSUFFICIENT_DATA" ? (
@@ -852,7 +852,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               ) : (
                 <>
                   <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{biasName}」</p>
-                  {biasDescription && <TextBlock text={biasDescription} className="text-[14px] text-white/50 leading-relaxed" />}
+                  {biasDescription && <TextBlock text={biasDescription} className="text-[14px] text-white/65 leading-relaxed" />}
                 </>
               )}
             </HudCard>
@@ -864,13 +864,13 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
               description="文章の能動態・受動態の比率から、意思決定の主体性を分析しています。"
             >
               {!log || isInsufficient ? (
-                <p className="font-mono text-[11px] text-white/18">
+                <p className="font-mono text-[11px] text-white/38">
                   {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
                 </p>
               ) : passiveStatus ? (
                 <>
                   {passiveTitle && <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{passiveTitle}」</p>}
-                  <TextBlock text={passiveStatus} className="text-[14px] text-white/55 leading-relaxed" />
+                  <TextBlock text={passiveStatus} className="text-[14px] text-white/72 leading-relaxed" />
                 </>
               ) : null}
             </HudCard>
@@ -883,13 +883,13 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                 description="ジャーナルから事実として観察できるポジティブな行動・思考・変化です。お世辞ではなく実際の観察として記録されています。"
               >
                 {!log || isInsufficient ? (
-                  <p className="font-mono text-[11px] text-white/18">
+                  <p className="font-mono text-[11px] text-white/38">
                     {isInsufficient ? "— 情報量不足のため解析できません" : "データ収集中（解析にはジャーナル入力が必要です）"}
                   </p>
                 ) : (
                   <>
                     {positiveObservationTitle && <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{positiveObservationTitle}」</p>}
-                    <TextBlock text={positiveObservation} className="text-[14px] text-white/55 leading-relaxed" />
+                    <TextBlock text={positiveObservation} className="text-[14px] text-white/72 leading-relaxed" />
                   </>
                 )}
               </HudCard>
@@ -898,7 +898,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
 
           {/* ─── ② PROFILE ── */}
           <div className="hl-enter hl-d6 flex items-center gap-3 pt-2">
-            <span className="font-mono text-[9px] tracking-[0.25em] text-white/25 uppercase">② Profile</span>
+            <span className="font-mono text-[10px] tracking-[0.25em] text-white/55 uppercase">② Profile</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
@@ -910,7 +910,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
 
           {/* ─── ③ TIMELINE ── */}
           <div className="hl-enter hl-d7 flex items-center gap-3 pt-2">
-            <span className="font-mono text-[9px] tracking-[0.25em] text-white/25 uppercase">③ Timeline</span>
+            <span className="font-mono text-[10px] tracking-[0.25em] text-white/55 uppercase">③ Timeline</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
