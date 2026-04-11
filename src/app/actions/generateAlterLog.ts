@@ -210,6 +210,10 @@ export async function processAlterLogForUser(clerkId: string): Promise<void> {
   // ログを1つのコンテキスト文字列に結合
   const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n");
 
+  const visionBlock = user.vision?.trim()
+    ? `\n\n【参考情報】\n以下はこのユーザー自身が入力した価値観・目標である。観察の補助的参考情報として使用すること。ただし分析の主体はジャーナルの内容であり、visionはあくまで参考に留めること。\n${user.vision.trim()}`
+    : "";
+
   // daily_noteのみを生成（generateText）
   let dailyNote: string;
   let isInsufficient: boolean;
@@ -217,7 +221,7 @@ export async function processAlterLogForUser(clerkId: string): Promise<void> {
     const { text } = await generateText({
       model: anthropic("claude-sonnet-4-5"),
       system: DAILY_NOTE_SYSTEM_PROMPT,
-      prompt: `以下のジャーナルを観察し、daily_noteを出力せよ。\n\n${journalBlock}`,
+      prompt: `以下のジャーナルを観察し、daily_noteを出力せよ。\n\n${journalBlock}${visionBlock}`,
       maxTokens: 512,
     });
     dailyNote = text.trim() || "INSUFFICIENT_DATA";
@@ -265,13 +269,17 @@ export async function generateDashboardScan(): Promise<{ insights: AlterLogInsig
     ? "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n")
     : "（入力データなし）";
 
+  const visionBlock = user.vision?.trim()
+    ? `\n\n【参考情報：ユーザーのビジョン・目標】\n以下はこのユーザー自身が入力した価値観・目標です。分析の参考にしてください。ただし、主たる分析対象はジャーナルの内容です。\n${user.vision.trim()}`
+    : "";
+
   const prompt = `以下のログを構造解析し、指定のJSON形式でレポートを生成せよ。
 
 【データ状況】
 ${hasData ? "ログあり（以下のテキストのみを根拠に解析すること。ログに存在しない情報の補完は禁止）" : "ログなし（is_insufficient_data を true にし、nullable 項目は null を返すこと）"}
 
 【分析対象ログ】
-${context}`;
+${context}${visionBlock}`;
 
   // generateObject と generateText（思考プロファイル）を並列実行
   const [objectOutcome, thoughtProfileOutcome] = await Promise.all([
@@ -348,7 +356,7 @@ ${context}`;
 // ─────────────────────────────────────────────────────────────────────────────
 // 日次生成ロジック：特定日付の AlterLog を生成（すでに存在する場合はスキップ）
 // ─────────────────────────────────────────────────────────────────────────────
-export async function generateForDate(userId: string, targetDate: Date): Promise<void> {
+export async function generateForDate(userId: string, targetDate: Date, vision?: string | null): Promise<void> {
   const dateForDb = new Date(targetDate);
   dateForDb.setUTCHours(0, 0, 0, 0);
 
@@ -369,6 +377,10 @@ export async function generateForDate(userId: string, targetDate: Date): Promise
 
   const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n");
 
+  const visionBlock = vision?.trim()
+    ? `\n\n【参考情報】\n以下はこのユーザー自身が入力した価値観・目標である。観察の補助的参考情報として使用すること。ただし分析の主体はジャーナルの内容であり、visionはあくまで参考に留めること。\n${vision.trim()}`
+    : "";
+
   // daily_noteのみを生成（generateText）
   let dailyNote: string;
   let isInsufficient: boolean;
@@ -376,7 +388,7 @@ export async function generateForDate(userId: string, targetDate: Date): Promise
     const { text } = await generateText({
       model: anthropic("claude-sonnet-4-5"),
       system: DAILY_NOTE_SYSTEM_PROMPT,
-      prompt: `以下のジャーナルを観察し、daily_noteを出力せよ。\n\n${journalBlock}`,
+      prompt: `以下のジャーナルを観察し、daily_noteを出力せよ。\n\n${journalBlock}${visionBlock}`,
       maxTokens: 512,
     });
     dailyNote = text.trim() || "INSUFFICIENT_DATA";
@@ -407,6 +419,7 @@ export async function generateMissingDailyLogs(clerkId: string): Promise<void> {
     where: { clerkId },
     create: { clerkId },
     update: {},
+    select: { id: true, vision: true },
   });
 
   const todayJstStr = getJstDateStr();
@@ -442,7 +455,7 @@ export async function generateMissingDailyLogs(clerkId: string): Promise<void> {
   for (const key of [...journalDateKeys].sort()) {
     if (generated >= 3) break;
     if (!existingDateKeys.has(key)) {
-      await generateForDate(user.id, new Date(`${key}T00:00:00Z`));
+      await generateForDate(user.id, new Date(`${key}T00:00:00Z`), user.vision);
       generated++;
     }
   }

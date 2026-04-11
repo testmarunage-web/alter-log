@@ -890,7 +890,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                 ) : (
                   <>
                     {positiveObservationTitle && <p className="font-mono text-[13px] font-bold text-[#E8D5A0]/90 mb-2.5 tracking-wide">「{positiveObservationTitle}」</p>}
-                    <TextBlock text={positiveObservation} className="text-[14px] text-white/72 leading-relaxed" />
+                    {positiveObservation && <TextBlock text={positiveObservation} className="text-[14px] text-white/72 leading-relaxed" />}
                   </>
                 )}
               </HudCard>

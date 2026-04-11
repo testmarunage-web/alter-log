@@ -1,6 +1,8 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { SignOutButton } from "@clerk/nextjs";
+import { prisma } from "@/lib/prisma";
+import { VisionSection } from "./_components/VisionSection";
 
 export const dynamic = "force-dynamic";
 
@@ -14,8 +16,21 @@ export default async function SettingsPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const clerkUser = await currentUser();
+  const [clerkUser, dbUser] = await Promise.all([
+    currentUser(),
+    prisma.user.findUnique({
+      where: { clerkId: userId },
+      select: {
+        vision: true,
+        subscription: { select: { status: true } },
+      },
+    }),
+  ]);
+
   const email = clerkUser?.emailAddresses?.[0]?.emailAddress ?? null;
+  const subStatus = dbUser?.subscription?.status;
+  const isReadOnly =
+    subStatus === "CANCELED" || subStatus === "INACTIVE" || subStatus == null;
 
   return (
     <main className="min-h-screen bg-[#0B0E13] text-[#E8E3D8] pb-32">
@@ -23,6 +38,12 @@ export default async function SettingsPage() {
 
         {/* タイトル */}
         <h1 className="text-lg font-bold text-[#E8E3D8] mb-8 tracking-tight">設定</h1>
+
+        {/* マイビジョン */}
+        <VisionSection
+          initialVision={dbUser?.vision ?? null}
+          isReadOnly={isReadOnly}
+        />
 
         {/* メインメニュー */}
         <div className="border border-white/[0.07] rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.018)" }}>
