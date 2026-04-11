@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 
 type CurveConfig = {
@@ -21,6 +21,42 @@ const CURVES: CurveConfig[] = [
   { color: "rgba(232,213,160,0.05)", glow: null, w: 1.2, amp: 320, freq: 0.0005, spd: -0.15, yOff: 0.35, ph: 2.3 },
   { color: "rgba(201,168,76,0.12)", glow: "rgba(201,168,76,0.08)", w: 3, amp: 240, freq: 0.0009, spd: 0.12, yOff: 0.65, ph: 4.8 },
 ];
+
+const VIDEO_BORDER_STYLE: React.CSSProperties = {
+  border: "1px solid rgba(201,168,76,0.28)",
+  boxShadow: "0 0 24px rgba(201,168,76,0.12)",
+};
+
+type VideoPlayerProps = {
+  src: string;
+  ariaLabel: string;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+function VideoPlayer({ src, ariaLabel, className, style }: VideoPlayerProps) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.muted = true;
+    el.play().catch(() => {});
+  }, []);
+  return (
+    <video
+      ref={ref}
+      autoPlay
+      muted
+      loop
+      playsInline
+      aria-label={ariaLabel}
+      className={className}
+      style={{ ...VIDEO_BORDER_STYLE, ...style }}
+    >
+      <source src={src} type="video/mp4" />
+    </video>
+  );
+}
 
 function CtaBlock() {
   return (
@@ -201,22 +237,17 @@ export default function LPClient() {
 
           {/* Hero動画: PCのみ表示、カード枠なし */}
           <div className="hidden lg:block relative rv-r" style={{ transitionDelay: "0.3s" }}>
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              aria-label="SCAN分析画面"
+            <VideoPlayer
+              src="/videos/scan.mp4"
+              ariaLabel="SCAN分析画面"
               className="w-full"
               style={{
                 maxHeight: "520px",
                 objectFit: "contain",
                 borderRadius: "16px",
-                boxShadow: "0 48px 120px rgba(0,0,0,0.65)",
+                boxShadow: "0 48px 120px rgba(0,0,0,0.65), 0 0 32px rgba(201,168,76,0.15)",
               }}
-            >
-              <source src="/videos/scan.mp4" type="video/mp4" />
-            </video>
+            />
           </div>
         </div>
       </section>
@@ -247,17 +278,12 @@ export default function LPClient() {
             {/* Feature 01 */}
             <div className="rv-l flex justify-center md:block">
               <div className="img-card w-full max-w-[75vw] md:max-w-full">
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  aria-label="ジャーナル入力画面"
+                <VideoPlayer
+                  src="/videos/recording.mp4"
+                  ariaLabel="ジャーナル入力画面"
                   className="w-full"
                   style={{ aspectRatio: "3/4", objectFit: "cover", objectPosition: "top" }}
-                >
-                  <source src="/videos/recording.mp4" type="video/mp4" />
-                </video>
+                />
                 <div
                   className="p-6"
                   style={{ borderTop: "2px solid rgba(201,168,76,0.3)", background: "#0c0d12", paddingTop: "24px" }}
@@ -278,17 +304,12 @@ export default function LPClient() {
             {/* Feature 02 */}
             <div className="rv flex justify-center md:block" style={{ transitionDelay: "0.1s" }}>
               <div className="img-card w-full max-w-[75vw] md:max-w-full">
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  aria-label="SCAN分析画面"
+                <VideoPlayer
+                  src="/videos/scan.mp4"
+                  ariaLabel="SCAN分析画面"
                   className="w-full"
                   style={{ aspectRatio: "3/4", objectFit: "cover", objectPosition: "top" }}
-                >
-                  <source src="/videos/scan.mp4" type="video/mp4" />
-                </video>
+                />
                 <div
                   className="p-6"
                   style={{ borderTop: "2px solid rgba(201,168,76,0.3)", background: "#0c0d12", paddingTop: "24px" }}
@@ -309,17 +330,12 @@ export default function LPClient() {
             {/* Feature 03 */}
             <div className="rv-r flex justify-center md:block" style={{ transitionDelay: "0.2s" }}>
               <div className="img-card w-full max-w-[75vw] md:max-w-full">
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  aria-label="Alter Log観察日記画面"
+                <VideoPlayer
+                  src="/videos/alterlog.mp4"
+                  ariaLabel="Alter Log観察日記画面"
                   className="w-full"
                   style={{ aspectRatio: "3/4", objectFit: "cover", objectPosition: "top" }}
-                >
-                  <source src="/videos/alterlog.mp4" type="video/mp4" />
-                </video>
+                />
                 <div
                   className="p-6"
                   style={{ borderTop: "2px solid rgba(201,168,76,0.3)", background: "#0c0d12", paddingTop: "24px" }}
@@ -438,9 +454,7 @@ export default function LPClient() {
                   頭の中のモヤモヤを、テキストでも音声でも、そのままジャーナルに。整える必要はありません。Alterが全てを静かに受け止めます。
                 </p>
                 <div className="mt-4 img-card">
-                  <video autoPlay muted loop playsInline aria-label="ジャーナル入力画面" className="w-full">
-                    <source src="/videos/journal.mp4" type="video/mp4" />
-                  </video>
+                  <VideoPlayer src="/videos/journal.mp4" ariaLabel="ジャーナル入力画面" className="w-full" />
                 </div>
               </div>
             </div>
@@ -458,9 +472,7 @@ export default function LPClient() {
                   Alterがジャーナルを読み解き、思考の構造を分析。あなた専用の「観察日記」と「思考プロファイル」で、自分を他人のように見つめる体験が始まります。
                 </p>
                 <div className="mt-4 img-card">
-                  <video autoPlay muted loop playsInline aria-label="Alter Log画面" className="w-full">
-                    <source src="/videos/alterlog.mp4" type="video/mp4" />
-                  </video>
+                  <VideoPlayer src="/videos/alterlog.mp4" ariaLabel="Alter Log画面" className="w-full" />
                 </div>
               </div>
             </div>
@@ -479,7 +491,15 @@ export default function LPClient() {
                 </p>
                 <div className="mt-4 img-card">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/images/screenshot-dashboard.jpg" alt="ダッシュボード画面" className="w-full" />
+                  <img
+                    src="/images/screenshot-dashboard.jpg"
+                    alt="ダッシュボード画面"
+                    className="w-full"
+                    style={{
+                      border: "1px solid rgba(201,168,76,0.28)",
+                      boxShadow: "0 0 24px rgba(201,168,76,0.12)",
+                    }}
+                  />
                 </div>
               </div>
             </div>
