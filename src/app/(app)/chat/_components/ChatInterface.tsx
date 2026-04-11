@@ -673,17 +673,19 @@ export function ChatInterface({
             >
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] text-[#C4A35A]/75 leading-relaxed">
-                  新機能「マイビジョン」が追加されました。あなたの目標・価値観・なりたい姿などを設定画面から入力できます。入力いただいた内容をもとに、SCANやAlter Logがより深い分析を行います。NotebookLM等で既にジャーナリングをされていた方は、これまでの振り返りやまとめを入力いただくと、Alterがあなたをより深く理解できるようになります。
+                  新機能「マイビジョン」が追加されました。あなたの目標や大事にしていることを入力すると、SCANやAlter Logの分析がより深くなります。他のサービスでジャーナリングをされていた方は、そちらのまとめを入力いただくのもおすすめです。
                 </p>
-                <Link
-                  href="/settings"
-                  className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#C4A35A]/20 border border-[#C4A35A]/35 text-[13px] font-mono text-[#C4A35A]/85 hover:bg-[#C4A35A]/28 hover:text-[#C4A35A] transition-colors"
-                >
-                  設定する
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </Link>
+                <div className="mt-3 flex justify-center">
+                  <Link
+                    href="/settings"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#C4A35A]/20 border border-[#C4A35A]/35 text-[13px] font-mono text-[#C4A35A]/85 hover:bg-[#C4A35A]/28 hover:text-[#C4A35A] transition-colors"
+                  >
+                    設定する
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
               </div>
               <button
                 type="button"
