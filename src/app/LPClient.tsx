@@ -23,8 +23,8 @@ const CURVES: CurveConfig[] = [
 ];
 
 const VIDEO_BORDER_STYLE: React.CSSProperties = {
-  border: "1px solid rgba(201,168,76,0.28)",
-  boxShadow: "0 0 24px rgba(201,168,76,0.12)",
+  border: "1px solid rgba(201,168,76,0.5)",
+  boxShadow: "0 0 32px rgba(201,168,76,0.25)",
 };
 
 type VideoPlayerProps = {
@@ -245,7 +245,7 @@ export default function LPClient() {
                 maxHeight: "520px",
                 objectFit: "contain",
                 borderRadius: "16px",
-                boxShadow: "0 48px 120px rgba(0,0,0,0.65), 0 0 32px rgba(201,168,76,0.15)",
+                boxShadow: "0 48px 120px rgba(0,0,0,0.65), 0 0 40px rgba(201,168,76,0.28)",
               }}
             />
           </div>
@@ -496,8 +496,8 @@ export default function LPClient() {
                     alt="ダッシュボード画面"
                     className="w-full"
                     style={{
-                      border: "1px solid rgba(201,168,76,0.28)",
-                      boxShadow: "0 0 24px rgba(201,168,76,0.12)",
+                      border: "1px solid rgba(201,168,76,0.5)",
+                      boxShadow: "0 0 32px rgba(201,168,76,0.25)",
                     }}
                   />
                 </div>
