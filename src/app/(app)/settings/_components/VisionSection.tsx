@@ -230,7 +230,7 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
                 {savedText}
               </p>
             ) : (
-              <p className="text-[12px] text-white/30 leading-relaxed mb-4">
+              <p className="text-[12px] text-white/55 leading-relaxed mb-4">
                 あなたの目標・大事にしていること・なりたい姿などを自由に入力してください。ここに入力された内容をもとに、SCANやAlter Logの分析がより深くなります。
               </p>
             )}
@@ -256,7 +256,7 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
         ) : (
           /* ── 編集モード ── */
           <div className="px-5 py-5">
-            <p className="text-[11px] text-white/30 leading-relaxed mb-3">
+            <p className="text-[11px] text-white/50 leading-relaxed mb-3">
               あなたの目標・大事にしていること・なりたい姿などを自由に入力してください。SCANやAlter Logの分析の参考情報として使われます。
             </p>
 
@@ -266,7 +266,7 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
               onChange={(e) => setText(e.target.value.slice(0, MAX_CHARS))}
               rows={7}
               placeholder="例：3年後には独立して自分のプロダクトを持ちたい。大事にしているのは誠実さと継続力。..."
-              className="w-full bg-transparent border border-white/[0.08] rounded-lg px-4 py-3 text-[13px] text-[#E8E3D8]/85 placeholder-white/20 leading-relaxed resize-none focus:outline-none focus:border-[#C4A35A]/30 transition-colors font-sans"
+              className="w-full bg-transparent border border-white/[0.08] rounded-lg px-4 py-3 text-[13px] text-[#E8E3D8]/85 placeholder-white/35 leading-relaxed resize-none focus:outline-none focus:border-[#C4A35A]/30 transition-colors font-sans"
             />
 
             {/* 音声入力エリア */}
