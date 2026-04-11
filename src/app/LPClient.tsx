@@ -244,7 +244,6 @@ export default function LPClient() {
               style={{
                 display: "block",
                 maxHeight: "520px",
-                objectFit: "cover",
                 borderRadius: "16px",
                 boxShadow: "0 48px 120px rgba(0,0,0,0.65), 0 0 40px rgba(180,180,190,0.12)",
               }}
