@@ -238,12 +238,13 @@ export default function LPClient() {
           {/* Hero動画: PCのみ表示、カード枠なし */}
           <div className="hidden lg:block relative rv-r" style={{ transitionDelay: "0.3s" }}>
             <VideoPlayer
-              src="/videos/scan.mp4"
-              ariaLabel="SCAN分析画面"
+              src="/videos/alterlog.mp4"
+              ariaLabel="Alter Log画面"
               className="w-full"
               style={{
+                display: "block",
                 maxHeight: "520px",
-                objectFit: "contain",
+                objectFit: "cover",
                 borderRadius: "16px",
                 boxShadow: "0 48px 120px rgba(0,0,0,0.65), 0 0 40px rgba(180,180,190,0.12)",
               }}
