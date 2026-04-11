@@ -214,7 +214,7 @@ function RippleLink({ href, children, className = "", style }: {
 // テキストブロック（句点で分割して段落間に余白）
 // ─────────────────────────────────────────────────────────────────────────────
 function TextBlock({ text, className }: { text: string; className: string }) {
-  const paragraphs = text.split(/(?<=。)/).map((s) => s.trim()).filter(Boolean);
+  const paragraphs = text.replace(/\n/g, "").split(/(?<=。)/).map((s) => s.trim()).filter(Boolean);
   if (paragraphs.length <= 1) return <p className={className}>{text}</p>;
   return (
     <div className="space-y-2">
@@ -233,12 +233,12 @@ function HudCard({ label, tag, description, children }: {
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       <div className="flex items-center gap-2 mb-3">
-        <span className="font-mono text-[12px] tracking-[0.18em] text-white/55 uppercase">{label}</span>
+        <span className="font-mono text-[12px] tracking-[0.18em] text-[#C4A35A]/75 uppercase">{label}</span>
         {description && (
           <button
             type="button"
             onClick={() => setInfoOpen((v) => !v)}
-            className="text-white/35 hover:text-white/55 transition-colors flex-shrink-0 ml-1"
+            className="text-[#C4A35A]/40 hover:text-[#C4A35A]/65 transition-colors flex-shrink-0 ml-1"
           >
             <IcInfo />
           </button>
@@ -291,12 +291,12 @@ function ProfileCard({ label, value, title, description }: { label: string; valu
       }}
     >
       <div className="flex items-center mb-2">
-        <span className="font-mono text-[12px] tracking-[0.18em] text-white/50 uppercase">{label}</span>
+        <span className="font-mono text-[12px] tracking-[0.18em] text-[#C4A35A]/75 uppercase">{label}</span>
         {description && (
           <button
             type="button"
             onClick={() => setInfoOpen((v) => !v)}
-            className="text-white/32 hover:text-white/50 transition-colors flex-shrink-0 ml-1"
+            className="text-[#C4A35A]/40 hover:text-[#C4A35A]/65 transition-colors flex-shrink-0 ml-1"
           >
             <IcInfo />
           </button>
@@ -314,7 +314,7 @@ function ProfileCard({ label, value, title, description }: { label: string; valu
         </div>
       ) : (
         <>
-          {title && <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{title}」</p>}
+          {title && <p className="font-mono text-[13px] font-bold text-[#E8D5A0]/90 mb-2.5 tracking-wide">「{title}」</p>}
           <TextBlock text={value} className="text-[14px] text-white/78 leading-relaxed" />
         </>
       )}
@@ -330,7 +330,7 @@ function ThoughtProfileCard({ profile }: { profile: string }) {
   return (
     <div className="border border-[#C4A35A]/20 rounded-lg px-4 py-3" style={{ background: "rgba(196,163,90,0.04)" }}>
       <div className="flex items-center mb-1.5">
-        <p className="font-mono text-[10px] tracking-[0.2em] text-[#8A8276] uppercase">思考プロファイル</p>
+        <p className="font-mono text-[12px] tracking-[0.18em] text-[#C4A35A]/75 uppercase">思考プロファイル</p>
         <button
           type="button"
           onClick={() => setInfoOpen((v) => !v)}
@@ -396,7 +396,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       {/* ヘッダー */}
       <div className="flex items-center mb-1">
-        <span className="font-mono text-[12px] tracking-[0.18em] text-white/55 uppercase">ムードマップ</span>
+        <span className="font-mono text-[12px] tracking-[0.18em] text-[#C4A35A]/75 uppercase">ムードマップ</span>
         <button type="button" onClick={() => setInfoOpen((v) => !v)} className="text-white/20 hover:text-white/40 transition-colors ml-1">
           <IcInfo />
         </button>
@@ -442,7 +442,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
           {/* 曜日ヘッダー */}
           <div className="grid grid-cols-7 mb-0.5">
             {WEEKDAYS_JP.map((d, i) => (
-              <span key={d} className={`text-center font-mono text-[8px] ${i === 0 ? "text-red-400/55" : "text-white/42"}`}>{d}</span>
+              <span key={d} className={`text-center font-mono text-[10px] ${i === 0 ? "text-red-400/65" : "text-white/55"}`}>{d}</span>
             ))}
           </div>
 
@@ -460,7 +460,7 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
                 const hasDummy = dummyFactPct !== null;
                 return (
                   <div key={dateStr} className="h-9 flex flex-col items-center justify-center gap-0.5">
-                    <span className={`font-mono text-[10px] leading-none ${hasDummy ? "text-white/55" : "text-white/28"}`}>{dayNum}</span>
+                    <span className={`font-mono text-[12px] leading-none ${hasDummy ? "text-white/55" : "text-white/28"}`}>{dayNum}</span>
                     {hasDummy
                       ? <WeatherIcon factPct={dummyFactPct} />
                       : <div className="w-[18px] h-[18px] flex items-center justify-center"><div className="w-1.5 h-px bg-white/10" /></div>
@@ -481,8 +481,8 @@ function WeatherMap({ days, journalDayCount }: { days: WeatherDay[]; journalDayC
                     hasJournal ? "hover:bg-white/[0.04] cursor-pointer" : "cursor-default"
                   }`}
                 >
-                  <span className={`font-mono text-[10px] leading-none ${
-                    isToday ? "text-[#C4A35A]" : hasJournal ? "text-white/70" : "text-white/32"
+                  <span className={`font-mono text-[12px] leading-none ${
+                    isToday ? "text-[#C4A35A] font-bold" : hasJournal ? "text-white/70" : "text-white/38"
                   }`}>
                     {dayNum}
                   </span>
@@ -533,7 +533,7 @@ function WordCloud({ words, journalDayCount }: { words: WordEntry[]; journalDayC
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       {/* ヘッダー */}
       <div className="flex items-center mb-1">
-        <span className="font-mono text-[12px] tracking-[0.18em] text-white/55 uppercase">ワードクラウド</span>
+        <span className="font-mono text-[12px] tracking-[0.18em] text-[#C4A35A]/75 uppercase">ワードクラウド</span>
       </div>
       {infoOpen && (
         <p className="text-[10px] text-white/25 leading-relaxed mb-2">
@@ -599,7 +599,7 @@ function ObserverCounter({ observerDays, totalJournalCount, totalScanCount }: {
   return (
     <div className="border border-white/[0.07] rounded-lg p-4" style={{ background: "rgba(255,255,255,0.018)" }}>
       <div className="flex items-center mb-3">
-        <span className="font-mono text-[12px] tracking-[0.18em] text-white/55 uppercase">観測カウンター</span>
+        <span className="font-mono text-[12px] tracking-[0.18em] text-[#C4A35A]/75 uppercase">観測カウンター</span>
         <button
           type="button"
           onClick={() => setInfoOpen((v) => !v)}
@@ -851,7 +851,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                 <p className="font-mono text-[11px] text-white/30">偏りなし</p>
               ) : (
                 <>
-                  <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{biasName}」</p>
+                  <p className="font-mono text-[13px] font-bold text-[#E8D5A0]/90 mb-2.5 tracking-wide">「{biasName}」</p>
                   {biasDescription && <TextBlock text={biasDescription} className="text-[14px] text-white/65 leading-relaxed" />}
                 </>
               )}
@@ -869,7 +869,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                 </p>
               ) : passiveStatus ? (
                 <>
-                  {passiveTitle && <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{passiveTitle}」</p>}
+                  {passiveTitle && <p className="font-mono text-[13px] font-bold text-[#E8D5A0]/90 mb-2.5 tracking-wide">「{passiveTitle}」</p>}
                   <TextBlock text={passiveStatus} className="text-[14px] text-white/72 leading-relaxed" />
                 </>
               ) : null}
@@ -888,7 +888,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
                   </p>
                 ) : (
                   <>
-                    {positiveObservationTitle && <p className="font-mono text-[13px] font-bold text-white/80 mb-2.5 tracking-wide">「{positiveObservationTitle}」</p>}
+                    {positiveObservationTitle && <p className="font-mono text-[13px] font-bold text-[#E8D5A0]/90 mb-2.5 tracking-wide">「{positiveObservationTitle}」</p>}
                     <TextBlock text={positiveObservation} className="text-[14px] text-white/72 leading-relaxed" />
                   </>
                 )}

@@ -950,7 +950,7 @@ export function ChatInterface({
         {/* カレンダー（入力エリア直下、ジャーナルが1件以上ある場合に表示） */}
         {journalDates.length > 0 && (
           <div className="flex-none max-w-2xl mx-auto w-full px-4 py-3 border-t border-white/[0.04]">
-            <DailyCalendar markedDates={journalDates} label="過去の記録" from="journal" />
+            <DailyCalendar markedDates={journalDates} from="journal" />
           </div>
         )}
 
@@ -968,7 +968,7 @@ export function ChatInterface({
                       {/* ドット */}
                       <span className="absolute -left-[22px] top-[5px] w-2.5 h-2.5 rounded-full bg-[#0B0E13] border border-[#C4A35A]/45" />
                       <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <p className="text-[10px] text-[#8A8276]/80 font-mono tracking-wide">
+                        <p className="text-[10px] text-[#8A8276]/90 font-mono font-semibold tracking-wide">
                           {formatDateTime(m.createdAt)}
                         </p>
                         <CopyButton text={m.content} />
