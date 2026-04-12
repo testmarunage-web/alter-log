@@ -39,12 +39,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "file_too_large" }, { status: 413 });
   }
 
-  // Whisper API への転送
+  // Whisper API への転送（verbose_json でno_speech_prob を取得）
   const whisperForm = new FormData();
   const ext = audioFile.type.includes("mp4") ? "mp4" : "webm";
   whisperForm.append("file", audioFile, `audio.${ext}`);
   whisperForm.append("model", "whisper-1");
   whisperForm.append("language", "ja");
+  whisperForm.append("response_format", "verbose_json");
 
   let response: Response;
   try {
@@ -69,7 +70,22 @@ export async function POST(req: Request) {
     );
   }
 
-  const result = await response.json() as { text?: string };
+  const result = await response.json() as {
+    text?: string;
+    segments?: { no_speech_prob: number }[];
+  };
+
+  // 無音ハルシネーション対策：全セグメントのno_speech_prob平均が0.5以上なら空文字を返す
+  const segments = result.segments ?? [];
+  if (segments.length > 0) {
+    const avgNoSpeech = segments.reduce((sum, s) => sum + s.no_speech_prob, 0) / segments.length;
+    console.log(`[transcribe] avg_no_speech_prob=${avgNoSpeech.toFixed(3)} segments=${segments.length}`);
+    if (avgNoSpeech >= 0.5) {
+      console.log("[transcribe] detected as no-speech, returning empty");
+      return NextResponse.json({ text: "" });
+    }
+  }
+
   console.log(`[transcribe] success text_length=${result.text?.length ?? 0}`);
   return NextResponse.json({ text: result.text ?? "" });
 }
