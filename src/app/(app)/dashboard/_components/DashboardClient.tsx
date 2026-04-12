@@ -698,6 +698,7 @@ export function DashboardClient({ initialAlterLog, buttonState, lastScanAt, init
         setThoughtProfile(newProfile);
         router.refresh();
       } catch (e) {
+        console.error("[handleGenerate] generateDashboardScan failed:", e);
         setError(String(e));
       } finally {
         setIsGenerating(false);
