@@ -235,8 +235,7 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
         recElapsedRef.current += 1;
         const next = recElapsedRef.current;
         setRecElapsed(next);
-        // 残り30秒（270秒経過）で警告音、残り10秒（290秒経過）でトリプルビープ
-        if (next === MAX_REC_SEC - 30) playBeep("warning");
+        // 残り10秒（290秒経過）でトリプルビープ
         if (next === MAX_REC_SEC - 10) playBeep("end");
       }, 1000);
 
