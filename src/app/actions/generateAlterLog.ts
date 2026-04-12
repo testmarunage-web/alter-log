@@ -2,7 +2,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { anthropic } from "@ai-sdk/anthropic";
-import { generateObject, generateText } from "ai";
+import { generateObject, generateText, NoObjectGeneratedError } from "ai";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { alterLogSchema, type AlterLogInsights } from "./alterLogSchema";
@@ -291,7 +291,30 @@ ${context}${visionBlock}`;
     })
       .then(({ object }) => ({ ok: true as const, data: object }))
       .catch((err) => {
-        console.error("[generateDashboardScan] generateObject failed — using fallback:", err);
+        console.error("[generateDashboardScan] generateObject failed — attempting unwrap:", err);
+
+        // $PARAMETER_NAME ラップ救済：raw text を取り出してアンラップを試みる
+        if (NoObjectGeneratedError.isInstance(err) && err.text) {
+          try {
+            const raw = JSON.parse(err.text);
+            // {"$PARAMETER_NAME": {...}} 形式の場合、最初の値を取り出す
+            const unwrapped =
+              raw !== null && typeof raw === "object" && !Array.isArray(raw)
+                ? Object.keys(raw).find((k) => k.startsWith("$"))
+                  ? raw[Object.keys(raw).find((k) => k.startsWith("$"))!]
+                  : raw
+                : raw;
+            const parsed = alterLogSchema.safeParse(unwrapped);
+            if (parsed.success) {
+              console.log("[generateDashboardScan] unwrap succeeded — using parsed data");
+              return { ok: true as const, data: parsed.data };
+            }
+            console.error("[generateDashboardScan] unwrap parse failed:", parsed.error);
+          } catch (parseErr) {
+            console.error("[generateDashboardScan] unwrap JSON.parse failed:", parseErr);
+          }
+        }
+
         return { ok: false as const, data: FALLBACK_INSIGHTS };
       }),
 
