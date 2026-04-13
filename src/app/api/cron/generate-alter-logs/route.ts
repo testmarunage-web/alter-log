@@ -5,6 +5,31 @@ import { processAlterLogForUser } from "@/app/actions/generateAlterLog";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // 最大5分（Vercel Pro以上）
 
+// Anthropic APIのレート制限を考慮した同時実行数
+const CONCURRENCY = 5;
+
+/** items を concurrency 件ずつ並列処理して全結果を返す */
+async function runConcurrent(
+  clerkIds: string[],
+  concurrency: number
+): Promise<{ clerkId: string; status: "ok" | "error"; error?: string }[]> {
+  const results: { clerkId: string; status: "ok" | "error"; error?: string }[] = [];
+  for (let i = 0; i < clerkIds.length; i += concurrency) {
+    const chunk = clerkIds.slice(i, i + concurrency);
+    console.log(`[cron] chunk ${Math.floor(i / concurrency) + 1}: processing ${chunk.length} users (${i + 1}〜${i + chunk.length}/${clerkIds.length})`);
+    const settled = await Promise.allSettled(chunk.map((id) => processAlterLogForUser(id)));
+    settled.forEach((r, j) => {
+      if (r.status === "fulfilled") {
+        results.push({ clerkId: chunk[j], status: "ok" });
+      } else {
+        console.error(`[cron] AlterLog生成失敗 clerkId=${chunk[j]}:`, r.reason);
+        results.push({ clerkId: chunk[j], status: "error", error: String(r.reason) });
+      }
+    });
+  }
+  return results;
+}
+
 export async function GET(req: Request) {
   // Vercel推奨のCronシークレット検証
   const cronSecret = process.env.CRON_SECRET;
@@ -41,21 +66,23 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: "No active users in the past 24h.", processed: 0 });
     }
 
-    // 各ユーザーに対して AlterLog を順次生成
-    const results: { clerkId: string; status: "ok" | "error"; error?: string }[] = [];
-    for (const clerkId of clerkIds) {
-      try {
-        await processAlterLogForUser(clerkId);
-        results.push({ clerkId, status: "ok" });
-      } catch (err) {
-        console.error(`[cron] AlterLog生成失敗 clerkId=${clerkId}:`, err);
-        results.push({ clerkId, status: "error", error: String(err) });
-      }
-    }
+    console.log(`[cron] ${clerkIds.length}人のAlterLogを並列生成開始 (concurrency=${CONCURRENCY})`);
+    const startMs = Date.now();
+
+    // 同時実行数 CONCURRENCY でチャンク並列処理
+    const results = await runConcurrent(clerkIds, CONCURRENCY);
+
+    const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
+    const okCount    = results.filter((r) => r.status === "ok").length;
+    const errorCount = results.filter((r) => r.status === "error").length;
+    console.log(`[cron] 完了: ok=${okCount} error=${errorCount} elapsed=${elapsed}s`);
 
     return NextResponse.json({
       message: "Cron completed.",
       processed: clerkIds.length,
+      ok: okCount,
+      errors: errorCount,
+      elapsedSec: elapsed,
       results,
     });
   } catch (err) {
