@@ -26,6 +26,11 @@ async function runConcurrent(
         results.push({ clerkId: chunk[j], status: "error", error: String(r.reason) });
       }
     });
+    // レート制限対策：最後のチャンク以外は10秒待機
+    if (i + concurrency < clerkIds.length) {
+      console.log("[cron] rate limit wait: 10s");
+      await new Promise((r) => setTimeout(r, 10000));
+    }
   }
   return results;
 }
