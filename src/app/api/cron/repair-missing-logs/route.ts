@@ -91,6 +91,7 @@ export async function GET(req: Request) {
         select: { createdAt: true },
       });
 
+      // ジャーナル書いた日（JST）→ 期待する AlterLog date = journal_date + 1日
       const journalDateKeys = new Set<string>();
       for (const j of journals) {
         journalDateKeys.add(toJstDateStr(j.createdAt));
@@ -105,11 +106,19 @@ export async function GET(req: Request) {
         existingLogs.map((l) => l.date.toISOString().split("T")[0])
       );
 
-      const missingDates = [...journalDateKeys].filter((k) => !existingDateKeys.has(k)).sort();
+      // journal_date + 1 と existingDateKeys を照合して欠損を検出
+      const missingAlterLogDates: string[] = [];
+      for (const journalKey of [...journalDateKeys].sort()) {
+        const alterLogDate = new Date(new Date(`${journalKey}T00:00:00Z`).getTime() + 24 * 60 * 60 * 1000);
+        const alterLogDateStr = alterLogDate.toISOString().split("T")[0];
+        if (!existingDateKeys.has(alterLogDateStr)) {
+          missingAlterLogDates.push(alterLogDateStr);
+        }
+      }
 
-      if (missingDates.length > 0) {
-        console.log(`${prefix} userId=${user.id} clerkId=${user.clerkId} missing=[${missingDates.join(",")}] existing=[${[...existingDateKeys].sort().join(",")}]`);
-        for (const dateStr of missingDates) {
+      if (missingAlterLogDates.length > 0) {
+        console.log(`${prefix} userId=${user.id} clerkId=${user.clerkId} missingAlterLogDates=[${missingAlterLogDates.join(",")}] existingDates=[${[...existingDateKeys].sort().join(",")}] journalDates=[${[...journalDateKeys].sort().join(",")}]`);
+        for (const dateStr of missingAlterLogDates) {
           missingEntries.push({ userId: user.id, clerkId: user.clerkId, vision: user.vision, dateStr });
         }
       }

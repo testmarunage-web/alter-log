@@ -392,7 +392,8 @@ export async function generateForDate(userId: string, targetDate: Date, vision?:
     return "exists";
   }
 
-  const jstDayStartUtc = new Date(dateForDb.getTime() - 9 * 60 * 60 * 1000);
+  // AlterLog の date は「ジャーナルを書いた翌日」なので、クエリ対象は dateForDb の前日 JST
+  const jstDayStartUtc = new Date(dateForDb.getTime() - (24 + 9) * 60 * 60 * 1000);
   const jstDayEndUtc   = new Date(jstDayStartUtc.getTime() + 24 * 60 * 60 * 1000 - 1);
 
   const journals = await prisma.journalEntry.findMany({
@@ -400,7 +401,7 @@ export async function generateForDate(userId: string, targetDate: Date, vision?:
     orderBy: { createdAt: "asc" },
   });
   if (journals.length === 0) {
-    console.log(`[generateForDate] skip(no_journals) userId=${userId} date=${dateForDb.toISOString()} range=[${jstDayStartUtc.toISOString()}, ${jstDayEndUtc.toISOString()}]`);
+    console.log(`[generateForDate] skip(no_journals) userId=${userId} date=${dateForDb.toISOString()} journalRange=[${jstDayStartUtc.toISOString()}, ${jstDayEndUtc.toISOString()}]`);
     return "no_journals";
   }
 
@@ -482,13 +483,21 @@ export async function generateMissingDailyLogs(clerkId: string, maxGenerate = 3)
   });
   const existingDateKeys = new Set<string>(existing.map((l) => l.date.toISOString().split("T")[0]));
 
-  const missingKeys = [...journalDateKeys].sort().filter((k) => !existingDateKeys.has(k));
-  console.log(`[generateMissingDailyLogs] clerkId=${clerkId} userId=${user.id} journalDates=[${[...journalDateKeys].sort().join(",")}] existingDates=[${[...existingDateKeys].join(",")}] missing=[${missingKeys.join(",")}]`);
+  // AlterLog の date は「ジャーナルの翌日」なので、journal_date + 1 と照合する
+  const missingJournalKeys = [...journalDateKeys].sort().filter((journalKey) => {
+    const alterLogDate = new Date(new Date(`${journalKey}T00:00:00Z`).getTime() + 24 * 60 * 60 * 1000);
+    const alterLogDateStr = alterLogDate.toISOString().split("T")[0];
+    return !existingDateKeys.has(alterLogDateStr);
+  });
+
+  console.log(`[generateMissingDailyLogs] clerkId=${clerkId} userId=${user.id} journalDates=[${[...journalDateKeys].sort().join(",")}] existingDates=[${[...existingDateKeys].join(",")}] missingJournalDates=[${missingJournalKeys.join(",")}]`);
 
   let generated = 0;
-  for (const key of missingKeys) {
+  for (const journalKey of missingJournalKeys) {
     if (generated >= maxGenerate) break;
-    await generateForDate(user.id, new Date(`${key}T00:00:00Z`), user.vision);
+    // AlterLog date = journal_date + 1日
+    const alterLogDate = new Date(new Date(`${journalKey}T00:00:00Z`).getTime() + 24 * 60 * 60 * 1000);
+    await generateForDate(user.id, alterLogDate, user.vision);
     generated++;
   }
 }
