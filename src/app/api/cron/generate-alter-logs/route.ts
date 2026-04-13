@@ -5,31 +5,42 @@ import { processAlterLogForUser } from "@/app/actions/generateAlterLog";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // 最大5分（Vercel Pro以上）
 
-// Anthropic APIのレート制限を考慮した同時実行数
+// 同時実行数・チャンク間ウェイト
 const CONCURRENCY = 5;
+const WAIT_MS = 5000; // 5秒（グループ分割により各グループ100人以下）
 
-/** items を concurrency 件ずつ並列処理して全結果を返す */
+/**
+ * clerkId の文字コード合計の偶奇でグループを判定する（0 or 1）。
+ * Clerk IDはランダムな英数字なので均等に分布する。
+ */
+function getGroup(clerkId: string): 0 | 1 {
+  const sum = [...clerkId].reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return (sum % 2) as 0 | 1;
+}
+
+/** clerkIds を CONCURRENCY 件ずつ並列処理して全結果を返す */
 async function runConcurrent(
   clerkIds: string[],
-  concurrency: number
+  group: number | null,
 ): Promise<{ clerkId: string; status: "ok" | "error"; error?: string }[]> {
   const results: { clerkId: string; status: "ok" | "error"; error?: string }[] = [];
-  for (let i = 0; i < clerkIds.length; i += concurrency) {
-    const chunk = clerkIds.slice(i, i + concurrency);
-    console.log(`[cron] chunk ${Math.floor(i / concurrency) + 1}: processing ${chunk.length} users (${i + 1}〜${i + chunk.length}/${clerkIds.length})`);
+  const prefix = group !== null ? `[cron:g${group}]` : "[cron]";
+  for (let i = 0; i < clerkIds.length; i += CONCURRENCY) {
+    const chunk = clerkIds.slice(i, i + CONCURRENCY);
+    console.log(`${prefix} chunk ${Math.floor(i / CONCURRENCY) + 1}: processing ${chunk.length} users (${i + 1}〜${i + chunk.length}/${clerkIds.length})`);
     const settled = await Promise.allSettled(chunk.map((id) => processAlterLogForUser(id)));
     settled.forEach((r, j) => {
       if (r.status === "fulfilled") {
         results.push({ clerkId: chunk[j], status: "ok" });
       } else {
-        console.error(`[cron] AlterLog生成失敗 clerkId=${chunk[j]}:`, r.reason);
+        console.error(`${prefix} AlterLog生成失敗 clerkId=${chunk[j]}:`, r.reason);
         results.push({ clerkId: chunk[j], status: "error", error: String(r.reason) });
       }
     });
-    // レート制限対策：最後のチャンク以外は10秒待機
-    if (i + concurrency < clerkIds.length) {
-      console.log("[cron] rate limit wait: 10s");
-      await new Promise((r) => setTimeout(r, 10000));
+    // レート制限対策：最後のチャンク以外は待機
+    if (i + CONCURRENCY < clerkIds.length) {
+      console.log(`${prefix} rate limit wait: ${WAIT_MS / 1000}s`);
+      await new Promise((r) => setTimeout(r, WAIT_MS));
     }
   }
   return results;
@@ -45,6 +56,12 @@ export async function GET(req: Request) {
   if (req.headers.get("authorization") !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  // group クエリパラメータ（0 or 1）。未指定なら全ユーザーを処理
+  const url = new URL(req.url);
+  const groupParam = url.searchParams.get("group");
+  const group: 0 | 1 | null =
+    groupParam === "0" ? 0 : groupParam === "1" ? 1 : null;
 
   try {
     // 前日（N-1日）のJST 00:00〜23:59:59 をUTCに変換
@@ -65,25 +82,32 @@ export async function GET(req: Request) {
       distinct: ["userId"],
     });
 
-    const clerkIds = [...new Set(journalUsers.map((e) => e.user.clerkId))];
+    let clerkIds = [...new Set(journalUsers.map((e) => e.user.clerkId))];
 
-    if (clerkIds.length === 0) {
-      return NextResponse.json({ message: "No active users in the past 24h.", processed: 0 });
+    // group 指定がある場合は偶奇でフィルタ
+    if (group !== null) {
+      clerkIds = clerkIds.filter((id) => getGroup(id) === group);
     }
 
-    console.log(`[cron] ${clerkIds.length}人のAlterLogを並列生成開始 (concurrency=${CONCURRENCY})`);
+    const prefix = group !== null ? `[cron:g${group}]` : "[cron]";
+
+    if (clerkIds.length === 0) {
+      return NextResponse.json({ message: "No active users.", group, processed: 0 });
+    }
+
+    console.log(`${prefix} ${clerkIds.length}人のAlterLogを並列生成開始 (concurrency=${CONCURRENCY}, wait=${WAIT_MS / 1000}s)`);
     const startMs = Date.now();
 
-    // 同時実行数 CONCURRENCY でチャンク並列処理
-    const results = await runConcurrent(clerkIds, CONCURRENCY);
+    const results = await runConcurrent(clerkIds, group);
 
     const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
     const okCount    = results.filter((r) => r.status === "ok").length;
     const errorCount = results.filter((r) => r.status === "error").length;
-    console.log(`[cron] 完了: ok=${okCount} error=${errorCount} elapsed=${elapsed}s`);
+    console.log(`${prefix} 完了: ok=${okCount} error=${errorCount} elapsed=${elapsed}s`);
 
     return NextResponse.json({
       message: "Cron completed.",
+      group,
       processed: clerkIds.length,
       ok: okCount,
       errors: errorCount,
