@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateMissingDailyLogs } from "@/app/actions/generateAlterLog";
+import { generateForDate } from "@/app/actions/generateAlterLog";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-const CONCURRENCY = 5;
+const CONCURRENCY = 3;
 const WAIT_MS = 5000;
 
 /** clerkId の文字コード合計の偶奇でグループを判定する（0 or 1） */
@@ -14,37 +14,30 @@ function getGroup(clerkId: string): 0 | 1 {
   return (sum % 2) as 0 | 1;
 }
 
-/** clerkId リストを CONCURRENCY 件ずつ並列で generateMissingDailyLogs する */
-async function runRepairConcurrent(
-  clerkIds: string[],
-  group: number | null,
-): Promise<{ clerkId: string; status: "ok" | "error"; error?: string }[]> {
-  const results: { clerkId: string; status: "ok" | "error"; error?: string }[] = [];
-  const prefix = group !== null ? `[repair:g${group}]` : "[repair]";
-  for (let i = 0; i < clerkIds.length; i += CONCURRENCY) {
-    const chunk = clerkIds.slice(i, i + CONCURRENCY);
-    console.log(`${prefix} chunk ${Math.floor(i / CONCURRENCY) + 1}: ${chunk.length} users (${i + 1}〜${i + chunk.length}/${clerkIds.length})`);
-    // maxGenerate=30 で制限を外し、過去30日分の全欠損を生成する
-    const settled = await Promise.allSettled(chunk.map((id) => generateMissingDailyLogs(id, 30)));
-    settled.forEach((r, j) => {
-      if (r.status === "fulfilled") {
-        results.push({ clerkId: chunk[j], status: "ok" });
-      } else {
-        console.error(`${prefix} 失敗 clerkId=${chunk[j]}:`, r.reason);
-        results.push({ clerkId: chunk[j], status: "error", error: String(r.reason) });
-      }
-    });
-    // レート制限対策：最後のチャンク以外は待機
-    if (i + CONCURRENCY < clerkIds.length) {
-      console.log(`${prefix} rate limit wait: ${WAIT_MS / 1000}s`);
-      await new Promise((r) => setTimeout(r, WAIT_MS));
-    }
-  }
-  return results;
+/** JST 日付文字列を返す（toLocaleString ではなく Intl で確実に取得） */
+function toJstDateStr(utcDate: Date): string {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo" }).formatToParts(utcDate);
+  const y = parts.find((p) => p.type === "year")!.value;
+  const m = parts.find((p) => p.type === "month")!.value;
+  const d = parts.find((p) => p.type === "day")!.value;
+  return `${y}-${m}-${d}`;
+}
+
+interface MissingEntry {
+  userId: string;
+  clerkId: string;
+  vision: string | null;
+  dateStr: string; // "YYYY-MM-DD" (UTC midnight = JST date base)
+}
+
+interface DateResult {
+  clerkId: string;
+  date: string;
+  status: "inserted" | "exists" | "no_journals" | "error";
+  error?: string;
 }
 
 export async function GET(req: Request) {
-  // Cronシークレットで認証（管理者のみ実行可能）
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) {
     return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
@@ -53,53 +46,133 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // group クエリパラメータ（0 or 1）。未指定なら全ユーザー
   const url = new URL(req.url);
   const groupParam = url.searchParams.get("group");
   const group: 0 | 1 | null =
     groupParam === "0" ? 0 : groupParam === "1" ? 1 : null;
+  // daysBack: 何日前まで遡るか（デフォルト30日）
+  const daysBack = Math.min(Number(url.searchParams.get("days") ?? "30"), 60);
+
+  const prefix = group !== null ? `[repair:g${group}]` : "[repair]";
 
   try {
-    // ジャーナルを持つ全ユーザーのclerkIdを取得
+    // 今日の JST 開始（UTC換算）
+    const now = new Date();
+    const todayJstStr = toJstDateStr(now);
+    const todayJstStartUtc = new Date(`${todayJstStr}T00:00:00+09:00`);
+    const rangeStart = new Date(todayJstStartUtc.getTime() - daysBack * 24 * 60 * 60 * 1000);
+
+    console.log(`${prefix} rangeStart=${rangeStart.toISOString()} todayJstStartUtc=${todayJstStartUtc.toISOString()}`);
+
+    // ジャーナルを持つ全ユーザーを取得
     const users = await prisma.user.findMany({
-      where: { journalEntries: { some: {} } },
-      select: { clerkId: true },
+      where: { journalEntries: { some: { createdAt: { gte: rangeStart, lt: todayJstStartUtc } } } },
+      select: { id: true, clerkId: true, vision: true },
     });
 
-    let clerkIds = users.map((u) => u.clerkId);
-
-    // group 指定がある場合は偶奇でフィルタ
+    let filteredUsers = users;
     if (group !== null) {
-      clerkIds = clerkIds.filter((id) => getGroup(id) === group);
+      filteredUsers = users.filter((u) => getGroup(u.clerkId) === group);
     }
 
-    const prefix = group !== null ? `[repair:g${group}]` : "[repair]";
+    console.log(`${prefix} 対象ユーザー数=${filteredUsers.length}`);
 
-    if (clerkIds.length === 0) {
-      return NextResponse.json({ message: "No users with journal entries.", group, processed: 0 });
+    if (filteredUsers.length === 0) {
+      return NextResponse.json({ message: "No active users in range.", group, daysBack, missing: 0 });
     }
 
-    console.log(`${prefix} ${clerkIds.length}人の欠損AlterLog補完開始 (concurrency=${CONCURRENCY}, wait=${WAIT_MS / 1000}s)`);
+    // 各ユーザーの「ジャーナルがある JST 日付」と「既存 AlterLog 日付」を計算して欠損ペアを収集
+    const missingEntries: MissingEntry[] = [];
+
+    for (const user of filteredUsers) {
+      // ジャーナルの createdAt 一覧
+      const journals = await prisma.journalEntry.findMany({
+        where: { userId: user.id, createdAt: { gte: rangeStart, lt: todayJstStartUtc } },
+        select: { createdAt: true },
+      });
+
+      const journalDateKeys = new Set<string>();
+      for (const j of journals) {
+        journalDateKeys.add(toJstDateStr(j.createdAt));
+      }
+
+      // 既存 AlterLog の日付一覧（date フィールドは UTC midnight "YYYY-MM-DDT00:00:00Z" で保存）
+      const existingLogs = await prisma.alterLog.findMany({
+        where: { userId: user.id, date: { gte: rangeStart } },
+        select: { date: true },
+      });
+      const existingDateKeys = new Set<string>(
+        existingLogs.map((l) => l.date.toISOString().split("T")[0])
+      );
+
+      const missingDates = [...journalDateKeys].filter((k) => !existingDateKeys.has(k)).sort();
+
+      if (missingDates.length > 0) {
+        console.log(`${prefix} userId=${user.id} clerkId=${user.clerkId} missing=[${missingDates.join(",")}] existing=[${[...existingDateKeys].sort().join(",")}]`);
+        for (const dateStr of missingDates) {
+          missingEntries.push({ userId: user.id, clerkId: user.clerkId, vision: user.vision, dateStr });
+        }
+      }
+    }
+
+    console.log(`${prefix} 欠損ペア合計=${missingEntries.length}`);
+
+    if (missingEntries.length === 0) {
+      return NextResponse.json({ message: "No missing AlterLogs found.", group, daysBack, missing: 0 });
+    }
+
+    // CONCURRENCY 件ずつ並列で generateForDate を呼ぶ
+    const results: DateResult[] = [];
     const startMs = Date.now();
 
-    const results = await runRepairConcurrent(clerkIds, group);
+    for (let i = 0; i < missingEntries.length; i += CONCURRENCY) {
+      const chunk = missingEntries.slice(i, i + CONCURRENCY);
+      console.log(`${prefix} chunk ${Math.floor(i / CONCURRENCY) + 1}/${Math.ceil(missingEntries.length / CONCURRENCY)}: ${chunk.map((e) => `${e.clerkId}@${e.dateStr}`).join(", ")}`);
+
+      const settled = await Promise.allSettled(
+        chunk.map((entry) =>
+          generateForDate(entry.userId, new Date(`${entry.dateStr}T00:00:00Z`), entry.vision)
+        )
+      );
+
+      settled.forEach((r, j) => {
+        const entry = chunk[j];
+        if (r.status === "fulfilled") {
+          results.push({ clerkId: entry.clerkId, date: entry.dateStr, status: r.value });
+        } else {
+          console.error(`${prefix} エラー clerkId=${entry.clerkId} date=${entry.dateStr}:`, r.reason);
+          results.push({ clerkId: entry.clerkId, date: entry.dateStr, status: "error", error: String(r.reason) });
+        }
+      });
+
+      if (i + CONCURRENCY < missingEntries.length) {
+        console.log(`${prefix} rate limit wait: ${WAIT_MS / 1000}s`);
+        await new Promise((r) => setTimeout(r, WAIT_MS));
+      }
+    }
 
     const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
-    const okCount    = results.filter((r) => r.status === "ok").length;
-    const errorCount = results.filter((r) => r.status === "error").length;
-    console.log(`${prefix} 完了: ok=${okCount} error=${errorCount} elapsed=${elapsed}s`);
+    const insertedCount  = results.filter((r) => r.status === "inserted").length;
+    const existsCount    = results.filter((r) => r.status === "exists").length;
+    const noJournalCount = results.filter((r) => r.status === "no_journals").length;
+    const errorCount     = results.filter((r) => r.status === "error").length;
+
+    console.log(`${prefix} 完了: inserted=${insertedCount} exists=${existsCount} no_journals=${noJournalCount} errors=${errorCount} elapsed=${elapsed}s`);
 
     return NextResponse.json({
       message: "Repair completed.",
       group,
-      processed: clerkIds.length,
-      ok: okCount,
+      daysBack,
+      missing: missingEntries.length,
+      inserted: insertedCount,
+      exists: existsCount,
+      no_journals: noJournalCount,
       errors: errorCount,
       elapsedSec: elapsed,
       results,
     });
   } catch (err) {
-    console.error("[repair] 予期しないエラー:", err);
+    console.error(`${prefix} 予期しないエラー:`, err);
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }

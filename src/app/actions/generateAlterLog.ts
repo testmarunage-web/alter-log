@@ -379,7 +379,7 @@ ${context}${visionBlock}`;
 // ─────────────────────────────────────────────────────────────────────────────
 // 日次生成ロジック：特定日付の AlterLog を生成（すでに存在する場合はスキップ）
 // ─────────────────────────────────────────────────────────────────────────────
-export async function generateForDate(userId: string, targetDate: Date, vision?: string | null): Promise<void> {
+export async function generateForDate(userId: string, targetDate: Date, vision?: string | null): Promise<"inserted" | "exists" | "no_journals"> {
   const dateForDb = new Date(targetDate);
   dateForDb.setUTCHours(0, 0, 0, 0);
 
@@ -387,7 +387,10 @@ export async function generateForDate(userId: string, targetDate: Date, vision?:
     where: { userId, date: dateForDb },
     select: { id: true },
   });
-  if (existing) return;
+  if (existing) {
+    console.log(`[generateForDate] skip(exists) userId=${userId} date=${dateForDb.toISOString()}`);
+    return "exists";
+  }
 
   const jstDayStartUtc = new Date(dateForDb.getTime() - 9 * 60 * 60 * 1000);
   const jstDayEndUtc   = new Date(jstDayStartUtc.getTime() + 24 * 60 * 60 * 1000 - 1);
@@ -396,7 +399,10 @@ export async function generateForDate(userId: string, targetDate: Date, vision?:
     where: { userId, createdAt: { gte: jstDayStartUtc, lte: jstDayEndUtc } },
     orderBy: { createdAt: "asc" },
   });
-  if (journals.length === 0) return;
+  if (journals.length === 0) {
+    console.log(`[generateForDate] skip(no_journals) userId=${userId} date=${dateForDb.toISOString()} range=[${jstDayStartUtc.toISOString()}, ${jstDayEndUtc.toISOString()}]`);
+    return "no_journals";
+  }
 
   const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n");
 
@@ -432,6 +438,8 @@ export async function generateForDate(userId: string, targetDate: Date, vision?:
       createdAt: getSpoofedCreatedAt(jstDateStr),
     },
   });
+  console.log(`[generateForDate] inserted userId=${userId} date=${dateForDb.toISOString()} journals=${journals.length}`);
+  return "inserted";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -474,13 +482,14 @@ export async function generateMissingDailyLogs(clerkId: string, maxGenerate = 3)
   });
   const existingDateKeys = new Set<string>(existing.map((l) => l.date.toISOString().split("T")[0]));
 
+  const missingKeys = [...journalDateKeys].sort().filter((k) => !existingDateKeys.has(k));
+  console.log(`[generateMissingDailyLogs] clerkId=${clerkId} userId=${user.id} journalDates=[${[...journalDateKeys].sort().join(",")}] existingDates=[${[...existingDateKeys].join(",")}] missing=[${missingKeys.join(",")}]`);
+
   let generated = 0;
-  for (const key of [...journalDateKeys].sort()) {
+  for (const key of missingKeys) {
     if (generated >= maxGenerate) break;
-    if (!existingDateKeys.has(key)) {
-      await generateForDate(user.id, new Date(`${key}T00:00:00Z`), user.vision);
-      generated++;
-    }
+    await generateForDate(user.id, new Date(`${key}T00:00:00Z`), user.vision);
+    generated++;
   }
 }
 
