@@ -2,6 +2,20 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { processAlterLogForUser } from "@/app/actions/generateAlterLog";
 
+async function sendDiscordAlert(message: string): Promise<void> {
+  const url = process.env.DISCORD_ALERT_WEBHOOK_URL;
+  if (!url) return;
+  try {
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: message }),
+    });
+  } catch (e) {
+    console.error("[discord alert] failed:", e);
+  }
+}
+
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // 最大5分（Vercel Pro以上）
 
@@ -95,7 +109,14 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: "No active users.", group, processed: 0 });
     }
 
-    console.log(`${prefix} ${clerkIds.length}人のAlterLogを並列生成開始 (concurrency=${CONCURRENCY}, wait=${WAIT_MS / 1000}s)`);
+    const count = clerkIds.length;
+    if (count >= 100) {
+      await sendDiscordAlert(`🚨 Alter Log Cron: グループ${group}のユーザー数が${count}人です。100人を超えています。即座にグループ分割を追加してください。`);
+    } else if (count >= 80) {
+      await sendDiscordAlert(`⚠️ Alter Log Cron: グループ${group}のユーザー数が${count}人です。80人を超えています。グループ分割の追加を検討してください。`);
+    }
+
+    console.log(`${prefix} ${count}人のAlterLogを並列生成開始 (concurrency=${CONCURRENCY}, wait=${WAIT_MS / 1000}s)`);
     const startMs = Date.now();
 
     const results = await runConcurrent(clerkIds, group);
