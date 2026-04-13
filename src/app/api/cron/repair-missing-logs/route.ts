@@ -24,7 +24,8 @@ async function runRepairConcurrent(
   for (let i = 0; i < clerkIds.length; i += CONCURRENCY) {
     const chunk = clerkIds.slice(i, i + CONCURRENCY);
     console.log(`${prefix} chunk ${Math.floor(i / CONCURRENCY) + 1}: ${chunk.length} users (${i + 1}〜${i + chunk.length}/${clerkIds.length})`);
-    const settled = await Promise.allSettled(chunk.map((id) => generateMissingDailyLogs(id)));
+    // maxGenerate=30 で制限を外し、過去30日分の全欠損を生成する
+    const settled = await Promise.allSettled(chunk.map((id) => generateMissingDailyLogs(id, 30)));
     settled.forEach((r, j) => {
       if (r.status === "fulfilled") {
         results.push({ clerkId: chunk[j], status: "ok" });

@@ -437,7 +437,7 @@ export async function generateForDate(userId: string, targetDate: Date, vision?:
 // ─────────────────────────────────────────────────────────────────────────────
 // 過去の未生成日を遅延生成（Alter Log 画面表示時に呼び出す）
 // ─────────────────────────────────────────────────────────────────────────────
-export async function generateMissingDailyLogs(clerkId: string): Promise<void> {
+export async function generateMissingDailyLogs(clerkId: string, maxGenerate = 3): Promise<void> {
   const user = await prisma.user.upsert({
     where: { clerkId },
     create: { clerkId },
@@ -476,7 +476,7 @@ export async function generateMissingDailyLogs(clerkId: string): Promise<void> {
 
   let generated = 0;
   for (const key of [...journalDateKeys].sort()) {
-    if (generated >= 3) break;
+    if (generated >= maxGenerate) break;
     if (!existingDateKeys.has(key)) {
       await generateForDate(user.id, new Date(`${key}T00:00:00Z`), user.vision);
       generated++;
