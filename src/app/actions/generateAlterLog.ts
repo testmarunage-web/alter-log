@@ -396,12 +396,18 @@ export async function generateForDate(userId: string, targetDate: Date, vision?:
   const jstDayStartUtc = new Date(dateForDb.getTime() - (24 + 9) * 60 * 60 * 1000);
   const jstDayEndUtc   = new Date(jstDayStartUtc.getTime() + 24 * 60 * 60 * 1000 - 1);
 
+  // 取得する journal 範囲を常にログ出力（デバッグ用）
+  console.log(`[generateForDate] query userId=${userId} alterLogDate=${dateForDb.toISOString()} journalRange=[${jstDayStartUtc.toISOString()}, ${jstDayEndUtc.toISOString()}]`);
+
   const journals = await prisma.journalEntry.findMany({
     where: { userId, createdAt: { gte: jstDayStartUtc, lte: jstDayEndUtc } },
     orderBy: { createdAt: "asc" },
   });
+
+  console.log(`[generateForDate] journals found=${journals.length} createdAts=[${journals.map((j) => j.createdAt.toISOString()).join(", ")}]`);
+
   if (journals.length === 0) {
-    console.log(`[generateForDate] skip(no_journals) userId=${userId} date=${dateForDb.toISOString()} journalRange=[${jstDayStartUtc.toISOString()}, ${jstDayEndUtc.toISOString()}]`);
+    console.log(`[generateForDate] skip(no_journals) userId=${userId} date=${dateForDb.toISOString()}`);
     return "no_journals";
   }
 
