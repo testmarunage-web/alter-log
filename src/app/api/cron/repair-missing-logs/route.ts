@@ -91,13 +91,13 @@ export async function GET(req: Request) {
         select: { createdAt: true },
       });
 
-      // ジャーナル書いた日（JST）→ 期待する AlterLog date = journal_date + 1日
+      // journal_date = AlterLog date（同日 convention）
       const journalDateKeys = new Set<string>();
       for (const j of journals) {
         journalDateKeys.add(toJstDateStr(j.createdAt));
       }
 
-      // 既存 AlterLog の日付一覧（date フィールドは UTC midnight "YYYY-MM-DDT00:00:00Z" で保存）
+      // 既存 AlterLog の日付一覧
       const existingLogs = await prisma.alterLog.findMany({
         where: { userId: user.id, date: { gte: rangeStart } },
         select: { date: true },
@@ -106,19 +106,12 @@ export async function GET(req: Request) {
         existingLogs.map((l) => l.date.toISOString().split("T")[0])
       );
 
-      // journal_date + 1 と existingDateKeys を照合して欠損を検出
-      const missingAlterLogDates: string[] = [];
-      for (const journalKey of [...journalDateKeys].sort()) {
-        const alterLogDate = new Date(new Date(`${journalKey}T00:00:00Z`).getTime() + 24 * 60 * 60 * 1000);
-        const alterLogDateStr = alterLogDate.toISOString().split("T")[0];
-        if (!existingDateKeys.has(alterLogDateStr)) {
-          missingAlterLogDates.push(alterLogDateStr);
-        }
-      }
+      // journal_date と existingDateKeys を同日で照合して欠損を検出
+      const missingDates = [...journalDateKeys].filter((k) => !existingDateKeys.has(k)).sort();
 
-      if (missingAlterLogDates.length > 0) {
-        console.log(`${prefix} userId=${user.id} clerkId=${user.clerkId} missingAlterLogDates=[${missingAlterLogDates.join(",")}] existingDates=[${[...existingDateKeys].sort().join(",")}] journalDates=[${[...journalDateKeys].sort().join(",")}]`);
-        for (const dateStr of missingAlterLogDates) {
+      if (missingDates.length > 0) {
+        console.log(`${prefix} userId=${user.id} clerkId=${user.clerkId} missingDates=[${missingDates.join(",")}] existingDates=[${[...existingDateKeys].sort().join(",")}] journalDates=[${[...journalDateKeys].sort().join(",")}]`);
+        for (const dateStr of missingDates) {
           missingEntries.push({ userId: user.id, clerkId: user.clerkId, vision: user.vision, dateStr });
         }
       }
