@@ -6,27 +6,34 @@ export const dynamic = "force-dynamic";
 // Vercel Pro は最大 300 秒まで対応
 export const maxDuration = 300;
 
+// Vercel CDN が 404 をキャッシュしてしまう問題を防ぐため、全レスポンスにキャッシュ無効化ヘッダーを付与
+const NO_CACHE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate",
+  "CDN-Cache-Control": "no-store",
+  "Vercel-CDN-Cache-Control": "no-store",
+};
+
 export async function POST(req: Request) {
   const { userId } = await auth();
   if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: NO_CACHE_HEADERS });
   }
 
   if (!process.env.OPENAI_API_KEY) {
     console.error("[transcribe] OPENAI_API_KEY is not set");
-    return NextResponse.json({ error: "OPENAI_API_KEY not configured" }, { status: 500 });
+    return NextResponse.json({ error: "OPENAI_API_KEY not configured" }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 
   let formData: FormData;
   try {
     formData = await req.formData();
   } catch {
-    return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid form data" }, { status: 400, headers: NO_CACHE_HEADERS });
   }
 
   const audioFile = formData.get("audio") as File | null;
   if (!audioFile || audioFile.size === 0) {
-    return NextResponse.json({ error: "No audio file" }, { status: 400 });
+    return NextResponse.json({ error: "No audio file" }, { status: 400, headers: NO_CACHE_HEADERS });
   }
 
   const fileSizeMB = (audioFile.size / 1024 / 1024).toFixed(2);
@@ -36,7 +43,7 @@ export async function POST(req: Request) {
   const MAX_SIZE_BYTES = 25 * 1024 * 1024;
   if (audioFile.size > MAX_SIZE_BYTES) {
     console.error(`[transcribe] file too large: ${fileSizeMB}MB > 25MB`);
-    return NextResponse.json({ error: "file_too_large" }, { status: 413 });
+    return NextResponse.json({ error: "file_too_large" }, { status: 413, headers: NO_CACHE_HEADERS });
   }
 
   // Whisper API への転送（verbose_json でno_speech_prob を取得）
@@ -56,7 +63,7 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     console.error("[transcribe] Whisper API fetch failed:", err);
-    return NextResponse.json({ error: "Network error" }, { status: 502 });
+    return NextResponse.json({ error: "Network error" }, { status: 502, headers: NO_CACHE_HEADERS });
   }
 
   console.log(`[transcribe] Whisper API response status=${response.status}`);
@@ -66,7 +73,7 @@ export async function POST(req: Request) {
     console.error(`[transcribe] Whisper API error: status=${response.status} detail=${detail}`);
     return NextResponse.json(
       { error: "Transcription failed", detail },
-      { status: 500 }
+      { status: 500, headers: NO_CACHE_HEADERS }
     );
   }
 
@@ -82,10 +89,10 @@ export async function POST(req: Request) {
     console.log(`[transcribe] avg_no_speech_prob=${avgNoSpeech.toFixed(3)} segments=${segments.length}`);
     if (avgNoSpeech >= 0.5) {
       console.log("[transcribe] detected as no-speech, returning empty");
-      return NextResponse.json({ text: "" });
+      return NextResponse.json({ text: "" }, { headers: NO_CACHE_HEADERS });
     }
   }
 
   console.log(`[transcribe] success text_length=${result.text?.length ?? 0}`);
-  return NextResponse.json({ text: result.text ?? "" });
+  return NextResponse.json({ text: result.text ?? "" }, { headers: NO_CACHE_HEADERS });
 }
