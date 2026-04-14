@@ -24,14 +24,17 @@ export async function POST(req: Request) {
 
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
-    include: { subscription: { select: { status: true } } },
+    include: { subscription: { select: { status: true, currentPeriodEnd: true } } },
   });
 
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const subStatus = user.subscription?.status;
+  const sub = user.subscription;
+  const now = new Date();
   const isReadOnly =
-    subStatus === "CANCELED" || subStatus === "INACTIVE" || subStatus == null;
+    sub == null ||
+    sub.status === "INACTIVE" ||
+    (sub.status === "CANCELED" && (sub.currentPeriodEnd == null || sub.currentPeriodEnd <= now));
   if (isReadOnly) {
     return NextResponse.json(
       { error: "Subscription required to update vision" },

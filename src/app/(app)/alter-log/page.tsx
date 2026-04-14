@@ -65,12 +65,15 @@ export default async function AlterLogPage() {
 
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
-    include: { subscription: { select: { status: true } } },
+    include: { subscription: { select: { status: true, currentPeriodEnd: true } } },
   });
 
-  const subStatus = user?.subscription?.status;
+  const sub = user?.subscription;
+  const now = new Date();
   const isReadOnly =
-    subStatus === "CANCELED" || subStatus === "INACTIVE" || subStatus == null;
+    sub == null ||
+    sub.status === "INACTIVE" ||
+    (sub.status === "CANCELED" && (sub.currentPeriodEnd == null || sub.currentPeriodEnd <= now));
 
   // 今日のJST日付範囲（UTC）
   const nowJstDate = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));

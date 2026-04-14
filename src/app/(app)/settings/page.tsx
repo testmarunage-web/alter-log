@@ -22,15 +22,18 @@ export default async function SettingsPage() {
       where: { clerkId: userId },
       select: {
         vision: true,
-        subscription: { select: { status: true } },
+        subscription: { select: { status: true, currentPeriodEnd: true } },
       },
     }),
   ]);
 
   const email = clerkUser?.emailAddresses?.[0]?.emailAddress ?? null;
-  const subStatus = dbUser?.subscription?.status;
+  const sub = dbUser?.subscription;
+  const now = new Date();
   const isReadOnly =
-    subStatus === "CANCELED" || subStatus === "INACTIVE" || subStatus == null;
+    sub == null ||
+    sub.status === "INACTIVE" ||
+    (sub.status === "CANCELED" && (sub.currentPeriodEnd == null || sub.currentPeriodEnd <= now));
 
   return (
     <main className="min-h-screen bg-[#0B0E13] text-[#E8E3D8] pb-32">

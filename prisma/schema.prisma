@@ -73,9 +73,10 @@ model Subscription {
   stripeSubscriptionId String? @unique
   stripePriceId        String? // アーリーバード or スタンダードの価格ID
 
-  status           SubscriptionStatus @default(INACTIVE)
-  isEarlyBird      Boolean            @default(false) // アーリーバード永続フラグ
-  currentPeriodEnd DateTime?
+  status              SubscriptionStatus @default(INACTIVE)
+  isEarlyBird         Boolean            @default(false) // アーリーバード永続フラグ
+  cancelAtPeriodEnd   Boolean            @default(false) // 期間終了時にキャンセル予定フラグ
+  currentPeriodEnd    DateTime?
 
   createdAt DateTime @default(now()) @db.Timestamptz
   updatedAt DateTime @updatedAt     @db.Timestamptz

@@ -204,23 +204,31 @@ export async function POST(req: Request) {
         ];
         const whereClause = { OR: orConditions };
 
-        // 解約検知：cancel_at_period_end=true または cancel_at が設定済み
-        // （Stripe の新旧 API どちらにも対応）
-        const isCanceling =
+        // 解約予約検知：cancel_at_period_end=true または cancel_at が設定済み
+        // → 期間終了日まで ACTIVE を維持し cancelAtPeriodEnd フラグのみ立てる
+        // → 実際に期間が終了した時点で customer.subscription.deleted が発火し CANCELED に移行
+        const isCancelingAtPeriodEnd =
           subscription.cancel_at_period_end === true ||
           subscription.cancel_at != null;
 
-        if (isCanceling) {
+        if (isCancelingAtPeriodEnd) {
+          // cancel_at に期間終了タイムスタンプが入っている（cancel_at_period_end=true 時は Stripe が自動セット）
+          const cancelPeriodEnd = toPeriodEnd(subscription.cancel_at);
           const cancelResult = await prisma.subscription.updateMany({
             where: whereClause,
-            data: { status: "CANCELED" },
+            data: {
+              status: "ACTIVE",        // 期間終了まで ACTIVE を維持
+              cancelAtPeriodEnd: true, // UI表示用フラグ（「〇月〇日で終了予定」）
+              currentPeriodEnd: cancelPeriodEnd,
+            },
           });
-          console.log("[stripe webhook] cancellation detected → CANCELED", {
+          console.log("[stripe webhook] cancel_at_period_end → ACTIVE maintained", {
             count: cancelResult.count,
             subId: subscription.id,
+            cancelPeriodEnd,
           });
           if (cancelResult.count === 0) {
-            console.error("[stripe webhook] cancellation: NO rows matched", {
+            console.error("[stripe webhook] cancel_at_period_end: NO rows matched", {
               subId: subscription.id,
               customerId: subCustomerId,
             });
@@ -301,6 +309,7 @@ export async function POST(req: Request) {
           },
           data: {
             status: "CANCELED",
+            cancelAtPeriodEnd: false,
             currentPeriodEnd: null,
           },
         });
