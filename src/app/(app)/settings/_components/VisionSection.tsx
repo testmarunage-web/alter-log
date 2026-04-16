@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRecordingLock } from "../../_components/RecordingLockProvider";
 
 const MAX_CHARS = 12000;
 const MAX_REC_SEC = 300; // 5分
@@ -17,6 +18,8 @@ function fmtTime(sec: number): string {
 }
 
 export function VisionSection({ initialVision, isReadOnly }: Props) {
+  const { setNavLocked } = useRecordingLock();
+
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [text, setText] = useState(initialVision ?? "");
   const [savedText, setSavedText] = useState(initialVision ?? "");
@@ -26,6 +29,7 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [micError, setMicError] = useState<string | null>(null);
   const [recElapsed, setRecElapsed] = useState(0);
+  const [holdingStop, setHoldingStop] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -34,17 +38,35 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
   const autoStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoStoppedRef = useRef(false);
   const recElapsedRef = useRef(0); // ビープ判定用（state updater外から参照）
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // アンマウント時にタイマー・ストリームをクリーンアップ
   useEffect(() => {
     return () => {
       clearTimers();
+      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
       streamRef.current?.getTracks().forEach((t) => t.stop());
       if (mediaRecorderRef.current?.state === "recording") {
         mediaRecorderRef.current.stop();
       }
     };
   }, []);
+
+  // ── 録音中・文字起こし中は BottomNav を無効化 ──
+  useEffect(() => {
+    setNavLocked(isRecording || isTranscribing);
+  }, [isRecording, isTranscribing, setNavLocked]);
+  useEffect(() => {
+    return () => setNavLocked(false);
+  }, [setNavLocked]);
+
+  // ── 文字起こし中のページ離脱警告 ──
+  useEffect(() => {
+    if (!isTranscribing) return;
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isTranscribing]);
 
   function clearTimers() {
     if (elapsedTimerRef.current) {
@@ -174,13 +196,14 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm")
-        ? "audio/webm"
-        : "audio/mp4";
-      const recorder = new MediaRecorder(stream, {
-        mimeType,
-        audioBitsPerSecond: 64000,
-      });
+      // iOS Safari では webm 出力が不安定なため、mp4 を最優先にフォールバックチェーンを構築する
+      const mimeCandidates = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"];
+      const preferredMime = mimeCandidates.find((t) => MediaRecorder.isTypeSupported(t));
+      const recorderOptions: MediaRecorderOptions = { audioBitsPerSecond: 64000 };
+      if (preferredMime) recorderOptions.mimeType = preferredMime;
+      const recorder = new MediaRecorder(stream, recorderOptions);
+      // 実際に採用された MIME タイプ（fallback 時は recorder.mimeType から取得）
+      const mimeType = recorder.mimeType || preferredMime || "audio/webm";
       audioChunksRef.current = [];
 
       recorder.ondataavailable = (e) => {
@@ -258,6 +281,22 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
     }
     setIsRecording(false);
     setRecElapsed(0);
+  }
+
+  // ── 停止ボタン長押しハンドラ（1秒以上で停止） ──
+  function handleStopPressStart() {
+    setHoldingStop(true);
+    holdTimerRef.current = setTimeout(() => {
+      setHoldingStop(false);
+      stopRecording();
+    }, 1000);
+  }
+  function handleStopPressEnd() {
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+    setHoldingStop(false);
   }
 
   const isNearLimit = recElapsed >= MAX_REC_SEC - 30;
@@ -350,14 +389,24 @@ export function VisionSection({ initialVision, isReadOnly }: Props) {
                 <div>
                   <button
                     type="button"
-                    onClick={stopRecording}
-                    className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-lg bg-red-500/12 border border-red-500/25 text-red-400/80 hover:bg-red-500/18 transition-colors"
+                    onMouseDown={handleStopPressStart}
+                    onMouseUp={handleStopPressEnd}
+                    onMouseLeave={handleStopPressEnd}
+                    onTouchStart={handleStopPressStart}
+                    onTouchEnd={handleStopPressEnd}
+                    className={`w-full flex items-center justify-center gap-2.5 py-2.5 rounded-lg border transition-all duration-200 select-none ${
+                      holdingStop
+                        ? "bg-red-500/25 border-red-500/40 text-red-300 scale-[0.97]"
+                        : "bg-red-500/12 border-red-500/25 text-red-400/80"
+                    }`}
                   >
                     <span
                       className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0"
                       style={{ animation: "dot-pulse 1s ease-in-out infinite" }}
                     />
-                    <span className="text-[12px] font-mono">タップして停止</span>
+                    <span className="text-[12px] font-mono">
+                      {holdingStop ? "離すと停止します" : "長押しで停止"}
+                    </span>
                     <span
                       className={`font-mono text-[12px] font-normal transition-colors ${
                         isNearLimit ? "text-red-300" : "text-white/60"

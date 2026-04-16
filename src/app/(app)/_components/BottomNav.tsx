@@ -5,12 +5,14 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { navItems } from "./NavItems";
 import { NavIconSvg } from "./NavIcon";
+import { useRecordingLock } from "./RecordingLockProvider";
 
 export function BottomNav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const { navLocked } = useRecordingLock();
 
   useEffect(() => {
     const onScroll = () => {
@@ -43,10 +45,11 @@ export function BottomNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0B0E13]/95 backdrop-blur-md border-t border-[#C4A35A]/10"
+      className={`md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0B0E13]/95 backdrop-blur-md border-t border-[#C4A35A]/10 transition-all duration-300 ${
+        navLocked ? "pointer-events-none opacity-40" : ""
+      }`}
       style={{
         transform: visible ? "translateY(0)" : "translateY(100%)",
-        transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
       <div className="flex items-stretch">

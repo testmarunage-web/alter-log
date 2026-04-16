@@ -7,6 +7,7 @@ import { BottomNav } from "./_components/BottomNav";
 import { AddToHomePrompt } from "./_components/AddToHomePrompt";
 import { ReadOnlyProvider } from "./_components/ReadOnlyProvider";
 import { ReadOnlyBanner } from "./_components/ReadOnlyBanner";
+import { RecordingLockProvider } from "./_components/RecordingLockProvider";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         select: {
           stripeSubscriptionId: true,
           status: true,
+          cancelAtPeriodEnd: true,
           currentPeriodEnd: true,
+          createdAt: true,
         },
       },
     },
@@ -47,30 +50,38 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // 期間が完全に終了した場合のみ閲覧モードへ
   const isReadOnly = !isActive;
 
+  // 返金案内：(CANCELED or 解約予約済み) かつ サブスクリプション作成から7日以内
+  const REFUND_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // 7日
+  const isCanceledOrPending = sub.status === "CANCELED" || sub.cancelAtPeriodEnd;
+  const withinRefundWindow = now.getTime() - sub.createdAt.getTime() < REFUND_WINDOW_MS;
+  const showRefundNotice = isCanceledOrPending && withinRefundWindow;
+
   return (
-    <ReadOnlyProvider isReadOnly={isReadOnly}>
-      <div className="flex h-[100dvh] bg-[#0B0E13] overflow-hidden">
-        {/* PC: 左サイドバー */}
-        <Suspense fallback={null}>
-          <Sidebar />
-        </Suspense>
+    <ReadOnlyProvider isReadOnly={isReadOnly} showRefundNotice={showRefundNotice}>
+      <RecordingLockProvider>
+        <div className="flex h-[100dvh] bg-[#0B0E13] overflow-hidden">
+          {/* PC: 左サイドバー */}
+          <Suspense fallback={null}>
+            <Sidebar />
+          </Suspense>
 
-        {/* メインコンテンツ */}
-        <main className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
-          <ReadOnlyBanner />
-          <div className="flex-1 min-h-0 overflow-y-auto">
-            {children}
-          </div>
-        </main>
+          {/* メインコンテンツ */}
+          <main className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
+            <ReadOnlyBanner />
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              {children}
+            </div>
+          </main>
 
-        {/* スマホ: ボトムナビ */}
-        <Suspense fallback={null}>
-          <BottomNav />
-        </Suspense>
+          {/* スマホ: ボトムナビ */}
+          <Suspense fallback={null}>
+            <BottomNav />
+          </Suspense>
 
-        {/* PWA: ホーム画面に追加プロンプト */}
-        <AddToHomePrompt />
-      </div>
+          {/* PWA: ホーム画面に追加プロンプト */}
+          <AddToHomePrompt />
+        </div>
+      </RecordingLockProvider>
     </ReadOnlyProvider>
   );
 }

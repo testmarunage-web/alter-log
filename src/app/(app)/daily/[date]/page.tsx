@@ -3,7 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { AlterIcon } from "@/app/(app)/_components/AlterIcon";
-import { alterLogSchema } from "@/app/actions/alterLogSchema";
+import { alterLogSchema, type AlterLogInsights } from "@/app/actions/alterLogSchema";
 import { DailyAccordion } from "./_components/DailyAccordion";
 import { CopyButton } from "@/app/(app)/_components/CopyButton";
 
@@ -75,7 +75,7 @@ export default async function DailyPage({
 
   const { start, end } = jstDayBounds(date);
 
-  const [journals, alterLog] = await Promise.all([
+  const [journals, alterLog, scanResult] = await Promise.all([
     prisma.journalEntry.findMany({
       where: { userId: user.id, createdAt: { gte: start, lte: end } },
       orderBy: { createdAt: "asc" },
@@ -86,9 +86,15 @@ export default async function DailyPage({
         date: { gte: start, lte: end },
       },
     }),
+    prisma.scanResult.findFirst({
+      where: {
+        userId: user.id,
+        date: { gte: start, lte: end },
+      },
+    }),
   ]);
 
-  if (journals.length === 0 && !alterLog) notFound();
+  if (journals.length === 0 && !alterLog && !scanResult) notFound();
 
   // Alter Log のインサイト解析（daily_note と is_insufficient_data のみ使用）
   let insights: Partial<{
@@ -103,6 +109,19 @@ export default async function DailyPage({
       insights = null;
     }
   }
+
+  // SCAN 結果のインサイト解析
+  let scanInsights: AlterLogInsights | null = null;
+  let scanThoughtProfile: string | null = null;
+  if (scanResult) {
+    try {
+      scanInsights = alterLogSchema.parse(scanResult.insights);
+      scanThoughtProfile = scanResult.thoughtProfile ?? null;
+    } catch {
+      scanInsights = null;
+    }
+  }
+  const hasScan = !!scanInsights && !scanInsights.is_insufficient_data;
 
   const dateLabel = formatDateJa(date);
 
@@ -278,6 +297,106 @@ export default async function DailyPage({
               この日のAlter Logはまだ生成されていません
             </p>
           </div>
+        )}
+
+        {/* ── SCAN 結果 ── */}
+        {scanResult && (
+          (() => {
+            const scanSection = (
+              <section className="mt-8">
+                {/* セパレーター */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#C4A35A]/20 to-transparent" />
+                  <span className="font-mono text-[10px] tracking-[0.25em] text-[#C4A35A]/60 uppercase">scan</span>
+                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#C4A35A]/20 to-transparent" />
+                </div>
+
+                <div className="flex items-center gap-2 mb-4">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#C4A35A]/50">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4M12 8h.01" />
+                  </svg>
+                  <span className="font-mono text-[12px] tracking-[0.18em] text-[#C4A35A]/75 uppercase">SCAN結果</span>
+                </div>
+
+                {!hasScan ? (
+                  <div className="px-5 py-4 rounded-xl border border-white/[0.06]" style={{ background: "rgba(255,255,255,0.018)" }}>
+                    <p className="font-mono text-[11px] text-white/30">— 情報量不足のため解析できません</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {/* 思考プロファイル */}
+                    {scanThoughtProfile && (
+                      <div
+                        className="rounded-xl px-4 py-4 border border-[#C4A35A]/20"
+                        style={{ background: "rgba(196,163,90,0.04)" }}
+                      >
+                        <p className="font-mono text-[10px] tracking-[0.15em] text-[#C4A35A]/60 uppercase mb-2">思考プロファイル</p>
+                        <p className="text-[15px] font-bold text-[#E8D5A0] leading-snug">{scanThoughtProfile}</p>
+                      </div>
+                    )}
+
+                    {/* SNAPSHOT ヘッダー */}
+                    <p className="font-mono text-[10px] tracking-[0.25em] text-white/40 uppercase mt-4 mb-1">snapshot</p>
+
+                    {/* 事実・感情バランス */}
+                    <div className="rounded-xl px-4 py-4 border border-white/[0.07]" style={{ background: "rgba(255,255,255,0.018)" }}>
+                      <p className="font-mono text-[11px] tracking-wide text-[#C4A35A]/70 mb-3">事実・感情バランス</p>
+                      <div className="flex gap-px h-[6px] rounded-sm overflow-hidden mb-2">
+                        <div style={{ width: `${scanInsights!.fact_emotion_ratio.fact_percentage}%`, background: "rgba(196,163,90,0.60)" }} className="rounded-l-sm" />
+                        <div style={{ width: `${scanInsights!.fact_emotion_ratio.emotion_percentage}%`, background: "rgba(255,255,255,0.10)" }} className="rounded-r-sm" />
+                      </div>
+                      <div className="flex justify-between font-mono text-[10px] text-white/40 mb-2">
+                        <span>FACT {scanInsights!.fact_emotion_ratio.fact_percentage}%</span>
+                        <span>EMOTION {scanInsights!.fact_emotion_ratio.emotion_percentage}%</span>
+                      </div>
+                      {scanInsights!.fact_emotion_ratio.analysis && (
+                        <p className="text-[12px] text-[#E8E3D8]/60 leading-relaxed">{scanInsights!.fact_emotion_ratio.analysis}</p>
+                      )}
+                    </div>
+
+                    {/* 認知バイアス検知 */}
+                    <div className="rounded-xl px-4 py-4 border border-white/[0.07]" style={{ background: "rgba(255,255,255,0.018)" }}>
+                      <p className="font-mono text-[11px] tracking-wide text-[#C4A35A]/70 mb-2">認知バイアス検知</p>
+                      {scanInsights!.cognitive_bias_detected.bias_name && (
+                        <p className="text-[13px] font-semibold text-[#E8E3D8]/80 mb-1">
+                          {scanInsights!.cognitive_bias_detected.bias_name}
+                        </p>
+                      )}
+                      {scanInsights!.cognitive_bias_detected.description && (
+                        <p className="text-[12px] text-[#E8E3D8]/60 leading-relaxed">{scanInsights!.cognitive_bias_detected.description}</p>
+                      )}
+                    </div>
+
+                    {/* 意思決定の主体性 */}
+                    <div className="rounded-xl px-4 py-4 border border-white/[0.07]" style={{ background: "rgba(255,255,255,0.018)" }}>
+                      <p className="font-mono text-[11px] tracking-wide text-[#C4A35A]/70 mb-2">意思決定の主体性</p>
+                      {scanInsights!.passive_voice_title && (
+                        <p className="text-[13px] font-semibold text-[#E8E3D8]/80 mb-1">{scanInsights!.passive_voice_title}</p>
+                      )}
+                      <p className="text-[12px] text-[#E8E3D8]/60 leading-relaxed">{scanInsights!.passive_voice_status}</p>
+                    </div>
+
+                    {/* ポジティブな観測 */}
+                    {scanInsights!.positive_observation && (
+                      <div className="rounded-xl px-4 py-4 border border-white/[0.07]" style={{ background: "rgba(255,255,255,0.018)" }}>
+                        <p className="font-mono text-[11px] tracking-wide text-[#C4A35A]/70 mb-2">ポジティブな観測</p>
+                        {scanInsights!.positive_observation_title && (
+                          <p className="text-[13px] font-semibold text-[#E8E3D8]/80 mb-1">{scanInsights!.positive_observation_title}</p>
+                        )}
+                        <p className="text-[12px] text-[#E8E3D8]/60 leading-relaxed">{scanInsights!.positive_observation}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
+            );
+
+            // from パラメータがある場合はアコーディオンで折りたたむ
+            return from
+              ? <DailyAccordion label="この日のSCAN結果を見る" accent="alterlog">{scanSection}</DailyAccordion>
+              : scanSection;
+          })()
         )}
 
       </div>
