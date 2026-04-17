@@ -25,51 +25,44 @@ function formatWeekRange(startStr: string, endStr: string): string {
   return `${sy}年${sm}月 第${weekNum}週（${sm}/${sd}〜${em}/${ed}）`;
 }
 
-function Section({
-  title,
-  children,
-  defaultOpen = false,
-}: {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
+/** 1週分のレポート全セクションを表示するコンポーネント */
+function ReportBody({ report }: { report: ReportData }) {
   return (
-    <div className="border border-white/[0.07] rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.018)" }}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-5 py-3.5 text-left"
-      >
-        <span className="font-mono text-[11px] tracking-[0.15em] text-[#C4A35A]/80 uppercase font-bold">{title}</span>
-        <svg
-          width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          className="text-[#8A8276]/50 transition-transform duration-200 flex-shrink-0"
-          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-        >
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
-      <div
-        className="overflow-hidden"
-        style={{
-          maxHeight: open ? "2000px" : "0px",
-          opacity: open ? 1 : 0,
-          transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
-        }}
-      >
-        <div className="px-5 pb-4 pt-0">
-          {children}
-        </div>
+    <div className="space-y-5">
+      {/* サマリー */}
+      <div>
+        <p className="font-mono text-[10px] tracking-[0.15em] text-[#C4A35A]/70 uppercase font-bold mb-2">今週のサマリー</p>
+        <p className="text-[18px] font-bold text-[#E8D5A0] leading-relaxed">{report.summary}</p>
       </div>
+
+      {/* ハイライト */}
+      {report.highlights && (
+        <div className="rounded-xl border border-white/[0.07] px-5 py-4" style={{ background: "rgba(255,255,255,0.018)" }}>
+          <p className="font-mono text-[10px] tracking-[0.15em] text-[#C4A35A]/70 uppercase font-bold mb-2">今週のハイライト</p>
+          <div className="text-[13px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap">{report.highlights}</div>
+        </div>
+      )}
+
+      {/* 変化 */}
+      {report.changes && (
+        <div className="rounded-xl border border-white/[0.07] px-5 py-4" style={{ background: "rgba(255,255,255,0.018)" }}>
+          <p className="font-mono text-[10px] tracking-[0.15em] text-[#C4A35A]/70 uppercase font-bold mb-2">先週からの変化</p>
+          <div className="text-[13px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap">{report.changes}</div>
+        </div>
+      )}
+
+      {/* 観察 */}
+      {report.observation && (
+        <div className="rounded-xl border border-[#C4A35A]/12 px-5 py-4" style={{ background: "rgba(196,163,90,0.04)" }}>
+          <p className="font-mono text-[10px] tracking-[0.15em] text-[#C4A35A]/70 uppercase font-bold mb-2">Alterからの観察</p>
+          <div className="text-[13px] text-[#E8E3D8]/80 leading-[1.85] whitespace-pre-wrap">{report.observation}</div>
+        </div>
+      )}
     </div>
   );
 }
 
 export function ReportClient({ reports }: { reports: ReportData[] }) {
-  const [pastOpen, setPastOpen] = useState(false);
-
   if (reports.length === 0) {
     return (
       <div className="rounded-xl border border-white/[0.06] px-6 py-10 text-center" style={{ background: "rgba(255,255,255,0.018)" }}>
@@ -89,78 +82,29 @@ export function ReportClient({ reports }: { reports: ReportData[] }) {
 
   return (
     <div className="space-y-8">
-      {/* ヘッダー */}
+      {/* ── 最新の週 ── */}
       <div>
-        <p className="text-[12px] text-[#8A8276]/70 font-mono">
+        <p className="text-[13px] text-[#E8E3D8]/70 font-mono mb-1">
           {formatWeekRange(latest.weekStart, latest.weekEnd)}
         </p>
-        <p className="text-[10px] text-[#8A8276]/40 font-mono mt-0.5">
+        <p className="text-[11px] text-[#8A8276]/60 font-mono mb-5">
           {latest.journalCount}件のジャーナルから生成
         </p>
+        <ReportBody report={latest} />
       </div>
 
-      {/* 今週の一言 */}
-      <Section title="今週の一言" defaultOpen={true}>
-        <p className="text-[18px] font-bold text-[#E8D5A0] leading-relaxed">{latest.summary}</p>
-      </Section>
-
-      {/* 今週のハイライト */}
-      {latest.highlights && (
-        <Section title="今週のハイライト" defaultOpen={false}>
-          <div className="text-[13px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap">{latest.highlights}</div>
-        </Section>
-      )}
-
-      {/* 先週からの変化 */}
-      {latest.changes && (
-        <Section title="先週からの変化" defaultOpen={true}>
-          <div className="text-[13px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap">{latest.changes}</div>
-        </Section>
-      )}
-
-      {/* Alterからの観察 */}
-      {latest.observation && (
-        <Section title="Alterからの観察" defaultOpen={false}>
-          <div
-            className="rounded-lg px-4 py-3"
-            style={{ background: "rgba(196,163,90,0.04)", border: "1px solid rgba(196,163,90,0.12)" }}
-          >
-            <div className="text-[13px] text-[#E8E3D8]/80 leading-[1.85] whitespace-pre-wrap">{latest.observation}</div>
-          </div>
-        </Section>
-      )}
-
-      {/* 過去のレポート */}
+      {/* ── 過去の週 ── */}
       {past.length > 0 && (
         <div>
-          <button
-            type="button"
-            onClick={() => setPastOpen((v) => !v)}
-            className="flex items-center gap-2 text-[11px] font-mono tracking-wide text-[#8A8276]/50 hover:text-[#8A8276]/80 transition-colors"
-          >
-            過去のレポート（{past.length}件）
-            <svg
-              width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-              className="transition-transform duration-200"
-              style={{ transform: pastOpen ? "rotate(180deg)" : "rotate(0deg)" }}
-            >
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-          </button>
-
-          <div
-            className="overflow-hidden"
-            style={{
-              maxHeight: pastOpen ? "5000px" : "0px",
-              opacity: pastOpen ? 1 : 0,
-              transition: "max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease",
-            }}
-          >
-            <div className="mt-4 space-y-3">
-              {past.map((r) => (
-                <PastReportCard key={r.id} report={r} />
-              ))}
-            </div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+            <span className="font-mono text-[10px] tracking-[0.2em] text-[#8A8276]/45 uppercase">past reports</span>
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+          </div>
+          <div className="space-y-3">
+            {past.map((r) => (
+              <PastReportCard key={r.id} report={r} />
+            ))}
           </div>
         </div>
       )}
@@ -176,11 +120,11 @@ function PastReportCard({ report }: { report: ReportData }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left"
+        className="w-full flex items-center justify-between px-4 py-3.5 text-left"
       >
-        <div>
-          <p className="text-[11px] text-[#8A8276]/60 font-mono">{formatWeekRange(report.weekStart, report.weekEnd)}</p>
-          <p className="text-[13px] text-[#E8E3D8]/70 mt-0.5">{report.summary}</p>
+        <div className="min-w-0">
+          <p className="text-[12px] text-[#E8E3D8]/55 font-mono">{formatWeekRange(report.weekStart, report.weekEnd)}</p>
+          <p className="text-[13px] text-[#E8E3D8]/70 mt-0.5 truncate">{report.summary}</p>
         </div>
         <svg
           width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
@@ -194,30 +138,13 @@ function PastReportCard({ report }: { report: ReportData }) {
       <div
         className="overflow-hidden"
         style={{
-          maxHeight: open ? "3000px" : "0px",
+          maxHeight: open ? "5000px" : "0px",
           opacity: open ? 1 : 0,
           transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
         }}
       >
-        <div className="px-4 pb-4 space-y-3">
-          {report.highlights && (
-            <div>
-              <p className="font-mono text-[10px] tracking-wide text-[#C4A35A]/60 uppercase mb-1">ハイライト</p>
-              <p className="text-[12px] text-[#E8E3D8]/65 leading-relaxed whitespace-pre-wrap">{report.highlights}</p>
-            </div>
-          )}
-          {report.changes && (
-            <div>
-              <p className="font-mono text-[10px] tracking-wide text-[#C4A35A]/60 uppercase mb-1">変化</p>
-              <p className="text-[12px] text-[#E8E3D8]/65 leading-relaxed whitespace-pre-wrap">{report.changes}</p>
-            </div>
-          )}
-          {report.observation && (
-            <div>
-              <p className="font-mono text-[10px] tracking-wide text-[#C4A35A]/60 uppercase mb-1">観察</p>
-              <p className="text-[12px] text-[#E8E3D8]/65 leading-relaxed whitespace-pre-wrap">{report.observation}</p>
-            </div>
-          )}
+        <div className="px-4 pb-4 pt-1">
+          <ReportBody report={report} />
         </div>
       </div>
     </div>
