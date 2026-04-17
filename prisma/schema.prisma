@@ -19,6 +19,7 @@ model User {
   clerkId String @unique // ClerkのユーザーID（webhook経由で同期）
 
   vision String? @db.Text // マイビジョン（目標・価値観・なりたい姿）
+  feedbackStyle String? // "direct" | "neutral" | "empathetic"（NULL=direct扱い）
 
   lastDashboardScanAt DateTime? // SCANボタン最終実行日時
 

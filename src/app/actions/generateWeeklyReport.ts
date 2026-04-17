@@ -5,6 +5,7 @@ import { generateObject } from "ai";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { getWeekBoundsFromMonday } from "@/lib/weekUtils";
+import { getWeeklyReportStancePrompt } from "@/lib/feedbackStylePrompt";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 週次レポートスキーマ
@@ -168,7 +169,7 @@ export async function processWeeklyReportForUser(
     .join("\n");
 
   const systemPrompt = `あなたは「Alter」。ユーザーの内省を観察する、もう一人の自分。
-忖度なし、客観的、やや辛口だが根底にリスペクトがある。
+${getWeeklyReportStancePrompt(user.feedbackStyle)}
 1週間分のジャーナル・Alter Log・SCAN結果を総合的に分析し、週次レポートを生成してください。
 
 ## ルール

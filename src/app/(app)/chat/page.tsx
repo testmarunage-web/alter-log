@@ -128,6 +128,7 @@ export default async function ChatPage({
 
   const hasVision = !!(user.vision?.trim());
   const hasNeverScanned = user.lastDashboardScanAt === null;
+  const hasFeedbackStyle = !!user.feedbackStyle;
 
   // メモ一覧（新しい順、最大50件）
   const memoEntries = await prisma.memo.findMany({
@@ -151,6 +152,7 @@ export default async function ChatPage({
       journalDates={journalDates}
       showVisionBanner={!hasVision}
       hasNeverScanned={hasNeverScanned}
+      showFeedbackStyleBanner={!hasFeedbackStyle}
       initialMemos={initialMemos}
     />
   );

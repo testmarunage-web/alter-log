@@ -49,6 +49,7 @@ interface Props {
   journalDates: string[]; // YYYY-MM-DD（カレンダー用）
   showVisionBanner?: boolean;
   hasNeverScanned?: boolean; // lastDashboardScanAt が null のユーザー
+  showFeedbackStyleBanner?: boolean;
   initialMemos?: MemoItem[];
 }
 
@@ -130,6 +131,7 @@ export function ChatInterface({
   journalDates,
   showVisionBanner = false,
   hasNeverScanned = false,
+  showFeedbackStyleBanner = false,
   initialMemos = [],
 }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -162,6 +164,7 @@ export function ChatInterface({
   const [sizeStopped, setSizeStopped]         = useState(false); // 20MB超過自動停止フラグ
   const [holdingStop, setHoldingStop]         = useState(false); // 停止ボタン長押し中フラグ
   const [refundDismissed, setRefundDismissed] = useState(false); // 返金案内バナー閉じ済み
+  const [fbStyleDismissed, setFbStyleDismissed] = useState(false); // フィードバックスタイルバナー閉じ済み
   const [memoOpen, setMemoOpen]               = useState(false); // メモパネル展開フラグ
   const [memos, setMemos]                     = useState<MemoItem[]>(initialMemos);
   const [memoInput, setMemoInput]             = useState("");
@@ -905,6 +908,42 @@ export function ChatInterface({
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* フィードバックスタイル案内バナー */}
+        {showFeedbackStyleBanner && !fbStyleDismissed && (
+          <div className="flex-none max-w-2xl mx-auto w-full px-4 pt-3 pb-1">
+            <div
+              className="rounded-xl px-4 py-3 flex items-start gap-3"
+              style={{ background: "rgba(196,163,90,0.05)", border: "1px solid rgba(196,163,90,0.15)" }}
+            >
+              <p className="flex-1 text-[11px] text-[#C4A35A]/70 leading-snug">
+                Alterのフィードバックスタイルを選べるようになりました。設定画面からお好みのスタイルに変更できます。
+              </p>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Link
+                  href="/settings"
+                  className="text-[11px] font-mono text-[#C4A35A]/80 hover:text-[#C4A35A] transition-colors whitespace-nowrap"
+                >
+                  設定する
+                </Link>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setFbStyleDismissed(true);
+                    try { await fetch("/api/feedback-style", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ feedbackStyle: "direct" }) }); } catch {}
+                  }}
+                  className="text-white/25 hover:text-white/50 transition-colors"
+                  aria-label="閉じる"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 import { prisma } from "@/lib/prisma";
 import { VisionSection } from "./_components/VisionSection";
+import { FeedbackStyleSection } from "./_components/FeedbackStyleSection";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export default async function SettingsPage() {
       where: { clerkId: userId },
       select: {
         vision: true,
+        feedbackStyle: true,
         subscription: { select: { status: true, currentPeriodEnd: true } },
       },
     }),
@@ -45,6 +47,12 @@ export default async function SettingsPage() {
         {/* マイビジョン */}
         <VisionSection
           initialVision={dbUser?.vision ?? null}
+          isReadOnly={isReadOnly}
+        />
+
+        {/* フィードバックスタイル */}
+        <FeedbackStyleSection
+          initialStyle={dbUser?.feedbackStyle ?? null}
           isReadOnly={isReadOnly}
         />
 
