@@ -123,6 +123,7 @@ function VisionCard({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [micError, setMicError] = useState<string | null>(null);
@@ -342,34 +343,93 @@ function VisionCard({
         transition: "max-height 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease",
       } : undefined}>
         <div className="px-4 pb-4 space-y-3" style={!useAccordion ? { paddingTop: "16px" } : undefined}>
-          {/* ラベル */}
+          {/* プレビュー（タップでモーダル） */}
           {!isReadOnly ? (
-            <input type="text" value={label} onChange={(e) => setLabel(e.target.value.slice(0, 50))}
-              placeholder="ラベル名"
-              className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2 text-[12px] text-[#E8E3D8]/80 placeholder-white/30 focus:outline-none focus:border-[#C4A35A]/30 transition-colors" />
-          ) : (
-            <p className="text-[12px] text-[#8A8276]/60 font-mono">{label}</p>
-          )}
-
-          {/* テキストエリア */}
-          {!isReadOnly ? (
-            <div>
-              <textarea value={content} onChange={(e) => setContent(e.target.value.slice(0, MAX_CHARS))}
-                rows={8} placeholder="あなたの目標や大事にしていることを入力してください..."
-                className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2.5 text-[13px] text-[#E8E3D8]/85 placeholder-white/35 leading-relaxed resize-none focus:outline-none focus:border-[#C4A35A]/30 transition-colors"
-                style={{ minHeight: "200px" }} />
-              <div className="flex items-center justify-between mt-1">
-                <span className="text-[9px] text-[#8A8276]/30 font-mono">{content.length}/{MAX_CHARS}</span>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="w-full text-left rounded-lg border border-white/[0.08] px-3 py-2.5 hover:border-white/[0.15] hover:bg-white/[0.02] transition-colors cursor-pointer"
+              style={{ minHeight: "80px" }}
+            >
+              {content ? (
+                <p className="text-[13px] text-[#E8E3D8]/75 leading-relaxed whitespace-pre-wrap line-clamp-4">{content}</p>
+              ) : (
+                <p className="text-[13px] text-white/30">タップして編集...</p>
+              )}
+              <p className="text-[9px] text-[#8A8276]/30 font-mono mt-2">{label}</p>
+            </button>
           ) : content ? (
-            <p className="text-[13px] text-[#E8E3D8]/75 leading-relaxed whitespace-pre-wrap">{content}</p>
+            <div>
+              <p className="text-[12px] text-[#8A8276]/60 font-mono mb-1">{label}</p>
+              <p className="text-[13px] text-[#E8E3D8]/75 leading-relaxed whitespace-pre-wrap">{content}</p>
+            </div>
           ) : (
             <p className="text-[11px] text-[#8A8276]/40">未入力</p>
           )}
 
-          {/* 音声入力 */}
-          {!isReadOnly && (
+          {/* 保存済みトースト（モーダル外にも表示） */}
+          {saved && (
+            <span className="text-[10px] text-[#C4A35A]/60 flex items-center gap-1">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              保存しました
+            </span>
+          )}
+
+          {/* 削除ボタン */}
+          {!isReadOnly && canDelete && (
+            <div className="flex justify-end">
+              <button type="button" onClick={handleDeleteClick} disabled={deleting}
+                className="text-red-400/40 hover:text-red-400/70 transition-colors disabled:opacity-20 text-[11px] flex items-center gap-1" aria-label="ビジョンを削除">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                削除
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── 全画面編集モーダル ── */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-[100] bg-[#0B0E13] flex flex-col">
+          {/* モーダルヘッダー */}
+          <div className="flex-none flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+            <button type="button" onClick={() => setModalOpen(false)}
+              className="text-[#8A8276] hover:text-[#E8E3D8] transition-colors text-[13px]">
+              キャンセル
+            </button>
+            <span className="text-[13px] text-[#E8E3D8]/70 font-medium">ビジョンを編集</span>
+            <button type="button"
+              onClick={async () => { await handleSave(); setModalOpen(false); }}
+              disabled={saving || !hasChanges}
+              className="text-[13px] font-bold text-[#C4A35A] disabled:opacity-30 transition-colors">
+              {saving ? "保存中..." : "保存"}
+            </button>
+          </div>
+
+          {/* モーダルコンテンツ */}
+          <div className="flex-1 flex flex-col overflow-y-auto px-4 py-4 gap-3">
+            {/* ラベル */}
+            <input type="text" value={label} onChange={(e) => setLabel(e.target.value.slice(0, 50))}
+              placeholder="ラベル名"
+              className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2.5 text-[14px] text-[#E8E3D8]/80 placeholder-white/30 focus:outline-none focus:border-[#C4A35A]/30 transition-colors" />
+
+            {/* テキストエリア */}
+            <textarea value={content} onChange={(e) => setContent(e.target.value.slice(0, MAX_CHARS))}
+              autoFocus
+              placeholder="あなたの目標や大事にしていることを入力してください..."
+              className="flex-1 w-full bg-transparent border border-white/[0.08] rounded-lg px-4 py-3 text-[14px] text-[#E8E3D8]/85 placeholder-white/35 leading-relaxed resize-none focus:outline-none focus:border-[#C4A35A]/30 transition-colors"
+              style={{ minHeight: "300px" }} />
+
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-[#8A8276]/30 font-mono">{content.length}/{MAX_CHARS}</span>
+            </div>
+
+            {/* 音声入力 */}
             <div>
               {isTranscribing ? (
                 <div className="flex items-center gap-2 text-[#C4A35A]/60">
@@ -391,8 +451,8 @@ function VisionCard({
                 </button>
               ) : (
                 <button type="button" onClick={startRecording}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-white/[0.08] text-[#8A8276]/70 hover:text-[#8A8276] hover:border-white/[0.15] hover:bg-white/[0.02] transition-colors text-[12px]">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-white/[0.08] text-[#8A8276]/70 hover:text-[#8A8276] hover:border-white/[0.15] hover:bg-white/[0.02] transition-colors text-[13px]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
                     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
                     <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
                     <line x1="12" y1="19" x2="12" y2="23" />
@@ -403,38 +463,9 @@ function VisionCard({
               )}
               {micError && <p className="mt-1 text-[10px] text-red-400/70">{micError}</p>}
             </div>
-          )}
-
-          {/* アクションボタン */}
-          {!isReadOnly && (
-            <div className="flex items-center justify-between pt-1">
-              <div className="flex items-center gap-2">
-                <button type="button" onClick={handleSave} disabled={saving || !hasChanges}
-                  className="px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-[#C4A35A]/15 text-[#C4A35A]/80 hover:bg-[#C4A35A]/25">
-                  {saving ? "保存中..." : "保存"}
-                </button>
-                {saved && (
-                  <span className="text-[10px] text-[#C4A35A]/60 flex items-center gap-1">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    保存しました
-                  </span>
-                )}
-              </div>
-              {canDelete && (
-                <button type="button" onClick={handleDeleteClick} disabled={deleting}
-                  className="text-red-400/40 hover:text-red-400/70 transition-colors disabled:opacity-20" aria-label="ビジョンを削除">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
