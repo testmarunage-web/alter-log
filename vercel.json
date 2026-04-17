@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/generate-alter-logs?group=1",
       "schedule": "5 17 * * *"
+    },
+    {
+      "path": "/api/cron/generate-weekly-reports?group=0",
+      "schedule": "0 18 * * 0"
+    },
+    {
+      "path": "/api/cron/generate-weekly-reports?group=1",
+      "schedule": "5 18 * * 0"
     }
   ]
 }

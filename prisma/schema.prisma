@@ -151,13 +151,18 @@ model WeeklyReport {
   weekEnd   DateTime @db.Date // その週の日曜日
 
   // AIが生成した総評テキスト
-  summary String @db.Text
+  summary     String  @db.Text
+  highlights  String? @db.Text // 今週のハイライト
+  changes     String? @db.Text // 先週からの変化
+  observation String? @db.Text // Alterからの総合観察
 
   // グラフ描画用の集計データ（JSON）
-  // 例: { "sessionCount": 5, "topThemes": [...], "moodTrend": [...] }
   chartData Json
+  // 生成されたJSON全体（バックアップ）
+  rawJson   Json?
 
   createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt     @db.Timestamptz
 
   @@unique([userId, weekStart])
   @@map("weekly_reports")
