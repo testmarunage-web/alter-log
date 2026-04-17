@@ -80,7 +80,8 @@ export function VisionSection({ initialVisions, isReadOnly }: Props) {
           <VisionCard
             key={vision.id}
             vision={vision}
-            isExpanded={expandedId === vision.id}
+            useAccordion={visions.length > 1}
+            isExpanded={visions.length <= 1 || expandedId === vision.id}
             onToggle={() => setExpandedId(expandedId === vision.id ? null : vision.id)}
             onUpdate={(updates) => handleUpdate(vision.id, updates)}
             onDelete={() => handleDelete(vision.id)}
@@ -109,9 +110,9 @@ export function VisionSection({ initialVisions, isReadOnly }: Props) {
 }
 
 function VisionCard({
-  vision, isExpanded, onToggle, onUpdate, onDelete, canDelete, isReadOnly,
+  vision, useAccordion, isExpanded, onToggle, onUpdate, onDelete, canDelete, isReadOnly,
 }: {
-  vision: VisionItem; isExpanded: boolean; onToggle: () => void;
+  vision: VisionItem; useAccordion: boolean; isExpanded: boolean; onToggle: () => void;
   onUpdate: (updates: Partial<VisionItem>) => void; onDelete: () => void;
   canDelete: boolean; isReadOnly: boolean;
 }) {
@@ -322,23 +323,25 @@ function VisionCard({
   }
 
   return (
-    <div className="rounded-xl border border-white/[0.07] overflow-hidden" style={{ background: "rgba(255,255,255,0.018)" }}>
-      {/* ヘッダー */}
-      <button type="button" onClick={onToggle} className="w-full flex items-center justify-between px-4 py-3 text-left">
-        <span className="text-[13px] text-[#E8E3D8]/75 truncate">{vision.label}</span>
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-          className="text-[#8A8276]/40 transition-transform duration-200 flex-shrink-0 ml-2"
-          style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}>
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
+    <div className={`rounded-xl border border-white/[0.07] overflow-hidden${!useAccordion ? "" : ""}`} style={{ background: "rgba(255,255,255,0.018)" }}>
+      {/* ヘッダー（アコーディオンモード時のみ表示） */}
+      {useAccordion && (
+        <button type="button" onClick={onToggle} className="w-full flex items-center justify-between px-4 py-3 text-left">
+          <span className="text-[13px] text-[#E8E3D8]/75 truncate">{vision.label}</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            className="text-[#8A8276]/40 transition-transform duration-200 flex-shrink-0 ml-2"
+            style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}>
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </button>
+      )}
 
       {/* 展開コンテンツ */}
-      <div className="overflow-hidden" style={{
+      <div className={useAccordion ? "overflow-hidden" : ""} style={useAccordion ? {
         maxHeight: isExpanded ? "1000px" : "0px", opacity: isExpanded ? 1 : 0,
         transition: "max-height 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease",
-      }}>
-        <div className="px-4 pb-4 space-y-3">
+      } : undefined}>
+        <div className="px-4 pb-4 space-y-3" style={!useAccordion ? { paddingTop: "16px" } : undefined}>
           {/* ラベル */}
           {!isReadOnly ? (
             <input type="text" value={label} onChange={(e) => setLabel(e.target.value.slice(0, 50))}
