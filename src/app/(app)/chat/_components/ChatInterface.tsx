@@ -758,7 +758,7 @@ export function ChatInterface({
           <button
             type="button"
             onClick={() => { if (!isSaving) router.push("/dashboard"); }}
-            disabled={isSaving}
+            disabled={isSaving || isRecording}
             aria-label="ダッシュボードへ戻る"
             className="w-8 h-8 flex items-center justify-center rounded-xl text-[#8A8276] hover:text-[#E8E3D8] hover:bg-white/[0.05] transition-colors flex-shrink-0 disabled:opacity-40"
           >
@@ -796,7 +796,7 @@ export function ChatInterface({
 
         {/* マイビジョン未設定バナー */}
         {showVisionBanner && !visionBannerDismissed && (
-          <div className="flex-none max-w-2xl mx-auto w-full px-4 pt-3 pb-1">
+          <div className={`flex-none max-w-2xl mx-auto w-full px-4 pt-3 pb-1${isRecording ? " pointer-events-none opacity-40" : ""}`}>
             <div
               className="rounded-xl px-4 py-4 flex items-start gap-3"
               style={{ background: "rgba(196,163,90,0.07)", border: "1px solid rgba(196,163,90,0.18)" }}
@@ -860,7 +860,7 @@ export function ChatInterface({
         {/* ジャーナルを書くミニバー（入力エリア非表示時） */}
         {!isReadOnly && (
         <div
-          className="flex-none max-w-2xl mx-auto w-full overflow-hidden"
+          className={`flex-none max-w-2xl mx-auto w-full overflow-hidden${isRecording ? " pointer-events-none opacity-40" : ""}`}
           style={{
             maxHeight: inputVisible ? "0px" : "52px",
             transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1)",
@@ -1013,12 +1013,13 @@ export function ChatInterface({
               {/* テキストで入力 トグルボタン */}
               <button
                 type="button"
+                disabled={isRecording}
                 onClick={() => {
                   const next = !textInputOpen;
                   setTextInputOpen(next);
                   if (next) setTimeout(() => textareaRef.current?.focus(), 50);
                 }}
-                className={`w-full py-3.5 rounded-2xl text-sm font-medium flex items-center justify-center gap-2.5 transition-all duration-200
+                className={`w-full py-3.5 rounded-2xl text-sm font-medium flex items-center justify-center gap-2.5 transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none
                   ${textInputOpen
                     ? "border border-white/[0.10] bg-white/[0.04] text-[#E8E3D8]/80"
                     : "border border-white/[0.08] bg-transparent text-[#8A8276]/80 hover:text-[#8A8276] hover:border-white/[0.13] hover:bg-white/[0.03]"
@@ -1139,7 +1140,7 @@ export function ChatInterface({
             ※ 入力エリアdiv外に配置してスクロール領域を圧迫しないようにする */}
         {showScanSuggestion && hasNeverScanned && !scanCardDismissed && (
           <div
-            className="flex-none max-w-2xl mx-auto w-full px-4 pt-2 pb-1"
+            className={`flex-none max-w-2xl mx-auto w-full px-4 pt-2 pb-1${isRecording ? " pointer-events-none opacity-40" : ""}`}
             style={{
               opacity: scanCardVisible ? 1 : 0,
               transition: "opacity 500ms ease-in",
@@ -1182,7 +1183,7 @@ export function ChatInterface({
 
         {/* カレンダー（入力エリア直下、ジャーナルが1件以上ある場合に表示） */}
         {journalDates.length > 0 && (
-          <div className="flex-none max-w-2xl mx-auto w-full px-4 py-3 border-t border-white/[0.04]">
+          <div className={`flex-none max-w-2xl mx-auto w-full px-4 py-3 border-t border-white/[0.04]${isRecording ? " pointer-events-none opacity-40" : ""}`}>
             <DailyCalendar markedDates={journalDates} from="journal" />
           </div>
         )}
