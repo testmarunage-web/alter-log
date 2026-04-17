@@ -73,10 +73,12 @@ export function ReportClient({ reports }: { reports: ReportData[] }) {
   if (reports.length === 0) {
     return (
       <div className="rounded-xl border border-white/[0.06] px-6 py-10 text-center" style={{ background: "rgba(255,255,255,0.018)" }}>
-        <p className="text-[13px] text-[#8A8276]/80">レポートはまだありません</p>
+        <p className="text-[13px] text-[#8A8276]/80 leading-relaxed">
+          初回の週次レポートは4/20（日）に届きます。
+        </p>
         <p className="text-[11px] text-[#8A8276]/50 mt-2 leading-relaxed">
-          レポートは毎週日曜に自動生成されます。<br />
-          日々のジャーナルを記録して、最初のレポートをお待ちください。
+          十分なジャーナルが記録されている週について、<br />
+          1週間の振り返りレポートを自動生成します。
         </p>
       </div>
     );

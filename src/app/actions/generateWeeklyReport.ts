@@ -122,8 +122,9 @@ export async function processWeeklyReportForUser(
 
   console.log(`${prefix} journals=${journals.length} alterLogs=${alterLogs.length} scans=${scanResults.length}`);
 
-  if (journals.length === 0) {
-    console.log(`${prefix} no journals, skipping`);
+  const MIN_JOURNALS = 3;
+  if (journals.length < MIN_JOURNALS) {
+    console.log(`${prefix} skipped: only ${journals.length} journals (min ${MIN_JOURNALS})`);
     return;
   }
 
