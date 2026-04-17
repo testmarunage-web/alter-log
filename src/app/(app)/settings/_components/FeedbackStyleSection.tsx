@@ -108,11 +108,19 @@ export function FeedbackStyleSection({ initialStyle, isReadOnly }: Props) {
         })}
       </div>
 
-      {/* 保存完了メッセージ */}
+      {/* 保存完了トースト */}
       {saved && hasChanged && (
-        <p className="mt-2 text-[10px] text-[#C4A35A]/60 font-mono text-center">
-          次回のSCAN・Alter Logから反映されます
-        </p>
+        <div
+          className="mt-3 rounded-lg px-4 py-2.5 flex items-center gap-2 animate-in fade-in"
+          style={{ background: "rgba(196,163,90,0.10)", border: "1px solid rgba(196,163,90,0.20)" }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#C4A35A]/70 flex-shrink-0">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <p className="text-[12px] text-[#C4A35A]/80">
+            保存しました。次回のSCAN・Alter Logから反映されます。
+          </p>
+        </div>
       )}
     </section>
   );
