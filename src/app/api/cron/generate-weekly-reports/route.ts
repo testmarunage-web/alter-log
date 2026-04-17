@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { processWeeklyReportForUser } from "@/app/actions/generateWeeklyReport";
+import { processWeeklyReportForUser, type WeeklyReportResult } from "@/app/actions/generateWeeklyReport";
 
 async function sendDiscordAlert(message: string): Promise<void> {
   const url = process.env.DISCORD_ALERT_WEBHOOK_URL;
@@ -30,8 +30,8 @@ function getGroup(clerkId: string): 0 | 1 {
 async function runConcurrent(
   clerkIds: string[],
   group: number | null,
-): Promise<{ clerkId: string; status: "ok" | "error"; error?: string }[]> {
-  const results: { clerkId: string; status: "ok" | "error"; error?: string }[] = [];
+): Promise<{ clerkId: string; result: WeeklyReportResult | null; error?: string }[]> {
+  const results: { clerkId: string; result: WeeklyReportResult | null; error?: string }[] = [];
   const prefix = group !== null ? `[weekly:g${group}]` : "[weekly]";
   for (let i = 0; i < clerkIds.length; i += CONCURRENCY) {
     const chunk = clerkIds.slice(i, i + CONCURRENCY);
@@ -39,10 +39,10 @@ async function runConcurrent(
     const settled = await Promise.allSettled(chunk.map((id) => processWeeklyReportForUser(id)));
     settled.forEach((r, j) => {
       if (r.status === "fulfilled") {
-        results.push({ clerkId: chunk[j], status: "ok" });
+        results.push({ clerkId: chunk[j], result: r.value });
       } else {
         console.error(`${prefix} WeeklyReport生成失敗 clerkId=${chunk[j]}:`, r.reason);
-        results.push({ clerkId: chunk[j], status: "error", error: String(r.reason) });
+        results.push({ clerkId: chunk[j], result: null, error: String(r.reason) });
       }
     });
     if (i + CONCURRENCY < clerkIds.length) {
@@ -119,16 +119,18 @@ export async function GET(req: Request) {
     const results = await runConcurrent(clerkIds, group);
 
     const elapsed = ((Date.now() - startMs) / 1000).toFixed(1);
-    const okCount = results.filter((r) => r.status === "ok").length;
-    const errorCount = results.filter((r) => r.status === "error").length;
-    console.log(`${prefix} 完了: ok=${okCount} error=${errorCount} elapsed=${elapsed}s`);
+    const generated = results.filter((r) => r.result?.status === "generated").length;
+    const skipped = results.filter((r) => r.result?.status === "skipped" || r.result?.status === "exists").length;
+    const errorCount = results.filter((r) => r.error).length;
+    console.log(`${prefix} 完了: generated=${generated} skipped=${skipped} error=${errorCount} elapsed=${elapsed}s`);
 
     return NextResponse.json({
       message: "Weekly report cron completed.",
       group,
       week: `${mondayStr}〜${sundayStr}`,
       processed: clerkIds.length,
-      ok: okCount,
+      generated,
+      skipped,
       errors: errorCount,
       elapsedSec: elapsed,
     });

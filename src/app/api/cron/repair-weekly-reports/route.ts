@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { processWeeklyReportForUser } from "@/app/actions/generateWeeklyReport";
+import { processWeeklyReportForUser, type WeeklyReportResult } from "@/app/actions/generateWeeklyReport";
 import { getWeekBoundsFromMonday } from "@/lib/weekUtils";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +40,7 @@ export async function GET(req: Request) {
       ].join("-"));
     }
 
-    const results: { week: string; clerkId: string; status: string; error?: string }[] = [];
+    const results: { week: string; clerkId: string; status: string; reason?: string }[] = [];
 
     for (const mondayStr of mondayStrs) {
       const { mondayUtc, sundayEndUtc } = getWeekBoundsFromMonday(mondayStr);
@@ -52,27 +52,18 @@ export async function GET(req: Request) {
         distinct: ["userId"],
       });
 
-      const weekStartDate = new Date(`${mondayStr}T00:00:00Z`);
-
       for (let i = 0; i < journalUsers.length; i += CONCURRENCY) {
         const chunk = journalUsers.slice(i, i + CONCURRENCY);
         const settled = await Promise.allSettled(
-          chunk.map(async (ju) => {
-            // 既にフルデータがあればスキップ
-            const existing = await prisma.weeklyReport.findUnique({
-              where: { userId_weekStart: { userId: ju.user.id, weekStart: weekStartDate } },
-            });
-            if (existing && existing.highlights) return;
-            await processWeeklyReportForUser(ju.user.clerkId, { mondayStr });
-          }),
+          chunk.map((ju) => processWeeklyReportForUser(ju.user.clerkId, { mondayStr })),
         );
         settled.forEach((r, j) => {
-          results.push({
-            week: mondayStr,
-            clerkId: chunk[j].user.clerkId,
-            status: r.status === "fulfilled" ? "ok" : "error",
-            ...(r.status === "rejected" ? { error: String(r.reason) } : {}),
-          });
+          if (r.status === "rejected") {
+            results.push({ week: mondayStr, clerkId: chunk[j].user.clerkId, status: "error", reason: String(r.reason) });
+          } else {
+            const result = r.value as WeeklyReportResult;
+            results.push({ week: mondayStr, clerkId: chunk[j].user.clerkId, status: result.status, ...("reason" in result ? { reason: result.reason } : {}) });
+          }
         });
         if (i + CONCURRENCY < journalUsers.length) {
           await new Promise((r) => setTimeout(r, WAIT_MS));
@@ -80,14 +71,16 @@ export async function GET(req: Request) {
       }
     }
 
-    const okCount = results.filter((r) => r.status === "ok").length;
+    const generated = results.filter((r) => r.status === "generated").length;
+    const skipped = results.filter((r) => r.status === "skipped" || r.status === "exists").length;
     const errorCount = results.filter((r) => r.status === "error").length;
 
     return NextResponse.json({
       message: "Repair completed.",
       weeksBack,
       processed: results.length,
-      ok: okCount,
+      generated,
+      skipped,
       errors: errorCount,
       results,
     });

@@ -60,10 +60,15 @@ function getPreviousWeekBounds(): { mondayStr: string; sundayStr: string; monday
 // ─────────────────────────────────────────────────────────────────────────────
 // 1ユーザー分の週次レポート生成
 // ─────────────────────────────────────────────────────────────────────────────
+export type WeeklyReportResult =
+  | { status: "generated" }
+  | { status: "skipped"; reason: string }
+  | { status: "exists" };
+
 export async function processWeeklyReportForUser(
   clerkId: string,
   options?: { mondayStr?: string },
-): Promise<void> {
+): Promise<WeeklyReportResult> {
   const user = await prisma.user.upsert({
     where: { clerkId },
     create: { clerkId },
@@ -98,7 +103,7 @@ export async function processWeeklyReportForUser(
   });
   if (existing && existing.highlights) {
     console.log(`${prefix} already exists with full data, skipping`);
-    return;
+    return { status: "exists" };
   }
 
   // データ収集
@@ -125,7 +130,7 @@ export async function processWeeklyReportForUser(
   const MIN_JOURNALS = 3;
   if (journals.length < MIN_JOURNALS) {
     console.log(`${prefix} skipped: only ${journals.length} journals (min ${MIN_JOURNALS})`);
-    return;
+    return { status: "skipped", reason: `only ${journals.length} journals (min ${MIN_JOURNALS})` };
   }
 
   // 前週レポート（比較用）
@@ -242,4 +247,5 @@ ${prevReport ? `## 先週のレポート
   });
 
   console.log(`${prefix} saved to DB`);
+  return { status: "generated" };
 }
