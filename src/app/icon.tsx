@@ -16,8 +16,8 @@ export default function Icon() {
           justifyContent: "center",
         }}
       >
-        <svg width="300" height="300" viewBox="0 0 24 24" fill="#C4A35A">
-          <path d="M12 2L2 22h20L12 2z" />
+        <svg width="360" height="360" viewBox="0 0 512 512">
+          <path d="M356,83 A200,200 0 1,0 456,256 L356,83 Z" fill="#C4A35A" />
         </svg>
       </div>
     ),
