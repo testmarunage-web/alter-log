@@ -129,6 +129,19 @@ export default async function ChatPage({
   const hasVision = !!(user.vision?.trim());
   const hasNeverScanned = user.lastDashboardScanAt === null;
 
+  // メモ一覧（新しい順、最大50件）
+  const memoEntries = await prisma.memo.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    select: { id: true, content: true, createdAt: true },
+  });
+  const initialMemos = memoEntries.map((m) => ({
+    id: m.id,
+    content: m.content,
+    createdAt: m.createdAt.toISOString(),
+  }));
+
   return (
     <ChatInterface
       initialJournalMessages={initialJournalMessages}
@@ -138,6 +151,7 @@ export default async function ChatPage({
       journalDates={journalDates}
       showVisionBanner={!hasVision}
       hasNeverScanned={hasNeverScanned}
+      initialMemos={initialMemos}
     />
   );
 }

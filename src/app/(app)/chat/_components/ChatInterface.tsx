@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { saveChatMessage } from "@/app/actions/chat";
+import { addMemo, deleteMemo } from "@/app/actions/memo";
 import { AlterIcon } from "../../_components/AlterIcon";
 import { useReadOnly, useShowRefundNotice } from "../../_components/ReadOnlyProvider";
 import { useRecordingLock } from "../../_components/RecordingLockProvider";
@@ -34,6 +35,12 @@ interface PastJournalEntry {
   entries: { content: string; timeStr: string }[];
 }
 
+interface MemoItem {
+  id: string;
+  content: string;
+  createdAt: string; // ISO string
+}
+
 interface Props {
   initialJournalMessages: JournalMessage[];
   userName: string;
@@ -42,6 +49,7 @@ interface Props {
   journalDates: string[]; // YYYY-MM-DD（カレンダー用）
   showVisionBanner?: boolean;
   hasNeverScanned?: boolean; // lastDashboardScanAt が null のユーザー
+  initialMemos?: MemoItem[];
 }
 
 // ── 「あの時のあなた」カード ────────────────────────────────────────────────
@@ -122,6 +130,7 @@ export function ChatInterface({
   journalDates,
   showVisionBanner = false,
   hasNeverScanned = false,
+  initialMemos = [],
 }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -153,6 +162,11 @@ export function ChatInterface({
   const [sizeStopped, setSizeStopped]         = useState(false); // 20MB超過自動停止フラグ
   const [holdingStop, setHoldingStop]         = useState(false); // 停止ボタン長押し中フラグ
   const [refundDismissed, setRefundDismissed] = useState(false); // 返金案内バナー閉じ済み
+  const [memoOpen, setMemoOpen]               = useState(false); // メモパネル展開フラグ
+  const [memos, setMemos]                     = useState<MemoItem[]>(initialMemos);
+  const [memoInput, setMemoInput]             = useState("");
+  const [memoSaving, setMemoSaving]           = useState(false);
+  const [memoDeleting, setMemoDeleting]       = useState<string | null>(null); // 削除中のメモID
   const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
   const audioChunksRef    = useRef<Blob[]>([]);
   const audioContextRef   = useRef<AudioContext | null>(null);
@@ -679,6 +693,44 @@ export function ChatInterface({
     return () => window.removeEventListener("beforeunload", handler);
   }, [isTranscribing]);
 
+  // ── メモ操作ハンドラ ──
+  async function handleAddMemo() {
+    if (!memoInput.trim() || memoSaving) return;
+    setMemoSaving(true);
+    try {
+      const result = await addMemo(memoInput);
+      setMemos((prev) => [{ id: result.id, content: result.content, createdAt: new Date(result.createdAt).toISOString() }, ...prev]);
+      setMemoInput("");
+    } catch {
+      // エラーは無視（UIフリーズを防ぐ）
+    } finally {
+      setMemoSaving(false);
+    }
+  }
+  async function handleDeleteMemo(memoId: string) {
+    if (memoDeleting) return;
+    setMemoDeleting(memoId);
+    try {
+      await deleteMemo(memoId);
+      setMemos((prev) => prev.filter((m) => m.id !== memoId));
+    } catch {
+      // エラーは無視
+    } finally {
+      setMemoDeleting(null);
+    }
+  }
+  function formatRelativeTime(isoStr: string): string {
+    const diff = Date.now() - new Date(isoStr).getTime();
+    const min = Math.floor(diff / 60000);
+    if (min < 1) return "たった今";
+    if (min < 60) return `${min}分前`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}時間前`;
+    const day = Math.floor(hr / 24);
+    if (day < 30) return `${day}日前`;
+    return `${Math.floor(day / 30)}ヶ月前`;
+  }
+
   // 過去ジャーナルのスクロール検知 → 入力エリアの表示/非表示
   useEffect(() => {
     const el = journalListRef.current;
@@ -1092,6 +1144,105 @@ export function ChatInterface({
                 </button>
               )}
             </form>
+          </div>
+
+          {/* ── メモ（インライン展開） ── */}
+          <div className={`max-w-2xl mx-auto w-full px-4 pt-2 pb-1${isRecording ? " pointer-events-none opacity-40" : ""}`}>
+            <button
+              type="button"
+              disabled={isRecording}
+              onClick={() => setMemoOpen((v) => !v)}
+              className="flex items-center gap-1.5 text-[11px] text-[#8A8276]/50 hover:text-[#8A8276]/80 transition-colors"
+              aria-expanded={memoOpen}
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+              メモ
+              {memos.length > 0 && (
+                <span className="text-[10px] text-[#8A8276]/35">{memos.length}</span>
+              )}
+              <svg
+                width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                className="flex-shrink-0 transition-transform duration-200"
+                style={{ transform: memoOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+
+            {/* メモパネル */}
+            <div
+              className="overflow-hidden"
+              style={{
+                maxHeight: memoOpen ? "600px" : "0px",
+                opacity: memoOpen ? 1 : 0,
+                transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
+              }}
+            >
+              <div className="mt-2.5 rounded-xl border border-white/[0.06] px-4 py-3" style={{ background: "rgba(255,255,255,0.02)" }}>
+                {/* 新規メモ入力（ReadOnly 時は非表示） */}
+                {!isReadOnly && (
+                  <div className="mb-3">
+                    <textarea
+                      value={memoInput}
+                      onChange={(e) => setMemoInput(e.target.value.slice(0, 2000))}
+                      placeholder="メモを入力..."
+                      rows={2}
+                      className="w-full resize-none bg-white/[0.03] border border-white/[0.07] focus:border-white/[0.15] rounded-lg px-3 py-2 text-[12px] text-[#E8E3D8]/80 placeholder-white/25 leading-relaxed focus:outline-none transition-colors"
+                    />
+                    <div className="flex items-center justify-between mt-1.5">
+                      <span className="text-[9px] text-[#8A8276]/30 font-mono">{memoInput.length}/2000</span>
+                      <button
+                        type="button"
+                        disabled={!memoInput.trim() || memoSaving}
+                        onClick={handleAddMemo}
+                        className="px-3 py-1 rounded-md text-[11px] font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-white/[0.06] text-[#E8E3D8]/70 hover:bg-white/[0.10] hover:text-[#E8E3D8]"
+                      >
+                        {memoSaving ? "保存中..." : "保存"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* メモ一覧 */}
+                {memos.length === 0 ? (
+                  <p className="text-[11px] text-[#8A8276]/35 text-center py-2">メモはまだありません</p>
+                ) : (
+                  <div className="space-y-2 max-h-[350px] overflow-y-auto">
+                    {memos.map((memo) => (
+                      <div
+                        key={memo.id}
+                        className="group rounded-lg px-3 py-2.5 border border-white/[0.04] hover:border-white/[0.08] transition-colors"
+                        style={{ background: "rgba(255,255,255,0.015)" }}
+                      >
+                        <p className="text-[12px] text-[#E8E3D8]/70 leading-relaxed whitespace-pre-wrap break-words">{memo.content}</p>
+                        <div className="flex items-center justify-between mt-1.5">
+                          <span className="text-[9px] text-[#8A8276]/35 font-mono">{formatRelativeTime(memo.createdAt)}</span>
+                          {!isReadOnly && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteMemo(memo.id)}
+                              disabled={memoDeleting === memo.id}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400/40 hover:text-red-400/70 disabled:opacity-20"
+                              aria-label="メモを削除"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* 2. ヒントアコーディオン（今日の投稿が0件のときのみ表示） */}

@@ -34,6 +34,7 @@ model User {
   coachMessages  CoachMessage[]
   alterLogs      AlterLog[]
   scanResults    ScanResult[]
+  memos          Memo[]
 
   @@map("users")
 }
@@ -230,4 +231,19 @@ model ScanResult {
 
   @@unique([userId, date])
   @@map("scan_results")
+}
+
+// ============================================================
+// メモ（ジャーナルとは独立、AI分析対象外）
+// ============================================================
+model Memo {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content String @db.Text
+
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt     @db.Timestamptz
+
+  @@map("memos")
 }
