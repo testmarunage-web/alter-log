@@ -126,7 +126,8 @@ export default async function ChatPage({
     }
   }
 
-  const hasVision = !!(user.vision?.trim());
+  const visionCount = await prisma.vision.count({ where: { userId: user.id } });
+  const hasVision = visionCount > 0;
   const hasNeverScanned = user.lastDashboardScanAt === null;
   const hasFeedbackStyle = !!user.feedbackStyle;
 

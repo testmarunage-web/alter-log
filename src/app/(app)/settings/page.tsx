@@ -22,12 +22,22 @@ export default async function SettingsPage() {
     prisma.user.findUnique({
       where: { clerkId: userId },
       select: {
+        id: true,
         vision: true,
         feedbackStyle: true,
         subscription: { select: { status: true, currentPeriodEnd: true } },
       },
     }),
   ]);
+
+  // ビジョン一覧を取得
+  const visions = dbUser
+    ? await prisma.vision.findMany({
+        where: { userId: dbUser.id },
+        orderBy: { sortOrder: "asc" },
+        select: { id: true, label: true, content: true },
+      })
+    : [];
 
   const email = clerkUser?.emailAddresses?.[0]?.emailAddress ?? null;
   const sub = dbUser?.subscription;
@@ -46,7 +56,7 @@ export default async function SettingsPage() {
 
         {/* マイビジョン */}
         <VisionSection
-          initialVision={dbUser?.vision ?? null}
+          initialVisions={visions}
           isReadOnly={isReadOnly}
         />
 

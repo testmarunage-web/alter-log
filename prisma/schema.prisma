@@ -36,6 +36,7 @@ model User {
   alterLogs      AlterLog[]
   scanResults    ScanResult[]
   memos          Memo[]
+  visions        Vision[]
 
   @@map("users")
 }
@@ -252,4 +253,22 @@ model Memo {
   updatedAt DateTime @updatedAt     @db.Timestamptz
 
   @@map("memos")
+}
+
+// ============================================================
+// ビジョン（マイビジョンの複数管理、最大5つ）
+// ============================================================
+model Vision {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  label     String           // ユーザーが付けるラベル（例：「長期ビジョン」）
+  content   String @db.Text  // ビジョンの内容
+  sortOrder Int    @default(0)
+
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt     @db.Timestamptz
+
+  @@map("visions")
 }

@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { alterLogSchema, type AlterLogInsights } from "./alterLogSchema";
 import { getBasicStancePrompt, getDailyNoteStancePrompt } from "@/lib/feedbackStylePrompt";
+import { buildVisionBlock } from "@/lib/visionUtils";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 共通ユーティリティ
@@ -207,9 +208,7 @@ export async function processAlterLogForUser(clerkId: string): Promise<void> {
   // ログを1つのコンテキスト文字列に結合
   const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n");
 
-  const visionBlock = user.vision?.trim()
-    ? `\n\n【参考情報】\n以下はこのユーザー自身が入力した価値観・目標である。観察の補助的参考情報として使用すること。ただし分析の主体はジャーナルの内容であり、visionはあくまで参考に留めること。\n${user.vision.trim()}`
-    : "";
+  const visionBlock = await buildVisionBlock(user.id, "daily");
 
   // daily_noteのみを生成（generateText）
   let dailyNote: string;
@@ -267,9 +266,7 @@ export async function generateDashboardScan(): Promise<{ insights: AlterLogInsig
     ? "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n")
     : "（入力データなし）";
 
-  const visionBlock = user.vision?.trim()
-    ? `\n\n【参考情報：ユーザーのビジョン・目標】\n以下はこのユーザー自身が入力した価値観・目標です。ジャーナルの分析において、このビジョンとの関連性や一致・乖離があれば積極的に言及してください。ただし、主たる分析対象はジャーナルの内容です。\n${user.vision.trim()}`
-    : "";
+  const visionBlock = await buildVisionBlock(user.id, "scan");
 
   const prompt = `以下のログを構造解析し、指定のJSON形式でレポートを生成せよ。
 
@@ -411,9 +408,7 @@ export async function generateForDate(userId: string, targetDate: Date, vision?:
 
   const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n");
 
-  const visionBlock = vision?.trim()
-    ? `\n\n【参考情報】\n以下はこのユーザー自身が入力した価値観・目標である。観察の補助的参考情報として使用すること。ただし分析の主体はジャーナルの内容であり、visionはあくまで参考に留めること。\n${vision.trim()}`
-    : "";
+  const visionBlock = await buildVisionBlock(userId, "daily");
 
   // daily_noteのみを生成（generateText）
   let dailyNote: string;

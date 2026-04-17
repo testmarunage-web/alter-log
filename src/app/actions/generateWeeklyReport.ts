@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { getWeekBoundsFromMonday } from "@/lib/weekUtils";
 import { getWeeklyReportStancePrompt } from "@/lib/feedbackStylePrompt";
+import { buildVisionBlock } from "@/lib/visionUtils";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 週次レポートスキーマ
@@ -143,7 +144,7 @@ export async function processWeeklyReportForUser(
   });
 
   // ユーザーのビジョン
-  const vision = user.vision?.trim() || null;
+  const visionText = await buildVisionBlock(user.id, "weekly");
 
   // プロンプト構築
   const journalText = journals
@@ -176,7 +177,7 @@ ${getWeeklyReportStancePrompt(user.feedbackStyle)}
 - 事実に基づいて分析すること。推測は最小限に。
 - ユーザーの思考パターンの変化や傾向を捉えること。
 - 「いいね」「頑張ってるね」のような安易な肯定は不要。具体的な観察を。
-${vision ? `- ユーザーの「マイビジョン」: ${vision}\n  ビジョンとの一致・乖離がある場合は言及すること。` : ""}
+${visionText ? `- ユーザーのビジョン・目標:\n${visionText}\n  ビジョンとの一致・乖離がある場合は言及すること。` : ""}
 ${prevReport ? `- 先週のレポートとの比較で変化を記述すること。` : "- これが最初のレポートなので、比較対象はなし。現状の分析に集中すること。"}
 
 ## 出力フォーマット

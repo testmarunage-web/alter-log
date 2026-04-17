@@ -1376,42 +1376,45 @@ export function ChatInterface({
           </div>
         )}
 
-        {/* カレンダー（入力エリア直下、ジャーナルが1件以上ある場合に表示） */}
-        {journalDates.length > 0 && (
-          <div className={`flex-none max-w-2xl mx-auto w-full px-4 py-3 border-t border-white/[0.04]${isRecording ? " pointer-events-none opacity-40" : ""}`}>
-            <DailyCalendar markedDates={journalDates} from="journal" />
-          </div>
-        )}
+        {/* 3. カレンダー＋過去ジャーナル（一体スクロール） */}
+        <div ref={journalListRef} className="flex-1 overflow-y-auto min-h-0">
+          {/* カレンダー */}
+          {journalDates.length > 0 && (
+            <div className={`max-w-2xl mx-auto w-full px-4 py-3 border-t border-white/[0.04]${isRecording ? " pointer-events-none opacity-40" : ""}`}>
+              <DailyCalendar markedDates={journalDates} from="journal" />
+            </div>
+          )}
 
-        {/* 3. 過去のジャーナルログ（タイムライン・flex-1 スクロール可能） */}
-        {journalMessages.length > 0 && (
-          <div ref={journalListRef} className="flex-1 overflow-y-auto border-t border-white/[0.04] min-h-0">
-            <div className="max-w-2xl mx-auto px-4 py-4">
-              <p className="text-[11px] text-[#8A8276]/70 font-mono tracking-widest uppercase mb-4">過去のジャーナル</p>
-              <div className="relative">
-                {/* 縦線 */}
-                <div className="absolute left-[5px] top-1 bottom-0 w-px bg-gradient-to-b from-[#C4A35A]/30 via-[#C4A35A]/12 to-transparent" />
-                <div className="space-y-6 pl-5">
-                  {[...journalMessages].reverse().map((m) => (
-                    <div key={m.id} className="relative">
-                      {/* ドット */}
-                      <span className="absolute -left-[22px] top-[5px] w-2.5 h-2.5 rounded-full bg-[#0B0E13] border border-[#C4A35A]/45" />
-                      <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <p className="text-[12px] text-[#8A8276]/90 font-mono font-semibold tracking-wide">
-                          {formatDateTime(m.createdAt)}
+          {/* 過去のジャーナルログ（タイムライン） */}
+          {journalMessages.length > 0 && (
+            <div className="border-t border-white/[0.04]">
+              <div className="max-w-2xl mx-auto px-4 py-4">
+                <p className="text-[11px] text-[#8A8276]/70 font-mono tracking-widest uppercase mb-4">過去のジャーナル</p>
+                <div className="relative">
+                  {/* 縦線 */}
+                  <div className="absolute left-[5px] top-1 bottom-0 w-px bg-gradient-to-b from-[#C4A35A]/30 via-[#C4A35A]/12 to-transparent" />
+                  <div className="space-y-6 pl-5">
+                    {[...journalMessages].reverse().map((m) => (
+                      <div key={m.id} className="relative">
+                        {/* ドット */}
+                        <span className="absolute -left-[22px] top-[5px] w-2.5 h-2.5 rounded-full bg-[#0B0E13] border border-[#C4A35A]/45" />
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <p className="text-[12px] text-[#8A8276]/90 font-mono font-semibold tracking-wide">
+                            {formatDateTime(m.createdAt)}
+                          </p>
+                          <CopyButton text={m.content} />
+                        </div>
+                        <p className="text-sm text-[#E8E3D8]/90 leading-relaxed whitespace-pre-wrap">
+                          {m.content}
                         </p>
-                        <CopyButton text={m.content} />
                       </div>
-                      <p className="text-sm text-[#E8E3D8]/90 leading-relaxed whitespace-pre-wrap">
-                        {m.content}
-                      </p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
 
       {/* ── ウェルカムモーダル（初回のみ） ── */}
