@@ -4,6 +4,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { getWeekBoundsFromMonday } from "@/lib/weekUtils";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 週次レポートスキーマ
@@ -55,23 +56,6 @@ function getPreviousWeekBounds(): { mondayStr: string; sundayStr: string; monday
   };
 }
 
-/** 任意の週（月曜日文字列）の境界を返す */
-export function getWeekBoundsFromMonday(mondayStr: string): { mondayUtc: Date; sundayEndUtc: Date; sundayStr: string } {
-  const monday = new Date(`${mondayStr}T00:00:00+09:00`);
-  const sunday = new Date(monday);
-  sunday.setDate(sunday.getDate() + 6);
-  const sundayJst = new Date(sunday.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-  const sundayStr = [
-    sundayJst.getFullYear(),
-    String(sundayJst.getMonth() + 1).padStart(2, "0"),
-    String(sundayJst.getDate()).padStart(2, "0"),
-  ].join("-");
-  return {
-    mondayUtc: monday,
-    sundayEndUtc: new Date(`${sundayStr}T23:59:59+09:00`),
-    sundayStr,
-  };
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1ユーザー分の週次レポート生成

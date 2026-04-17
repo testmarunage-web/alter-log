@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { processWeeklyReportForUser, getWeekBoundsFromMonday } from "@/app/actions/generateWeeklyReport";
+import { processWeeklyReportForUser } from "@/app/actions/generateWeeklyReport";
+import { getWeekBoundsFromMonday } from "@/lib/weekUtils";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
