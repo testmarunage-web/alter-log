@@ -25,6 +25,11 @@ function formatWeekRange(startStr: string, endStr: string): string {
   return `${sy}年${sm}月 第${weekNum}週（${sm}/${sd}〜${em}/${ed}）`;
 }
 
+/** マークダウン装飾（**太字**等）を除去してプレーンテキストにする */
+function stripMarkdown(text: string): string {
+  return text.replace(/\*{1,3}/g, "");
+}
+
 /** 1週分のレポート全セクションを表示するコンポーネント */
 function ReportBody({ report }: { report: ReportData }) {
   return (
@@ -32,14 +37,14 @@ function ReportBody({ report }: { report: ReportData }) {
       {/* サマリー */}
       <div>
         <p className="font-mono text-[10px] tracking-[0.15em] text-[#C4A35A]/70 uppercase font-bold mb-2">今週のサマリー</p>
-        <p className="text-[18px] font-bold text-[#E8D5A0] leading-relaxed">{report.summary}</p>
+        <p className="text-[18px] font-bold text-[#E8D5A0] leading-relaxed">{stripMarkdown(report.summary)}</p>
       </div>
 
       {/* ハイライト */}
       {report.highlights && (
         <div className="rounded-xl border border-white/[0.07] px-5 py-4" style={{ background: "rgba(255,255,255,0.018)" }}>
           <p className="font-mono text-[10px] tracking-[0.15em] text-[#C4A35A]/70 uppercase font-bold mb-2">今週のハイライト</p>
-          <div className="text-[13px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap">{report.highlights}</div>
+          <div className="text-[13px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap">{stripMarkdown(report.highlights)}</div>
         </div>
       )}
 
@@ -47,7 +52,7 @@ function ReportBody({ report }: { report: ReportData }) {
       {report.changes && (
         <div className="rounded-xl border border-white/[0.07] px-5 py-4" style={{ background: "rgba(255,255,255,0.018)" }}>
           <p className="font-mono text-[10px] tracking-[0.15em] text-[#C4A35A]/70 uppercase font-bold mb-2">先週からの変化</p>
-          <div className="text-[13px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap">{report.changes}</div>
+          <div className="text-[13px] text-[#E8E3D8]/75 leading-[1.85] whitespace-pre-wrap">{stripMarkdown(report.changes)}</div>
         </div>
       )}
 
@@ -55,7 +60,7 @@ function ReportBody({ report }: { report: ReportData }) {
       {report.observation && (
         <div className="rounded-xl border border-[#C4A35A]/12 px-5 py-4" style={{ background: "rgba(196,163,90,0.04)" }}>
           <p className="font-mono text-[10px] tracking-[0.15em] text-[#C4A35A]/70 uppercase font-bold mb-2">Alterからの観察</p>
-          <div className="text-[13px] text-[#E8E3D8]/80 leading-[1.85] whitespace-pre-wrap">{report.observation}</div>
+          <div className="text-[13px] text-[#E8E3D8]/80 leading-[1.85] whitespace-pre-wrap">{stripMarkdown(report.observation)}</div>
         </div>
       )}
     </div>
@@ -124,7 +129,7 @@ function PastReportCard({ report }: { report: ReportData }) {
       >
         <div className="min-w-0">
           <p className="text-[12px] text-[#E8E3D8]/55 font-mono">{formatWeekRange(report.weekStart, report.weekEnd)}</p>
-          <p className="text-[13px] text-[#E8E3D8]/70 mt-0.5 truncate">{report.summary}</p>
+          <p className="text-[13px] text-[#E8E3D8]/70 mt-0.5 truncate">{stripMarkdown(report.summary)}</p>
         </div>
         <svg
           width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
