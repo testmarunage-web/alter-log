@@ -1227,7 +1227,7 @@ export function ChatInterface({
                               type="button"
                               onClick={() => handleDeleteMemo(memo.id)}
                               disabled={memoDeleting === memo.id}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400/40 hover:text-red-400/70 disabled:opacity-20"
+                              className="text-red-400/40 hover:text-red-400/70 transition-colors disabled:opacity-20"
                               aria-label="メモを削除"
                             >
                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

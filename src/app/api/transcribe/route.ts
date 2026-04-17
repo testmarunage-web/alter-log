@@ -82,13 +82,13 @@ export async function POST(req: Request) {
     segments?: { no_speech_prob: number }[];
   };
 
-  // 無音ハルシネーション対策：全セグメントのno_speech_prob平均が0.8以上なら空文字を返す
-  // 実測で「実際に話している」ケースでも 0.798 まで上がることがあるため、0.9 近傍のみをフィルタ
+  // 無音ハルシネーション対策：全セグメントのno_speech_prob平均が0.5以上なら空文字を返す
+  // MIMEタイプ修正（audio/mp4優先）により誤判定が解消したため閾値を0.5に復元
   const segments = result.segments ?? [];
   if (segments.length > 0) {
     const avgNoSpeech = segments.reduce((sum, s) => sum + s.no_speech_prob, 0) / segments.length;
     console.log(`[transcribe] avg_no_speech_prob=${avgNoSpeech.toFixed(3)} segments=${segments.length}`);
-    if (avgNoSpeech >= 0.8) {
+    if (avgNoSpeech >= 0.5) {
       console.log("[transcribe] detected as no-speech, returning empty");
       return NextResponse.json({ text: "" }, { headers: NO_CACHE_HEADERS });
     }
