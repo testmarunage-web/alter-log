@@ -335,7 +335,7 @@ function VisionCard({
 
       {/* 展開コンテンツ */}
       <div className="overflow-hidden" style={{
-        maxHeight: isExpanded ? "800px" : "0px", opacity: isExpanded ? 1 : 0,
+        maxHeight: isExpanded ? "1000px" : "0px", opacity: isExpanded ? 1 : 0,
         transition: "max-height 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.2s ease",
       }}>
         <div className="px-4 pb-4 space-y-3">
@@ -352,8 +352,9 @@ function VisionCard({
           {!isReadOnly ? (
             <div>
               <textarea value={content} onChange={(e) => setContent(e.target.value.slice(0, MAX_CHARS))}
-                rows={5} placeholder="あなたの目標や大事にしていることを入力してください..."
-                className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2.5 text-[13px] text-[#E8E3D8]/85 placeholder-white/35 leading-relaxed resize-none focus:outline-none focus:border-[#C4A35A]/30 transition-colors" />
+                rows={8} placeholder="あなたの目標や大事にしていることを入力してください..."
+                className="w-full bg-transparent border border-white/[0.08] rounded-lg px-3 py-2.5 text-[13px] text-[#E8E3D8]/85 placeholder-white/35 leading-relaxed resize-none focus:outline-none focus:border-[#C4A35A]/30 transition-colors"
+                style={{ minHeight: "200px" }} />
               <div className="flex items-center justify-between mt-1">
                 <span className="text-[9px] text-[#8A8276]/30 font-mono">{content.length}/{MAX_CHARS}</span>
               </div>
