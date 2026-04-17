@@ -124,6 +124,8 @@ function VisionCard({
   const [saved, setSaved] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const labelBeforeModalRef = useRef("");
+  const contentBeforeModalRef = useRef("");
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [micError, setMicError] = useState<string | null>(null);
@@ -347,7 +349,7 @@ function VisionCard({
           {!isReadOnly ? (
             <button
               type="button"
-              onClick={() => setModalOpen(true)}
+              onClick={() => { labelBeforeModalRef.current = label; contentBeforeModalRef.current = content; setModalOpen(true); }}
               className="w-full text-left rounded-lg border border-white/[0.08] px-3 py-2.5 hover:border-white/[0.15] hover:bg-white/[0.02] transition-colors cursor-pointer"
               style={{ minHeight: "80px" }}
             >
@@ -398,7 +400,7 @@ function VisionCard({
         <div className="fixed inset-0 z-[100] bg-[#0B0E13] flex flex-col">
           {/* モーダルヘッダー */}
           <div className="flex-none flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-            <button type="button" onClick={() => setModalOpen(false)}
+            <button type="button" onClick={() => { setLabel(labelBeforeModalRef.current); setContent(contentBeforeModalRef.current); setModalOpen(false); }}
               className="text-[#8A8276] hover:text-[#E8E3D8] transition-colors text-[13px]">
               キャンセル
             </button>
