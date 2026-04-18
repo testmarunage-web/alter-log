@@ -11,6 +11,8 @@ import { revalidatePath } from "next/cache";
 import { alterLogSchema, type AlterLogInsights } from "./alterLogSchema";
 import { getBasicStancePrompt, getDailyNoteStancePrompt } from "@/lib/feedbackStylePrompt";
 import { buildVisionBlock } from "@/lib/visionUtils";
+import { wrapJournal, USER_INPUT_SAFETY_NOTICE } from "@/lib/promptSanitize";
+import { checkAndIncrementRateLimit, SCAN_DAILY_LIMIT } from "@/lib/rateLimit";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 共通ユーティリティ
@@ -126,7 +128,7 @@ ${getBasicStancePrompt(feedbackStyle)}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ■ 情報不足の判定
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-入力が「テスト」「test」「テスト1」等の無意味な文字列、または構造解析に足る情報量がない場合は、is_insufficient_data を true にし、各テキスト項目には「INSUFFICIENT_DATA」とだけ出力せよ。nullable の項目は null を返せ。daily_note も「INSUFFICIENT_DATA」とする。十分な情報がある場合は is_insufficient_data を false にすること。`;
+入力が「テスト」「test」「テスト1」等の無意味な文字列、または構造解析に足る情報量がない場合は、is_insufficient_data を true にし、各テキスト項目には「INSUFFICIENT_DATA」とだけ出力せよ。nullable の項目は null を返せ。daily_note も「INSUFFICIENT_DATA」とする。十分な情報がある場合は is_insufficient_data を false にすること。${USER_INPUT_SAFETY_NOTICE}`;
 }
 
 const FALLBACK_INSIGHTS: AlterLogInsights = {
@@ -167,7 +169,7 @@ ${getDailyNoteStancePrompt(feedbackStyle)}
 ■ 情報不足の判定
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 入力が「テスト」「test」等の無意味な文字列、または構造解析に足る情報量がない場合は、「INSUFFICIENT_DATA」とだけ出力せよ。
-十分な情報がある場合は daily_note の本文のみを出力する。余計なテキスト・前置き・JSONは不要。`;
+十分な情報がある場合は daily_note の本文のみを出力する。余計なテキスト・前置き・JSONは不要。${USER_INPUT_SAFETY_NOTICE}`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -209,7 +211,7 @@ export async function processAlterLogForUser(clerkId: string): Promise<void> {
   if (existing) return;
 
   // ログを1つのコンテキスト文字列に結合
-  const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n");
+  const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => wrapJournal(j.content)).join("\n");
 
   const visionBlock = await buildVisionBlock(user.id, "daily");
 
@@ -256,6 +258,12 @@ export async function generateDashboardScan(): Promise<{ insights: AlterLogInsig
     select: { id: true, vision: true, feedbackStyle: true, lastDashboardScanAt: true },
   });
 
+  // レート制限（1日10回まで）
+  const rl = await checkAndIncrementRateLimit(user.id, "scan");
+  if (!rl.ok) {
+    throw new Error(`本日のSCAN利用上限（${SCAN_DAILY_LIMIT}回/日）に達しました。明日以降にお試しください。`);
+  }
+
   const since = new Date();
   since.setDate(since.getDate() - 3);
 
@@ -266,7 +274,7 @@ export async function generateDashboardScan(): Promise<{ insights: AlterLogInsig
 
   const hasData = journals.length > 0;
   const context = hasData
-    ? "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n")
+    ? "【ジャーナルエントリー】\n" + journals.map((j) => wrapJournal(j.content)).join("\n")
     : "（入力データなし）";
 
   const visionBlock = await buildVisionBlock(user.id, "scan");
@@ -409,7 +417,7 @@ export async function generateForDate(userId: string, targetDate: Date, vision?:
     return "no_journals";
   }
 
-  const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => `- ${j.content}`).join("\n");
+  const journalBlock = "【ジャーナルエントリー】\n" + journals.map((j) => wrapJournal(j.content)).join("\n");
 
   const visionBlock = await buildVisionBlock(userId, "daily");
 

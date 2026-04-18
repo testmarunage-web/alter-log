@@ -1,5 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { checkAndIncrementRateLimit } from "@/lib/rateLimit";
 
 export const dynamic = "force-dynamic";
 // Whisper API は最大 25MB。5分音声の変換に最大60秒程度かかるため300秒に設定
@@ -22,6 +24,19 @@ export async function POST(req: Request) {
   if (!process.env.OPENAI_API_KEY) {
     console.error("[transcribe] OPENAI_API_KEY is not set");
     return NextResponse.json({ error: "OPENAI_API_KEY not configured" }, { status: 500, headers: NO_CACHE_HEADERS });
+  }
+
+  // レート制限（1日30回まで）
+  const dbUser = await prisma.user.findUnique({ where: { clerkId: userId }, select: { id: true } });
+  if (!dbUser) {
+    return NextResponse.json({ error: "User not found" }, { status: 404, headers: NO_CACHE_HEADERS });
+  }
+  const rl = await checkAndIncrementRateLimit(dbUser.id, "transcribe");
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "rate_limited", message: `本日の利用上限（${rl.limit}回/日）に達しました。明日以降にお試しください。` },
+      { status: 429, headers: NO_CACHE_HEADERS },
+    );
   }
 
   let formData: FormData;

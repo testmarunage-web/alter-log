@@ -100,7 +100,7 @@ export async function PUT(req: Request) {
 
   // users.vision も同期更新（後方互換：最初のビジョンを users.vision にも反映）
   const updated = await prisma.vision.update({
-    where: { id: body.id },
+    where: { id: body.id, userId: user.id },
     data: { label, content },
     select: { id: true, label: true, content: true, sortOrder: true },
   });
@@ -133,7 +133,7 @@ export async function DELETE(req: Request) {
   const existing = await prisma.vision.findFirst({ where: { id, userId: user.id } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  await prisma.vision.delete({ where: { id } });
+  await prisma.vision.delete({ where: { id, userId: user.id } });
 
   return NextResponse.json({ ok: true });
 }

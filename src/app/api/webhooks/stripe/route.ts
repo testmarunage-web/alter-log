@@ -48,6 +48,16 @@ export async function POST(req: Request) {
 
   log(`[stripe webhook] received event=${event.type} id=${event.id} t=+${Date.now() - webhookStart}ms`);
 
+  // 冪等性チェック：既に処理済みの event.id であればスキップ
+  const alreadyProcessed = await prisma.processedStripeEvent.findUnique({
+    where: { id: event.id },
+    select: { id: true },
+  });
+  if (alreadyProcessed) {
+    log(`[stripe webhook] already processed event=${event.id}, skipping`);
+    return NextResponse.json({ received: true, skipped: true });
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed": {
@@ -330,7 +340,23 @@ export async function POST(req: Request) {
     const message = err instanceof Error ? err.message : String(err);
     const stack = err instanceof Error ? err.stack : undefined;
     console.error(`[stripe webhook] event handling error (${event.type}):`, { message, stack });
+    // エラー時は processed を記録しない → Stripe 側でリトライされた際に再処理される
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+
+  // 処理成功 → event.id を記録（以降の重複リトライを無視するため）
+  try {
+    await prisma.processedStripeEvent.create({ data: { id: event.id } });
+  } catch {
+    // 競合（Stripe の並列リトライ等）による unique 違反は無視
+  }
+
+  // 定期的に古いレコード（30日以上前）を削除（ベストエフォート）
+  if (Math.random() < 0.01) {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    prisma.processedStripeEvent
+      .deleteMany({ where: { processedAt: { lt: thirtyDaysAgo } } })
+      .catch(() => {});
   }
 
   return NextResponse.json({ received: true });

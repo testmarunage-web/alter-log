@@ -23,6 +23,12 @@ model User {
 
   lastDashboardScanAt DateTime? // SCANボタン最終実行日時
 
+  // レート制限（日次カウンタ。日付が変われば自動リセット）
+  lastTranscribeAt DateTime?
+  transcribeCount  Int       @default(0)
+  lastScanAt       DateTime?
+  scanCount        Int       @default(0)
+
   createdAt DateTime @default(now()) @db.Timestamptz
   updatedAt DateTime @updatedAt     @db.Timestamptz
 
@@ -271,4 +277,15 @@ model Vision {
   updatedAt DateTime @updatedAt     @db.Timestamptz
 
   @@map("visions")
+}
+
+// ============================================================
+// Stripe Webhook 冪等性トラッキング（重複イベント処理を防止）
+// ============================================================
+model ProcessedStripeEvent {
+  id          String   @id // Stripe event.id
+  processedAt DateTime @default(now()) @db.Timestamptz
+
+  @@index([processedAt])
+  @@map("processed_stripe_events")
 }

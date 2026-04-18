@@ -9,6 +9,7 @@ import { z } from "zod";
 import { getWeekBoundsFromMonday } from "@/lib/weekUtils";
 import { getWeeklyReportStancePrompt } from "@/lib/feedbackStylePrompt";
 import { buildVisionBlock } from "@/lib/visionUtils";
+import { wrapJournal, USER_INPUT_SAFETY_NOTICE } from "@/lib/promptSanitize";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 週次レポートスキーマ
@@ -152,7 +153,7 @@ export async function processWeeklyReportForUser(
   const journalText = journals
     .map((j) => {
       const d = new Date(j.createdAt.toLocaleString("en-US", { timeZone: "Asia/Tokyo" }));
-      return `[${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}]\n${j.content}`;
+      return `[${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}]\n${wrapJournal(j.content)}`;
     })
     .join("\n\n---\n\n");
 
@@ -187,7 +188,7 @@ JSON で以下のフィールドを返してください:
 - summary: 今週を一言で表す（30文字以内、キャッチーに）
 - highlights: 今週のハイライト（印象的なジャーナルの要約を2〜3点、改行区切り）
 - changes: 先週からの変化（思考パターン、感情バランス、テーマの変化を具体的に）
-- observation: Alterからの総合観察（200〜400文字。マイビジョンとの一致・乖離を含む）`;
+- observation: Alterからの総合観察（200〜400文字。マイビジョンとの一致・乖離を含む）${USER_INPUT_SAFETY_NOTICE}`;
 
   const userMessage = `## 対象期間: ${mondayStr} 〜 ${sundayStr}
 
