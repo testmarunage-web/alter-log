@@ -113,14 +113,7 @@ export default async function SettingsPage() {
 
         {/* ログアウト */}
         <div className="mt-4 border border-white/[0.05] rounded-xl overflow-hidden" style={{ background: "rgba(255,255,255,0.012)" }}>
-          <SignOutButton redirectUrl="/">
-            <button
-              type="button"
-              className="w-full px-4 py-4 text-center text-sm text-red-400/55 hover:text-red-400/75 hover:bg-white/[0.02] transition-colors"
-            >
-              ログアウト
-            </button>
-          </SignOutButton>
+          <SignOutButton redirectUrl="/"><button type="button" className="w-full px-4 py-4 text-center text-sm text-red-400/55 hover:text-red-400/75 hover:bg-white/[0.02] transition-colors">ログアウト</button></SignOutButton>
         </div>
 
         {/* アカウント削除案内 */}
