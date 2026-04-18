@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRef, useCallback, useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { generateDashboardScan } from "@/app/actions/generateAlterLog";
+import { generateDashboardScan } from "@/app/actions/dashboardScan";
 import { useReadOnly } from "../../_components/ReadOnlyProvider";
 import type { AlterLogInsights } from "@/app/actions/alterLogSchema";
 import { AlterIcon } from "../../_components/AlterIcon";

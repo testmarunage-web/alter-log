@@ -1,4 +1,6 @@
-"use server";
+// NOTE: このファイルは "use server" を持たない通常のサーバーサイドモジュールです。
+// processWeeklyReportForUser は Cron/repair エンドポイントからのみ呼び出され、
+// ブラウザから直接 RPC 呼び出しされないことを保証します。
 
 import { anthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";

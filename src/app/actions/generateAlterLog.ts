@@ -1,4 +1,7 @@
-"use server";
+// NOTE: このファイルは "use server" を持たない通常のサーバーサイドモジュールです。
+// Cron/API ルートから安全に呼び出すためのコアロジックを格納しており、
+// ブラウザから直接 RPC 呼び出しされないことを保証します。
+// クライアントから呼び出すべき関数は src/app/actions/dashboardScan.ts にラッパーを用意してください。
 
 import { auth } from "@clerk/nextjs/server";
 import { anthropic } from "@ai-sdk/anthropic";

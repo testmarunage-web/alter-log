@@ -4,10 +4,10 @@
  * stripePriceId または currentPeriodEnd が NULL のサブスクリプション行を
  * Stripe API から取得した情報で補完する修復エンドポイント。
  *
- * 本番環境でのみ有効。ADMIN_SECRET ヘッダーによる認証が必要。
+ * 本番環境でのみ有効。CRON_SECRET による Bearer 認証が必要（他の cron エンドポイントと統一）。
  * 使用例:
  *   curl -X POST https://www.alter-log.com/api/admin/repair-subscriptions \
- *     -H "x-admin-secret: <ADMIN_SECRET>" \
+ *     -H "Authorization: Bearer <CRON_SECRET>" \
  *     -H "Content-Type: application/json"
  */
 import { NextResponse } from "next/server";
@@ -21,9 +21,13 @@ function toPeriodEnd(unixSec: number | null | undefined): Date | null {
 }
 
 export async function POST(req: Request) {
-  // シークレットキー認証
-  const secret = req.headers.get("x-admin-secret");
-  if (!process.env.ADMIN_SECRET || secret !== process.env.ADMIN_SECRET) {
+  // CRON_SECRET による Bearer 認証（他の cron エンドポイントと統一）
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) {
+    console.error("[repair-subscriptions] CRON_SECRET env var is not set");
+    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
+  }
+  if (req.headers.get("authorization") !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
