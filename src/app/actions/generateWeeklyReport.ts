@@ -3,7 +3,7 @@
 // ブラウザから直接 RPC 呼び出しされないことを保証します。
 
 import { anthropic } from "@ai-sdk/anthropic";
-import { generateObject } from "ai";
+import { generateObject, NoObjectGeneratedError } from "ai";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { getWeekBoundsFromMonday } from "@/lib/weekUtils";
@@ -205,15 +205,48 @@ ${prevReport ? `## 先週のレポート
 - 変化: ${prevReport.changes || "(なし)"}
 - 観察: ${prevReport.observation || "(なし)"}` : ""}`;
 
-  const result = await generateObject({
-    model: anthropic("claude-sonnet-4-5"),
-    schema: weeklyReportSchema,
-    system: systemPrompt,
-    prompt: userMessage,
-    maxTokens: 2048,
-  });
+  // $PARAMETER_NAME ラップ救済付きで generateObject を実行
+  let report: z.infer<typeof weeklyReportSchema>;
+  try {
+    const result = await generateObject({
+      model: anthropic("claude-sonnet-4-5"),
+      schema: weeklyReportSchema,
+      system: systemPrompt,
+      prompt: userMessage,
+      maxTokens: 2048,
+    });
+    report = result.object;
+  } catch (err) {
+    console.error(`${prefix} generateObject failed — attempting unwrap:`, err);
 
-  const report = result.object;
+    // $PARAMETER_NAME ラップ救済：raw text を取り出してアンラップを試みる
+    if (NoObjectGeneratedError.isInstance(err) && err.text) {
+      try {
+        const raw = JSON.parse(err.text);
+        // {"$PARAMETER_NAME": {...}} 形式の場合、最初の値を取り出す
+        const unwrapped =
+          raw !== null && typeof raw === "object" && !Array.isArray(raw)
+            ? Object.keys(raw).find((k) => k.startsWith("$"))
+              ? raw[Object.keys(raw).find((k) => k.startsWith("$"))!]
+              : raw
+            : raw;
+        const parsed = weeklyReportSchema.safeParse(unwrapped);
+        if (parsed.success) {
+          console.log(`${prefix} unwrap succeeded — using parsed data`);
+          report = parsed.data;
+        } else {
+          console.error(`${prefix} unwrap parse failed:`, parsed.error);
+          throw err;
+        }
+      } catch (parseErr) {
+        console.error(`${prefix} unwrap JSON.parse failed:`, parseErr);
+        throw err;
+      }
+    } else {
+      throw err;
+    }
+  }
+
   console.log(`${prefix} generated: summary="${report.summary}"`);
 
   // DB upsert
