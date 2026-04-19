@@ -19,8 +19,11 @@ async function sendDiscordAlert(message: string): Promise<void> {
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-const CONCURRENCY = 5;
-const WAIT_MS = 5000;
+// 処理時間短縮のための調整:
+// - 40人/group で 300秒タイムアウトしたため、並列数を増やし・待機時間を短縮
+// - 6並列 × 3秒待機で概ね200秒以内に収まる想定（40〜50人規模）
+const CONCURRENCY = 6;
+const WAIT_MS = 3000;
 
 /**
  * clerkIds 配列をソートした上で、インデックスの偶奇でグループに分割する。
