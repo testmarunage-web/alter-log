@@ -22,9 +22,14 @@ export const maxDuration = 300;
 const CONCURRENCY = 5;
 const WAIT_MS = 5000;
 
-function getGroup(clerkId: string): 0 | 1 {
-  const sum = [...clerkId].reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  return (sum % 2) as 0 | 1;
+/**
+ * clerkIds 配列をソートした上で、インデックスの偶奇でグループに分割する。
+ * 文字コード和ベースの旧方式は clerkId の実際の分布に偏りがあり不均等になっていたため、
+ * 全体を取得→ソート→index ベースで分けることで常に ±1 人以内の均等分割を保証する。
+ */
+function filterByGroup(clerkIds: string[], group: 0 | 1): string[] {
+  const sorted = [...clerkIds].sort();
+  return sorted.filter((_, i) => (i % 2) === group);
 }
 
 async function runConcurrent(
@@ -99,7 +104,7 @@ export async function GET(req: Request) {
     let clerkIds = [...new Set(journalUsers.map((e) => e.user.clerkId))];
 
     if (group !== null) {
-      clerkIds = clerkIds.filter((id) => getGroup(id) === group);
+      clerkIds = filterByGroup(clerkIds, group);
     }
 
     const prefix = group !== null ? `[weekly:g${group}]` : "[weekly]";

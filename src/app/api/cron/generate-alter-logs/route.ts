@@ -24,12 +24,13 @@ const CONCURRENCY = 5;
 const WAIT_MS = 5000; // 5秒（グループ分割により各グループ100人以下）
 
 /**
- * clerkId の文字コード合計の偶奇でグループを判定する（0 or 1）。
- * Clerk IDはランダムな英数字なので均等に分布する。
+ * clerkIds 配列をソートした上で、インデックスの偶奇でグループに分割する。
+ * 文字コード和ベースの旧方式は clerkId の実際の分布に偏りがあり不均等になっていたため、
+ * 全体を取得→ソート→index ベースで分けることで常に ±1 人以内の均等分割を保証する。
  */
-function getGroup(clerkId: string): 0 | 1 {
-  const sum = [...clerkId].reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  return (sum % 2) as 0 | 1;
+function filterByGroup(clerkIds: string[], group: 0 | 1): string[] {
+  const sorted = [...clerkIds].sort();
+  return sorted.filter((_, i) => (i % 2) === group);
 }
 
 /** clerkIds を CONCURRENCY 件ずつ並列処理して全結果を返す */
@@ -100,7 +101,7 @@ export async function GET(req: Request) {
 
     // group 指定がある場合は偶奇でフィルタ
     if (group !== null) {
-      clerkIds = clerkIds.filter((id) => getGroup(id) === group);
+      clerkIds = filterByGroup(clerkIds, group);
     }
 
     const prefix = group !== null ? `[cron:g${group}]` : "[cron]";
