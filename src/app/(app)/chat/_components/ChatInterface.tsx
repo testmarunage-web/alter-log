@@ -1222,15 +1222,19 @@ export function ChatInterface({
             <div
               className="overflow-hidden"
               style={{
-                maxHeight: memoOpen ? "600px" : "0px",
+                maxHeight: memoOpen ? "640px" : "0px",
                 opacity: memoOpen ? 1 : 0,
                 transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
               }}
             >
-              <div className="mt-2.5 rounded-xl border border-white/[0.06] px-4 py-3" style={{ background: "rgba(255,255,255,0.02)" }}>
+              {/* flex column + 明示的な maxHeight でメモ一覧のスクロール領域を確保 */}
+              <div
+                className="mt-2.5 rounded-xl border border-white/[0.06] px-4 py-3 flex flex-col"
+                style={{ background: "rgba(255,255,255,0.02)", maxHeight: "620px" }}
+              >
                 {/* 新規メモ入力（ReadOnly 時は非表示） */}
                 {!isReadOnly && (
-                  <div className="mb-3">
+                  <div className="flex-none mb-3">
                     <textarea
                       value={memoInput}
                       onChange={(e) => setMemoInput(e.target.value.slice(0, 2000))}
@@ -1252,11 +1256,14 @@ export function ChatInterface({
                   </div>
                 )}
 
-                {/* メモ一覧 */}
+                {/* メモ一覧（flex-1 + min-h-0 で残り全領域を確保しつつスクロール） */}
                 {memos.length === 0 ? (
-                  <p className="text-[11px] text-[#8A8276]/35 text-center py-2">メモはまだありません</p>
+                  <p className="text-[11px] text-[#8A8276]/35 text-center py-2 flex-none">メモはまだありません</p>
                 ) : (
-                  <div className="space-y-2 max-h-[350px] overflow-y-auto">
+                  <div
+                    className="flex-1 min-h-0 overflow-y-auto space-y-2 overscroll-contain"
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
                     {memos.map((memo) => (
                       <div
                         key={memo.id}
