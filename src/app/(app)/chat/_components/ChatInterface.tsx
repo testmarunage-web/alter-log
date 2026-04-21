@@ -1220,10 +1220,10 @@ export function ChatInterface({
 
             {/* メモパネル */}
             <div
-              className="overflow-hidden"
               style={{
                 maxHeight: memoOpen ? "min(560px, 55svh)" : "0px",
                 opacity: memoOpen ? 1 : 0,
+                overflow: memoOpen ? "visible" : "hidden",
                 transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
               }}
             >
@@ -1261,7 +1261,12 @@ export function ChatInterface({
                 ) : (
                   <div
                     className="overflow-y-auto space-y-2 overscroll-contain"
-                    style={{ maxHeight: "min(380px, 40svh)", WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+                    style={{
+                      maxHeight: "min(420px, 45svh)",
+                      WebkitOverflowScrolling: "touch",
+                      touchAction: "pan-y",
+                      overscrollBehavior: "contain",
+                    }}
                   >
                     {memos.map((memo) => (
                       <div
