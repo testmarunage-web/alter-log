@@ -170,7 +170,8 @@ export function ChatInterface({
   const [memoInput, setMemoInput]             = useState("");
   const [memoSaving, setMemoSaving]           = useState(false);
   const [memoDeleting, setMemoDeleting]       = useState<string | null>(null); // 削除中のメモID
-  const [windowHeight, setWindowHeight]       = useState(800); // window.innerHeight（SSR safe初期値）
+  const [memoOuterMaxH, setMemoOuterMaxH]     = useState(580); // メモパネル全体の上限高さ(px)
+  const [memoListMaxH, setMemoListMaxH]       = useState(460); // メモ一覧の上限高さ(px)
   const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
   const audioChunksRef    = useRef<Blob[]>([]);
   const audioContextRef   = useRef<AudioContext | null>(null);
@@ -284,13 +285,20 @@ export function ChatInterface({
     };
   }, []);
 
-  // window.innerHeight を取得してメモパネルのmax-height計算に使用
-  // CSS dvh が特定環境で 0 扱いになる問題を回避するためJSで管理
+  // window.innerHeight でメモパネルの高さを計算（CSS dvh/calcがiOS Safariで不安定なためJSで管理）
   useEffect(() => {
-    setWindowHeight(window.innerHeight);
-    function onResize() { setWindowHeight(window.innerHeight); }
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    const update = () => {
+      const h = window.innerHeight;
+      setMemoOuterMaxH(Math.min(580, h - 200));
+      setMemoListMaxH(Math.min(460, h - 320));
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+    };
   }, []);
 
   // 音声入力ヒント（フォーカス時・3回まで）
@@ -1231,9 +1239,9 @@ export function ChatInterface({
             {/* メモパネル */}
             <div
               style={{
-                maxHeight: memoOpen ? `${Math.min(580, windowHeight - 200)}px` : "0px",
+                maxHeight: memoOpen ? `${memoOuterMaxH}px` : "0px",
                 opacity: memoOpen ? 1 : 0,
-                overflow: "clip",
+                overflow: "hidden",
                 transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
               }}
             >
@@ -1241,8 +1249,8 @@ export function ChatInterface({
                 className="mt-2.5 rounded-xl border border-white/[0.06] px-4 py-3"
                 style={{
                   background: "rgba(255,255,255,0.02)",
-                  maxHeight: `${Math.min(580, windowHeight - 200)}px`,
-                  overflow: "clip",
+                  maxHeight: `${memoOuterMaxH}px`,
+                  overflow: "hidden",
                 }}
               >
                 {/* 新規メモ入力（ReadOnly 時は非表示） */}
@@ -1276,7 +1284,7 @@ export function ChatInterface({
                   <div
                     className="overflow-y-auto space-y-2 overscroll-contain"
                     style={{
-                      maxHeight: `${Math.min(460, windowHeight - 320)}px`,
+                      maxHeight: `${memoListMaxH}px`,
                       WebkitOverflowScrolling: "touch",
                       touchAction: "pan-y",
                       overscrollBehavior: "contain",
