@@ -1229,7 +1229,11 @@ export function ChatInterface({
             >
               <div
                 className="mt-2.5 rounded-xl border border-white/[0.06] px-4 py-3"
-                style={{ background: "rgba(255,255,255,0.02)" }}
+                style={{
+                  background: "rgba(255,255,255,0.02)",
+                  maxHeight: "min(580px, calc(100dvh - 200px))",
+                  overflow: "clip",
+                }}
               >
                 {/* 新規メモ入力（ReadOnly 時は非表示） */}
                 {!isReadOnly && (
@@ -1262,7 +1266,7 @@ export function ChatInterface({
                   <div
                     className="overflow-y-auto space-y-2 overscroll-contain"
                     style={{
-                      maxHeight: "min(420px, 45svh)",
+                      maxHeight: "min(460px, calc(100dvh - 320px))",
                       WebkitOverflowScrolling: "touch",
                       touchAction: "pan-y",
                       overscrollBehavior: "contain",
