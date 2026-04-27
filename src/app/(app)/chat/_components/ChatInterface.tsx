@@ -1221,9 +1221,9 @@ export function ChatInterface({
             {/* メモパネル */}
             <div
               style={{
-                maxHeight: memoOpen ? "min(560px, 55svh)" : "0px",
+                maxHeight: memoOpen ? "min(580px, calc(100dvh - 200px))" : "0px",
                 opacity: memoOpen ? 1 : 0,
-                overflow: memoOpen ? "visible" : "hidden",
+                overflow: "clip",
                 transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
               }}
             >
