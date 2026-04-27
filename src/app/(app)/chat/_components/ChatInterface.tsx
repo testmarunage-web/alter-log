@@ -170,6 +170,7 @@ export function ChatInterface({
   const [memoInput, setMemoInput]             = useState("");
   const [memoSaving, setMemoSaving]           = useState(false);
   const [memoDeleting, setMemoDeleting]       = useState<string | null>(null); // 削除中のメモID
+  const [windowHeight, setWindowHeight]       = useState(800); // window.innerHeight（SSR safe初期値）
   const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
   const audioChunksRef    = useRef<Blob[]>([]);
   const audioContextRef   = useRef<AudioContext | null>(null);
@@ -281,6 +282,15 @@ export function ChatInterface({
         visibilityHandlerRef.current = null;
       }
     };
+  }, []);
+
+  // window.innerHeight を取得してメモパネルのmax-height計算に使用
+  // CSS dvh が特定環境で 0 扱いになる問題を回避するためJSで管理
+  useEffect(() => {
+    setWindowHeight(window.innerHeight);
+    function onResize() { setWindowHeight(window.innerHeight); }
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   // 音声入力ヒント（フォーカス時・3回まで）
@@ -1221,7 +1231,7 @@ export function ChatInterface({
             {/* メモパネル */}
             <div
               style={{
-                maxHeight: memoOpen ? "min(580px, calc(100dvh - 200px))" : "0px",
+                maxHeight: memoOpen ? `${Math.min(580, windowHeight - 200)}px` : "0px",
                 opacity: memoOpen ? 1 : 0,
                 overflow: "clip",
                 transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease",
@@ -1231,7 +1241,7 @@ export function ChatInterface({
                 className="mt-2.5 rounded-xl border border-white/[0.06] px-4 py-3"
                 style={{
                   background: "rgba(255,255,255,0.02)",
-                  maxHeight: "min(580px, calc(100dvh - 200px))",
+                  maxHeight: `${Math.min(580, windowHeight - 200)}px`,
                   overflow: "clip",
                 }}
               >
@@ -1266,7 +1276,7 @@ export function ChatInterface({
                   <div
                     className="overflow-y-auto space-y-2 overscroll-contain"
                     style={{
-                      maxHeight: "min(460px, calc(100dvh - 320px))",
+                      maxHeight: `${Math.min(460, windowHeight - 320)}px`,
                       WebkitOverflowScrolling: "touch",
                       touchAction: "pan-y",
                       overscrollBehavior: "contain",
