@@ -992,7 +992,7 @@ export function ChatInterface({
           }}
         >
           {/* 1. 入力エリア＋送信ボタン */}
-          <div className="max-w-2xl mx-auto w-full px-4 pt-3 pb-2">
+          <div className="max-w-2xl mx-auto w-full px-4 pt-2 pb-2">
 
             <form onSubmit={submitJournal}>
               {/* ① マイクボタン（主役・常に固定サイズ） */}
@@ -1105,7 +1105,7 @@ export function ChatInterface({
               )}
 
               {/* 区切り */}
-              <p className="text-center text-[11px] text-[#8A8276]/50 my-2.5">または</p>
+              <p className="text-center text-[11px] text-[#8A8276]/50 my-1.5">または</p>
 
               {/* テキストで入力 トグルボタン */}
               <button
@@ -1116,7 +1116,7 @@ export function ChatInterface({
                   setTextInputOpen(next);
                   if (next) setTimeout(() => textareaRef.current?.focus(), 50);
                 }}
-                className={`w-full py-3.5 rounded-2xl text-sm font-medium flex items-center justify-center gap-2.5 transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none
+                className={`w-full py-2.5 rounded-2xl text-sm font-medium flex items-center justify-center gap-2.5 transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none
                   ${textInputOpen
                     ? "border border-white/[0.10] bg-white/[0.04] text-[#E8E3D8]/80"
                     : "border border-white/[0.08] bg-transparent text-[#8A8276]/80 hover:text-[#8A8276] hover:border-white/[0.13] hover:bg-white/[0.03]"
@@ -1192,7 +1192,7 @@ export function ChatInterface({
           </div>
 
           {/* ── メモ（インライン展開） ── */}
-          <div className={`max-w-2xl mx-auto w-full px-4 pt-2 pb-1${isRecording ? " pointer-events-none opacity-40" : ""}`}>
+          <div className={`max-w-2xl mx-auto w-full px-4 pt-1 pb-1${isRecording ? " pointer-events-none opacity-40" : ""}`}>
             <button
               type="button"
               disabled={isRecording}
@@ -1234,7 +1234,7 @@ export function ChatInterface({
               >
                 {/* 新規メモ入力（ReadOnly 時は非表示） */}
                 {!isReadOnly && (
-                  <div className="flex-none mb-3">
+                  <div className="flex-none mb-2">
                     <textarea
                       value={memoInput}
                       onChange={(e) => setMemoInput(e.target.value.slice(0, 2000))}
@@ -1263,7 +1263,7 @@ export function ChatInterface({
                   <div
                     className="overflow-y-auto space-y-2 overscroll-contain"
                     style={{
-                      maxHeight: "250px",
+                      maxHeight: "200px",
                       overflowY: "auto",
                       WebkitOverflowScrolling: "touch",
                       touchAction: "pan-y",
