@@ -42,10 +42,6 @@ export async function POST() {
 
   const baseUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-  // JST 2026年4月30日までの期間限定クーポン（初月10%OFF）
-  const nowJST = new Date(Date.now() + 9 * 60 * 60 * 1000);
-  const isCouponActive = nowJST < new Date("2026-05-01T00:00:00+09:00");
-
   let session;
   try {
     session = await stripe.checkout.sessions.create({
@@ -59,7 +55,6 @@ export async function POST() {
           quantity: 1,
         },
       ],
-      ...(isCouponActive ? { discounts: [{ coupon: "FEwVN2ER" }] } : {}),
       success_url: `${baseUrl}/payment-pending`,
       cancel_url: `${baseUrl}/subscribe`,
       metadata: { clerkId: userId },

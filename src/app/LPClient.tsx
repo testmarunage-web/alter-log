@@ -65,13 +65,9 @@ function CtaBlock() {
         Alter Logを始める
       </Link>
       <div className="mt-4 text-[11px] text-[#6a6358] leading-[1.8] text-center">
-        <span>月額¥2,980 → </span>
-        <span className="text-[#C9A84C] font-semibold">初月¥2,682</span>
+        <span>月額¥2,980（税込）</span>
         <span className="mx-2 text-[#3a3632]">|</span>
         <span>7日間全額返金保証</span>
-        <p className="text-[10px] text-[#4a4438] mt-1">
-          ※初月10%OFFは4月中のお申し込み限定。次月以降は月額¥2,980。
-        </p>
         <p className="text-[10px] text-[#4a4438] mt-0.5">
           返金をご希望の場合は support@alter-log.com までご連絡ください。
         </p>
